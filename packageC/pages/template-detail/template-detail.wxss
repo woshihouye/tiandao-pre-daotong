@@ -1,0 +1,487 @@
+.container {
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+  background: var(--page-bg);
+}
+
+.hero-top {
+  display: flex;
+  gap: 18rpx;
+  align-items: center;
+}
+
+.cover {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #10b981;
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+}
+
+.kicker {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  letter-spacing: 2rpx;
+}
+
+.title {
+  margin-top: 6rpx;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.goal,
+.desc,
+.meta,
+.section-sub,
+.buff-tip {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.goal {
+  margin-top: 6rpx;
+}
+
+.desc {
+  margin-top: 16rpx;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.buff-tip {
+  margin-top: 12rpx;
+  padding: 12rpx 16rpx;
+  border-radius: 16rpx;
+  background: var(--surface-soft);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.active-tag {
+  text-align: center;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.ghost-btn {
+  padding: 12rpx 20rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.section-sub {
+  margin-top: 8rpx;
+  margin-bottom: 18rpx;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.task-item.done {
+  opacity: 0.55;
+}
+
+.task-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.task-desc {
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}
+
+.task-reward {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.task-state {
+  min-width: 72rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}
+
+.realm-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.realm-chip {
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+/* ═══════════════════════════════════════════ */
+/*  成长路径 (行业模板专属)                      */
+/* ═══════════════════════════════════════════ */
+.growth-path-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 8rpx;
+  padding-left: 4rpx;
+}
+
+.growth-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  position: relative;
+  padding-bottom: 12rpx;
+}
+
+.growth-step:last-child {
+  padding-bottom: 0;
+}
+
+.growth-step-dot {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--surface-soft);
+  border: 2rpx solid var(--border-color);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.growth-step-dot.done {
+  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.growth-step-line {
+  position: absolute;
+  left: 23rpx;
+  top: 50rpx;
+  width: 2rpx;
+  height: calc(100% - 38rpx);
+  background: var(--border-color);
+  z-index: 0;
+}
+
+.growth-step-content {
+  flex: 1;
+  min-width: 0;
+  padding-top: 6rpx;
+  padding-bottom: 8rpx;
+}
+
+.growth-step-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.growth-step-desc {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════ */
+/*  精英模板专属样式                              */
+/* ═══════════════════════════════════════════ */
+
+/* 精英页面底部留白 */
+.container.elite-page {
+  padding-bottom: 200rpx;
+}
+
+/* 精英传记 */
+.elite-bio {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  padding: 16rpx;
+  background: var(--surface-soft);
+  border-radius: 16rpx;
+  border-left: 4rpx solid var(--primary);
+}
+
+/* 阶段卡片列表 */
+.elite-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-top: 12rpx;
+}
+
+.elite-phase-card {
+  display: flex;
+  gap: 16rpx;
+  padding: 20rpx;
+  background: var(--surface-soft);
+  border-radius: 16rpx;
+  border: 1rpx solid var(--border-color);
+}
+
+.elite-phase-badge {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.elite-phase-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.elite-phase-name {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.elite-phase-desc {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* 里程碑预览 */
+.elite-phase-milestones {
+  margin-top: 12rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.elite-milestone {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 12rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8rpx;
+  font-size: 22rpx;
+}
+
+.elite-milestone-icon {
+  font-size: 22rpx;
+}
+
+.elite-milestone-name {
+  flex: 1;
+  color: var(--text-primary);
+  font-size: 22rpx;
+}
+
+.elite-milestone-reward {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 22rpx;
+}
+
+/* 核心理念 */
+.elite-principles {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+
+.elite-principle {
+  display: flex;
+  align-items: flex-start;
+  gap: 14rpx;
+  padding: 14rpx 16rpx;
+  background: var(--surface-soft);
+  border-radius: 12rpx;
+  border-left: 3rpx solid var(--primary);
+}
+
+.elite-principle-num {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.elite-principle-text {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* 每日作息表 */
+.elite-rhythm {
+  margin-top: 12rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  border: 1rpx solid var(--border-color);
+}
+
+.elite-rhythm-row {
+  display: flex;
+  align-items: center;
+  padding: 14rpx 18rpx;
+  border-bottom: 1rpx solid var(--border-color);
+  background: var(--surface-soft);
+}
+
+.elite-rhythm-row:last-child {
+  border-bottom: none;
+}
+
+.elite-rhythm-time {
+  width: 160rpx;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  font-family: monospace;
+}
+
+.elite-rhythm-task {
+  flex: 1;
+  font-size: 24rpx;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.elite-rhythm-cat {
+  font-size: 20rpx;
+  color: var(--text-secondary);
+  padding: 4rpx 12rpx;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 999rpx;
+}
+
+/* 底部固定操作栏 */
+.elite-sticky-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16rpx 32rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background: var(--page-bg);
+  border-top: 1rpx solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  z-index: 100;
+}
+
+.elite-cta-text {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.elite-action-btn {
+  width: 100%;
+  max-width: 600rpx;
+}
+
+.elite-progress-wrap {
+  width: 100%;
+  text-align: center;
+}
+
+.elite-progress-bar {
+  width: 100%;
+  height: 12rpx;
+  background: var(--surface-soft);
+  border-radius: 6rpx;
+  overflow: hidden;
+  margin-bottom: 8rpx;
+}
+
+.elite-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #10b981);
+  border-radius: 6rpx;
+  transition: width 0.3s ease;
+}
+
+.elite-progress-text {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}

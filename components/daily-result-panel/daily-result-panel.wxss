@@ -1,0 +1,164 @@
+/* 结果汇总面板 */
+.result-panel {
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.result-summary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 8px 0 12px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.summary-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.summary-value.highlight {
+  color: var(--panel-color, #EF4444);
+}
+
+.summary-label {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.summary-divider {
+  width: 1px;
+  height: 32px;
+  background: #E5E7EB;
+}
+
+/* 肌群激活 */
+.muscle-section,
+.nutrition-section {
+  border-top: 1px solid #F3F4F6;
+  padding-top: 12px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6B7280;
+  margin-bottom: 10px;
+}
+
+.muscle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.muscle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.muscle-name {
+  font-size: 12px;
+  color: #6B7280;
+  width: 56px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.muscle-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: #F3F4F6;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.muscle-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.muscle-value {
+  font-size: 11px;
+  color: #9CA3AF;
+  width: 32px;
+  flex-shrink: 0;
+}
+
+/* 营养素 */
+.macro-ring-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.macro-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.macro-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.macro-dot.protein { background-color: #EF4444; }
+.macro-dot.carbs { background-color: #F59E0B; }
+.macro-dot.fat { background-color: #8B5CF6; }
+
+.macro-label {
+  flex: 1;
+  font-size: 13px;
+  color: #374151;
+}
+
+.macro-percent {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.macro-ring {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ring-segment.protein { background-color: #EF4444; min-width: 1px; }
+.ring-segment.carbs { background-color: #F59E0B; min-width: 1px; }
+.ring-segment.fat { background-color: #8B5CF6; min-width: 1px; }
+
+/* 占位 */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 0;
+}
+
+.placeholder-icon {
+  font-size: 28px;
+}
+
+.placeholder-text {
+  font-size: 13px;
+  color: #9CA3AF;
+}

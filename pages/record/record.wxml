@@ -1,0 +1,71 @@
+<!-- pages/record/record.wxml — v2 模板驱动+双模式拖动 -->
+<view class="page-container">
+  <!-- 顶部 Tab 栏 -->
+  <view class="tab-bar">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="id"
+      class="tab-item {{activeTab === item.id ? 'active' : ''}}"
+      style="color: {{activeTab === item.id ? item.color : '#9CA3AF'}}; border-bottom-color: {{activeTab === item.id ? item.color : 'transparent'}}"
+      data-tab="{{item.id}}"
+      bindtap="onTabTap"
+    >
+      <text class="tab-text">{{item.name}}</text>
+    </view>
+  </view>
+
+  <!-- 模板选择栏 -->
+  <scroll-view class="template-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+    <view class="template-list">
+      <view
+        wx:for="{{templates}}"
+        wx:key="id"
+        class="template-chip {{currentTemplateIndex === index ? 'selected' : ''}}"
+        style="border-color: {{currentTemplateIndex === index ? activeColor : '#E5E7EB'}}; background-color: {{currentTemplateIndex === index ? activeColor + '10' : '#FFFFFF'}}"
+        data-index="{{index}}"
+        bindtap="onTemplateSelect"
+      >
+        <text class="template-chip-cover" style="color: {{currentTemplateIndex === index ? activeColor : '#9CA3AF'}}">{{item.cover || item.name[0]}}</text>
+        <text class="template-chip-name" style="color: {{currentTemplateIndex === index ? activeColor : '#6B7280'}}">{{item.name}}</text>
+        <view class="template-chip-tag" wx:if="{{item.tag}}" style="background-color: {{activeColor}}15; color: {{activeColor}}">{{item.tag}}</view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 模板进度区 -->
+  <scroll-view class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="card-list" wx:if="{{currentTemplate}}">
+      <template-progress-card
+        template="{{currentTemplate}}"
+        category="{{activeTab}}"
+        activityProgress="{{activityProgress}}"
+        categoryColor="{{activeColor}}"
+        expanded="{{expandedCards[currentTemplate.id] || false}}"
+        bindtoggle-expand="onToggleExpand"
+        bindprogress-change="onProgressChange"
+      />
+    </view>
+
+    <!-- 无模板时显示提示 -->
+    <view class="empty-tip" wx:if="{{!currentTemplate}}">
+      <text class="empty-icon">{{tabIcon}}</text>
+      <text class="empty-text">暂无可用的修行模板</text>
+      <text class="empty-sub">请先在活动库中选择活动组成模板</text>
+    </view>
+  </scroll-view>
+
+  <!-- 结果面板 -->
+  <view class="result-section">
+    <daily-result-panel
+      activeCategory="{{activeTab}}"
+      result="{{result}}"
+    />
+  </view>
+
+  <!-- 底部提交按钮 -->
+  <view class="submit-bar">
+    <view class="submit-btn" style="background-color: {{activeColor}}" bindtap="onSubmit">
+      <text class="submit-text">{{submitting ? '提交中...' : '确认今日修行'}}</text>
+    </view>
+  </view>
+</view>

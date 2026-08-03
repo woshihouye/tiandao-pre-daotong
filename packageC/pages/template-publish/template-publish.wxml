@@ -1,0 +1,28 @@
+<view class="container">
+  <view class="card" wx:if="{{template}}">
+    <view class="preview-name">{{template.name}}</view>
+    <view class="preview-desc">{{template.description}}</view>
+    <view class="preview-meta">任务数：{{template.tasks.length}} | 上限：{{template.dailyCap}}/日</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">可见范围</view>
+    <view class="option-group">
+      <view class="option-item {{visibility === 'public' ? 'selected' : ''}}" data-value="public" bindtap="changeVisibility">公开 · 所有道友可见</view>
+      <view class="option-item {{visibility === 'self' ? 'selected' : ''}}" data-value="self" bindtap="changeVisibility">仅自己 · 私人道则</view>
+      <view class="option-item {{visibility === 'fans' ? 'selected' : ''}}" data-value="fans" bindtap="changeVisibility">仅粉丝 · 关注者可见</view>
+      <view class="option-item {{visibility === 'whitelist' ? 'selected' : ''}}" data-value="whitelist" bindtap="changeVisibility">白名单 · 指定用户可见</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">评论权限</view>
+    <view class="option-group">
+      <view class="option-item {{commentPerm === 'all' ? 'selected' : ''}}" data-value="all" bindtap="changeCommentPerm">所有人可评论</view>
+      <view class="option-item {{commentPerm === 'fans' ? 'selected' : ''}}" data-value="fans" bindtap="changeCommentPerm">仅粉丝可评论</view>
+      <view class="option-item {{commentPerm === 'off' ? 'selected' : ''}}" data-value="off" bindtap="changeCommentPerm">关闭评论</view>
+    </view>
+  </view>
+
+  <button class="btn btn-primary" style="margin: 24rpx;" bindtap="submitPublish" disabled="{{submitting}}">{{submitting ? '发布中...' : '发布至模板广场'}}</button>
+</view>

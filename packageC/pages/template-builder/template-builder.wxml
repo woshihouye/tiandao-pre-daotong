@@ -1,0 +1,315 @@
+<!-- 自建模板配置页 -->
+<view class="page-body">
+
+  <!-- 顶部：模板名称 + 类型切换 -->
+  <view class="builder-header">
+    <view class="name-input-wrap">
+      <input class="name-input" placeholder="请输入模板名称（最多20字）" value="{{templateName}}" bindinput="onNameInput" bindblur="onNameBlur" maxlength="20"/>
+      <text class="name-clear" wx:if="{{templateName}}" catchtap="clearName">✕</text>
+    </view>
+    <view class="type-tabs">
+      <view class="type-tab {{templateType === 'daily' ? 'active' : ''}}" bindtap="switchType" data-type="daily">日模板</view>
+      <view class="type-tab {{templateType === 'weekly' ? 'active' : ''}}" bindtap="switchType" data-type="weekly">周模板</view>
+      <view class="type-tab {{templateType === 'pool' ? 'active' : ''}}" bindtap="switchType" data-type="pool">合道模板</view>
+    </view>
+  </view>
+
+  <!-- ═══════════ 上半屏：时间/配置区 ═══════════ -->
+
+  <!-- 日模板：时间轴 + 活动卡片 -->
+  <view class="upper-area" wx:if="{{templateType === 'daily'}}">
+    <view class="preset-bar">
+      <text class="section-label">时段安排</text>
+      <text class="preset-btn" bindtap="fillPreset">一键填充推荐作息</text>
+    </view>
+    <scroll-view scroll-y class="slot-rows">
+      <view
+        wx:for="{{timeSlots}}" wx:for-item="slot" wx:key="id"
+        class="slot-row {{currentSlotId === slot.id ? 'selected' : ''}}"
+        data-id="{{slot.id}}" bindtap="selectSlot"
+      >
+        <!-- 左侧 160rpx：时段名称 -->
+        <view class="slot-left">
+          <text class="slot-name">{{slot.name}}</text>
+        </view>
+        <!-- 中间 flex:1：活动卡片 + 时间轴轨道 -->
+        <view class="slot-mid">
+          <!-- 活动卡片（按次数比例分配宽度，填满时段区域） -->
+          <view class="slot-cards-area" wx:if="{{slot.activities.length > 0}}">
+            <view class="slot-act-wrap">
+              <view wx:for="{{slot.activities}}" wx:for-item="act" wx:key="actId" class="act-card" style="flex: {{act.capacity.value}} 1 0%;">
+                <text class="act-del" catchtap="deleteAct" data-slot="{{slot.id}}" data-index="{{index}}">✕</text>
+                <text class="act-name">{{act.activityName}}</text>
+                <view class="act-ctrl">
+                  <text class="act-btn minus" catchtap="changeVolume" data-slot="{{slot.id}}" data-index="{{index}}" data-step="-1">−</text>
+                  <text class="act-val">{{act.capacity.value}}{{act.capacity.unit}}</text>
+                  <text class="act-btn plus" catchtap="changeVolume" data-slot="{{slot.id}}" data-index="{{index}}" data-step="1">+</text>
+                </view>
+              </view>
+            </view>
+          </view>
+          <!-- 空状态 -->
+          <text class="slot-empty" wx:else>点击下方活动库添加活动</text>
+          <!-- 时间轴轨道（点击时间文字直接唤起原生时间选择器） -->
+          <view class="timeline-track">
+            <view class="timeline-line"></view>
+            <view class="timeline-labels">
+              <picker mode="time" value="{{slot.startTime}}" bindchange="onSlotStartTimeChange" data-id="{{slot.id}}">
+                <text class="timeline-start">{{slot.startTime}}</text>
+              </picker>
+              <picker mode="time" value="{{slot.endTime}}" bindchange="onSlotEndTimeChange" data-id="{{slot.id}}">
+                <text class="timeline-end">{{slot.endTime}}</text>
+              </picker>
+            </view>
+          </view>
+        </view>
+        <!-- 右侧 80rpx：数量角标 -->
+        <view class="slot-right">
+          <view class="slot-badge" wx:if="{{slot.activities.length > 0}}">{{slot.activities.length}}</view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 周模板：7天 × 3时段网格 -->
+  <view class="upper-area" wx:if="{{templateType === 'weekly'}}">
+    <view class="preset-bar">
+      <text class="preset-btn" bindtap="fillWeeklyPreset">加载预设周计划</text>
+    </view>
+    <!-- 天选择栏 -->
+    <scroll-view scroll-x class="week-day-bar">
+      <view
+        wx:for="{{weekDays}}" wx:key="key"
+        class="week-day-tab {{currentWeekDay === item.key ? 'active' : ''}}"
+        data-key="{{item.key}}" bindtap="selectWeekDay"
+      >{{item.label}}</view>
+    </scroll-view>
+    <!-- 当前天的时段列表 -->
+    <scroll-view scroll-y class="slot-list">
+      <view
+        wx:for="{{weekPeriods}}" wx:key="key"
+        class="slot-item {{currentWeekSlot === item.key ? 'selected' : ''}}"
+        data-key="{{item.key}}" bindtap="selectWeekSlot"
+      >
+        <view class="slot-left">
+          <view class="slot-name">{{item.label}}</view>
+        </view>
+        <view class="slot-right">
+          <view class="slot-count" wx:if="{{weekData[currentWeekDay][item.key].length > 0}}">{{weekData[currentWeekDay][item.key].length}}项</view>
+          <text class="slot-arrow">›</text>
+        </view>
+      </view>
+    </scroll-view>
+    <!-- 批量复制 -->
+    <view class="batch-bar" wx:if="{{weekData[currentWeekDay]}}">
+      <text class="batch-btn" bindtap="batchCopyDay">📋 复制{{currentWeekDayLabel}}到其他天</text>
+    </view>
+  </view>
+
+  <!-- 合道模板：活动池 + 目标 -->
+  <view class="upper-area" wx:if="{{templateType === 'pool'}}">
+    <view class="preset-bar">
+      <text class="preset-btn" bindtap="importHistoryActivities">导入历史常用活动</text>
+    </view>
+    <view class="pool-target-row">
+      <text class="pool-target-label">每日修为目标</text>
+      <input class="pool-target-input" type="digit" placeholder="可选" value="{{scoreTarget}}" bindinput="onScoreTargetInput"/>
+      <text class="pool-target-suffix">修为</text>
+    </view>
+    <scroll-view scroll-y class="slot-list">
+      <view
+        wx:for="{{poolActivities}}" wx:key="id"
+        class="slot-item {{currentPoolIndex === index ? 'selected' : ''}}"
+        data-index="{{index}}" bindtap="selectPoolActivity"
+      >
+        <view class="slot-left">
+          <view class="slot-name">{{item.activityName}}</view>
+          <view class="slot-time">默认 {{item.defaultCapacity.value}}{{item.defaultCapacity.unit}}</view>
+        </view>
+        <view class="slot-right">
+          <view class="slot-actions">
+            <text class="slot-move-btn" data-index="{{index}}" data-dir="up" catchtap="movePoolItem">▲</text>
+            <text class="slot-move-btn" data-index="{{index}}" data-dir="down" catchtap="movePoolItem">▼</text>
+          </view>
+          <text class="slot-arrow" data-index="{{index}}" catchtap="removePoolItem">✕</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 当前选中时段的已添加活动（日模板已内嵌于时间线中，此处仅周模板/合道模板展示） -->
+  <view class="slot-activities" wx:if="{{currentSlotActivities.length > 0 && templateType !== 'daily'}}">
+    <view class="sa-title">
+      <text>{{currentSlotLabel}} · 已添加活动</text>
+      <text class="sa-copy" wx:if="{{templateType === 'daily'}}" bindtap="copySlotToOthers">复制到其他时段</text>
+    </view>
+    <view class="sa-list">
+      <view
+        wx:for="{{currentSlotActivities}}" wx:key="actId"
+        class="sa-item"
+        data-index="{{index}}" bindtap="editCapacity"
+      >
+        <view class="sa-item-left">
+          <view class="sa-item-name">{{item.activityName}}</view>
+          <view class="sa-item-cap">{{item.capacity.value}}{{item.capacity.unit}}</view>
+        </view>
+        <view class="sa-item-actions">
+          <text class="sa-move" data-dir="up" catchtap="moveActivity">▲</text>
+          <text class="sa-move" data-dir="down" catchtap="moveActivity">▼</text>
+          <text class="sa-remove" catchtap="removeActivity">✕</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 分隔线 -->
+  <view class="section-divider">
+    <view class="divider-line"></view>
+    <text class="divider-text">活动库</text>
+    <view class="divider-line"></view>
+  </view>
+
+  <!-- ═══════════ 下半屏：活动库 ═══════════ -->
+
+  <!-- 分类标签 -->
+  <scroll-view scroll-x class="cat-tabs">
+    <view
+      wx:for="{{categories}}" wx:key="key"
+      class="cat-tab {{currentCategory === item.key ? 'active' : ''}}"
+      data-cat="{{item.key}}" bindtap="switchLibCategory"
+    >{{item.name}}</view>
+  </scroll-view>
+
+  <!-- 搜索 -->
+  <view class="lib-search">
+    <input class="lib-search-input" placeholder="搜索活动..." value="{{libKeyword}}" bindinput="onLibSearch"/>
+    <text class="lib-search-clear" wx:if="{{libKeyword}}" bindtap="clearLibSearch">✕</text>
+  </view>
+
+  <!-- 侧栏 + 宫格 -->
+  <view class="lib-body">
+    <scroll-view scroll-y class="lib-side">
+      <view
+        wx:for="{{libSideFilters}}" wx:key="key"
+        class="lib-side-item {{currentLibSide === item.key ? 'active' : ''}}"
+        data-key="{{item.key}}" bindtap="tapLibSide"
+      >{{item.name}}</view>
+    </scroll-view>
+
+    <scroll-view scroll-y class="lib-grid-area">
+      <view class="lib-grid">
+        <view
+          wx:for="{{libActivities}}" wx:key="id"
+          class="lib-card {{item.isNegative ? 'is-negative' : ''}}"
+          data-act="{{item}}" bindtap="addActivity"
+        >
+          <view class="lib-card-icon-wrap">
+            <text class="lib-card-icon">{{item.name.charAt(0)}}</text>
+          </view>
+          <view class="lib-card-name">{{item.name}}</view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 底部保存 -->
+  <view class="save-bar">
+    <view class="save-btn" bindtap="saveTemplate">保存模板</view>
+  </view>
+
+</view>
+
+<!-- ═══════════ 浮层：容量设置 ═══════════ -->
+<view class="popup-overlay {{showCapacityPopup ? 'show' : ''}}" bindtap="closeCapacityPopup">
+  <view class="popup-sheet" catchtap="preventBubble">
+    <view class="popup-title">设置容量 — {{capacityActivityName}}</view>
+    <view class="popup-row">
+      <input class="popup-input" type="digit" placeholder="数值" value="{{capacityValue}}" bindinput="onCapacityValue"/>
+      <view class="popup-unit-tabs">
+        <view
+          wx:for="{{capacityUnits}}" wx:key="*this"
+          class="popup-unit {{currentCapacityUnit === item ? 'active' : ''}}"
+          data-unit="{{item}}" bindtap="selectCapacityUnit"
+        >{{item}}</view>
+      </view>
+    </view>
+    <view class="popup-actions">
+      <view class="popup-btn cancel" bindtap="closeCapacityPopup">取消</view>
+      <view class="popup-btn confirm" bindtap="confirmCapacity">确认</view>
+    </view>
+  </view>
+</view>
+
+<!-- ═══════════ 浮层：批量复制（日→其他时段） ═══════════ -->
+<view class="popup-overlay {{showCopySlotPopup ? 'show' : ''}}" bindtap="closeCopySlotPopup">
+  <view class="popup-sheet" catchtap="preventBubble">
+    <view class="popup-title">复制到以下时段</view>
+    <view class="checkbox-list">
+      <view
+        wx:for="{{copySlotOptions}}" wx:key="id"
+        class="checkbox-item {{item.checked ? 'checked' : ''}}"
+        data-index="{{index}}" bindtap="toggleCopySlotOption"
+      >{{item.name}}</view>
+    </view>
+    <view class="popup-actions">
+      <view class="popup-btn cancel" bindtap="closeCopySlotPopup">取消</view>
+      <view class="popup-btn confirm" bindtap="confirmCopySlot">确认复制</view>
+    </view>
+  </view>
+</view>
+
+<!-- ═══════════ 浮层：批量复制（周→其他天） ═══════════ -->
+<view class="popup-overlay {{showCopyDayPopup ? 'show' : ''}}" bindtap="closeCopyDayPopup">
+  <view class="popup-sheet" catchtap="preventBubble">
+    <view class="popup-title">复制{{currentWeekDayLabel}}到</view>
+    <view class="checkbox-list">
+      <view
+        wx:for="{{copyDayOptions}}" wx:key="key"
+        class="checkbox-item {{item.checked ? 'checked' : ''}}"
+        data-index="{{index}}" bindtap="toggleCopyDayOption"
+      >{{item.label}}</view>
+    </view>
+    <view class="popup-actions">
+      <view class="popup-btn cancel" bindtap="closeCopyDayPopup">取消</view>
+      <view class="popup-btn confirm" bindtap="confirmCopyDay">确认复制</view>
+    </view>
+  </view>
+</view>
+
+<!-- ═══════════ 浮层：预设选择 ═══════════ -->
+<view class="popup-overlay {{showPresetPopup ? 'show' : ''}}" bindtap="closePresetPopup">
+  <view class="popup-sheet" catchtap="preventBubble">
+    <view class="popup-title">{{presetPopupTitle}}</view>
+    <scroll-view scroll-y class="preset-list">
+      <view
+        wx:for="{{presetOptions}}" wx:key="id"
+        class="preset-option"
+        data-id="{{item.id}}" bindtap="applyPreset"
+      >
+        <view class="preset-opt-name">{{item.name}}</view>
+        <view class="preset-opt-desc">{{item.desc}}</view>
+      </view>
+    </scroll-view>
+    <view class="popup-actions">
+      <view class="popup-btn cancel" bindtap="closePresetPopup">取消</view>
+    </view>
+  </view>
+</view>
+
+<!-- ═══════════ 浮层：导入历史活动 ═══════════ -->
+<view class="popup-overlay {{showHistoryPopup ? 'show' : ''}}" bindtap="closeHistoryPopup">
+  <view class="popup-sheet" catchtap="preventBubble">
+    <view class="popup-title">导入历史常用活动</view>
+    <view class="checkbox-list">
+      <view
+        wx:for="{{historyActivities}}" wx:key="actId"
+        class="checkbox-item {{item.checked ? 'checked' : ''}}"
+        data-index="{{index}}" bindtap="toggleHistoryOption"
+      >{{item.activityName}} ({{item.count}}次)</view>
+    </view>
+    <view class="popup-actions">
+      <view class="popup-btn cancel" bindtap="closeHistoryPopup">取消</view>
+      <view class="popup-btn confirm" bindtap="confirmImportHistory">确认导入</view>
+    </view>
+  </view>
+</view>

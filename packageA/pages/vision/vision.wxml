@@ -1,0 +1,278 @@
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+  <!-- ============================================================ -->
+  <!-- 非批量模式：原有单图识物界面 -->
+  <!-- ============================================================ -->
+  <block wx:if="{{!batchMode}}">
+  <view class="upload-card card-premium card">
+    <view class="upload-head">
+      <view>
+        <view class="upload-kicker">叮，系统提示</view>
+        <view class="upload-title">灵鉴识物 · 一眼洞悉</view>
+      </view>
+      <view class="upload-icon">眼</view>
+    </view>
+    <view class="upload-actions">
+      <view class="upload-btn primary" bindtap="chooseCamera">直接拍照</view>
+      <view class="upload-btn ghost" bindtap="chooseAlbum">相册上传</view>
+    </view>
+    <view class="upload-actions-batch">
+      <view class="upload-btn batch-btn" bindtap="startBatchUpload">批量上传</view>
+    </view>
+    <view class="upload-hint">图片将自动压缩至 1024px 内，识别结果需手动确认后才入库。批量模式支持最多9张当天图片。</view>
+  </view>
+
+  <view class="preview-card card" wx:if="{{imagePath}}">
+    <view class="preview-title">待识别影像</view>
+    <view class="preview-image-wrap">
+      <image
+        class="preview-image"
+        mode="aspectFit"
+        src="{{cloudImageId || imagePath}}"
+        binderror="onImageError"
+      ></image>
+      <!-- 半透明 loading 遮罩：选图压缩 / 上传 / 识别过程中显示 -->
+      <view class="preview-loading-mask" wx:if="{{processingStatus}}">
+        <view class="loading-spinner"></view>
+        <text class="loading-status-text">
+          <block wx:if="{{processingStatus === 'compressing'}}">炼化影像中...</block>
+          <block wx:elif="{{processingStatus === 'securing'}}">灵阵校验中...</block>
+          <block wx:elif="{{processingStatus === 'uploading'}}">上传云海...</block>
+          <block wx:elif="{{processingStatus === 'recognizing'}}">灵鉴推演中...</block>
+        </text>
+      </view>
+    </view>
+    <view class="upload-status" wx:if="{{uploadStatus === 'selected' && !processingStatus}}">
+      <text class="upload-status-text">影像已选取，点击「开始识别」上传并分析</text>
+    </view>
+    <view class="upload-status" wx:elif="{{uploadStatus === 'uploaded' && !processingStatus}}">
+      <text class="upload-status-text uploaded">已上传至云存储，AI识别中...</text>
+    </view>
+    <view class="upload-status" wx:elif="{{uploadStatus === 'error' && !processingStatus}}">
+      <text class="upload-status-text error">上传失败，将使用本地影像进行识别</text>
+    </view>
+    <view class="preview-meta">
+      <text wx:if="{{activeType}}">当前场景：{{typeLabel}}</text>
+      <text wx:else>当前场景：自动判定</text>
+      <text wx:if="{{cacheHit}}">命中缓存</text>
+    </view>
+    <view class="preview-actions">
+      <view class="upload-btn primary" bindtap="startRecognize">开始识别</view>
+      <view class="upload-btn ghost" bindtap="resetAll">更换图片</view>
+    </view>
+  </view>
+
+  <view class="result-card card" wx:if="{{resultItems.length}}">
+    <view class="result-head">
+      <view>
+        <view class="result-title">识别结果</view>
+        <view class="result-sub">点击单条可修正数值</view>
+      </view>
+      <view class="scene-badge">{{typeLabel}}</view>
+    </view>
+
+    <view class="scene-switch">
+      <view class="scene-btn {{activeType === 'sport' ? 'active' : ''}}" bindtap="switchResultType" data-type="sport">武</view>
+      <view class="scene-btn {{activeType === 'diet' ? 'active' : ''}}" bindtap="switchResultType" data-type="diet">食</view>
+      <view class="scene-btn {{activeType === 'study' ? 'active' : ''}}" bindtap="switchResultType" data-type="study">悟</view>
+      <view class="scene-btn {{activeType === 'work' ? 'active' : ''}}" bindtap="switchResultType" data-type="work">工</view>
+      <view class="scene-btn {{activeType === 'debuff' ? 'active' : ''}}" bindtap="switchResultType" data-type="debuff">煞</view>
+    </view>
+
+    <block wx:for="{{resultItems}}" wx:key="idx">
+      <view class="result-item" bindtap="openEditor" data-idx="{{index}}">
+        <view class="result-top">
+          <view class="result-name">{{item.name}}</view>
+          <view class="result-source">{{item.source}}</view>
+        </view>
+
+        <view class="result-grid" wx:if="{{activeType === 'sport'}}">
+          <view class="result-field">运动内容：{{item.name}}</view>
+          <view class="result-field">运动时长：{{item.duration || 0}}分钟</view>
+          <view class="result-field">消耗热量：{{item.calories || 0}}大卡</view>
+        </view>
+
+        <view class="result-grid" wx:elif="{{activeType === 'diet'}}">
+              <view class="result-field">重量：{{item.weight}}g</view>
+              <view class="result-field">热量：{{item.calories}}</view>
+              <view class="result-field">蛋白质：{{item.protein}}g</view>
+              <view class="result-field">碳水：{{item.carbs}}g</view>
+              <view class="result-field">脂肪：{{item.fat}}g</view>
+              <view class="result-field">膳食纤维：{{item.fiber}}g</view>
+            </view>
+
+            <view class="result-grid" wx:elif="{{activeType === 'study'}}">
+              <view class="result-field">修习内容：{{item.name}}</view>
+              <view class="result-field">修心时长：{{item.duration || '未记录'}}</view>
+            </view>
+
+            <view class="result-grid" wx:elif="{{activeType === 'work'}}">
+              <view class="result-field">功业内容：{{item.name}}</view>
+              <view class="result-field">功业时长：{{item.duration || '未记录'}}</view>
+            </view>
+
+            <view class="result-grid" wx:else>
+              <view class="result-field">心魔类型：{{item.name}}</view>
+              <view class="result-field">扣减修为：{{item.deductCultivation || 0}}</view>
+            </view>
+
+        <view class="result-bottom">点击修正</view>
+      </view>
+    </block>
+
+    <view class="result-actions">
+      <view class="confirm-btn" bindtap="confirmRecords" data-mode="current">确认录入</view>
+      <view class="confirm-btn" wx:if="{{detectedTypes.length > 1}}" bindtap="confirmRecords" data-mode="all">录入全部</view>
+      <view class="cancel-btn" bindtap="cancelRecords">误判撤销</view>
+    </view>
+  </view>
+
+  <canvas canvas-id="resizeCanvas" class="hidden-canvas"></canvas>
+
+  </block>
+
+  <!-- ============================================================ -->
+  <!-- 批量上传模式 -->
+  <!-- ============================================================ -->
+  <block wx:if="{{batchMode}}">
+    <view class="card">
+      <view class="batch-header">
+        <view class="batch-title">批量识别</view>
+        <view class="batch-count">{{batchProgress}}/{{batchTotal}}</view>
+      </view>
+
+      <!-- 进度条 -->
+      <view class="batch-progress-wrap" wx:if="{{batchProcessing}}">
+        <view class="batch-progress-bar">
+          <view class="batch-progress-fill" style="width: {{batchTotal > 0 ? batchProgress / batchTotal * 100 : 0}}%"></view>
+        </view>
+        <view class="batch-progress-text">已识别 {{batchProgress}}/{{batchTotal}} 张</view>
+      </view>
+
+      <!-- 完成状态 -->
+      <view class="batch-progress-wrap" wx:elif="{{!batchProcessing && batchProgress > 0}}">
+        <view class="batch-complete-text">
+          识别完成：成功 {{batchDoneCount}} 张
+          <text wx:if="{{batchErrorCount > 0}}">，失败 {{batchErrorCount}} 张</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 批量结果列表 -->
+    <view class="card" wx:if="{{batchProgress > 0 && !batchProcessing}}">
+      <view class="batch-result-title">识别结果汇总（点击可修正）</view>
+
+      <block wx:for="{{batchImages}}" wx:key="index">
+        <view class="batch-result-item" wx:if="{{item.status === 'done' || item.status === 'error'}}">
+          <view class="batch-result-thumb">
+            <image class="batch-thumb-img" src="{{item.tempPath}}" mode="aspectFill"></image>
+          </view>
+          <view class="batch-result-body" bindtap="editBatchResult" data-idx="{{index}}">
+            <block wx:if="{{item.status === 'done' && item.visionResult}}">
+              <view class="batch-result-name">{{item.visionResult.items[0].name || '识别结果'}}</view>
+              <view class="batch-result-meta">
+                <text class="batch-type-badge {{item.visionResult.primaryType}}">{{item.visionResult.primaryType}}</text>
+                <text class="batch-result-source">AI识图</text>
+              </view>
+              <!-- 饮食类显示营养数据 -->
+              <view class="batch-result-grid" wx:if="{{item.visionResult.primaryType === 'diet' && item.visionResult.items[0]}}">
+                <text class="batch-result-field">热量: {{item.visionResult.items[0].calories || 0}}</text>
+                <text class="batch-result-field">蛋白质: {{item.visionResult.items[0].protein || 0}}g</text>
+                <text class="batch-result-field">碳水: {{item.visionResult.items[0].carbs || 0}}g</text>
+                <text class="batch-result-field">脂肪: {{item.visionResult.items[0].fat || 0}}g</text>
+              </view>
+            </block>
+            <block wx:elif="{{item.status === 'error'}}">
+              <view class="batch-result-name error-text">{{item.errorMsg || '识别失败'}}</view>
+              <view class="batch-result-meta">
+                <text class="batch-type-badge error">失败</text>
+              </view>
+            </block>
+          </view>
+          <view class="batch-result-del" bindtap="removeBatchResult" data-idx="{{index}}">删除</view>
+        </view>
+      </block>
+
+      <!-- 空结果提示 -->
+      <view class="batch-empty" wx:if="{{batchDoneCount === 0}}">
+        <text>暂无识别成功的记录</text>
+      </view>
+    </view>
+
+    <!-- 批量操作按钮 -->
+    <view class="card" wx:if="{{batchProgress > 0 && !batchProcessing}}">
+      <view class="result-actions">
+        <view class="confirm-btn" bindtap="confirmBatchRecords">确认录入</view>
+        <view class="cancel-btn" bindtap="cancelBatch">取消</view>
+      </view>
+    </view>
+  </block>
+
+  <!-- ============================================================ -->
+  <!-- 数值修正面板（单图 + 批量共用） -->
+  <!-- ============================================================ -->
+  <view class="editor-mask" wx:if="{{showEditor}}" bindtap="closeEditor">
+    <view class="editor-panel" catchtap="">
+      <view class="editor-title">数值修正面板</view>
+
+      <view class="editor-form">
+        <view class="editor-row">
+          <text class="editor-label">名称</text>
+          <input class="editor-input" value="{{editForm.name}}" bindinput="onEditInput" data-field="name" />
+        </view>
+
+        <block wx:if="{{activeType === 'sport'}}">
+          <view class="editor-row">
+            <text class="editor-label">运动时长(分钟)</text>
+            <input class="editor-input" type="number" value="{{editForm.duration}}" bindinput="onEditInput" data-field="duration" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">消耗热量(大卡)</text>
+            <input class="editor-input" type="number" value="{{editForm.calories}}" bindinput="onEditInput" data-field="calories" />
+          </view>
+        </block>
+
+        <block wx:elif="{{activeType === 'diet'}}">
+          <view class="editor-row">
+            <text class="editor-label">重量(g)</text>
+            <input class="editor-input" type="digit" value="{{editForm.weight}}" bindinput="onEditInput" data-field="weight" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">热量</text>
+            <input class="editor-input" type="digit" value="{{editForm.calories}}" bindinput="onEditInput" data-field="calories" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">蛋白质</text>
+            <input class="editor-input" type="digit" value="{{editForm.protein}}" bindinput="onEditInput" data-field="protein" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">碳水</text>
+            <input class="editor-input" type="digit" value="{{editForm.carbs}}" bindinput="onEditInput" data-field="carbs" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">脂肪</text>
+            <input class="editor-input" type="digit" value="{{editForm.fat}}" bindinput="onEditInput" data-field="fat" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">膳食纤维</text>
+            <input class="editor-input" type="digit" value="{{editForm.fiber}}" bindinput="onEditInput" data-field="fiber" />
+          </view>
+        </block>
+
+        <block wx:else>
+          <view class="editor-row">
+            <text class="editor-label">扣减修为</text>
+            <input class="editor-input" type="digit" value="{{editForm.deductCultivation}}" bindinput="onEditInput" data-field="deductCultivation" />
+          </view>
+        </block>
+      </view>
+
+      <view class="editor-actions">
+        <view class="editor-btn ghost" bindtap="closeEditor">关闭</view>
+        <view class="editor-btn primary" bindtap="saveEditor">保存修正</view>
+      </view>
+    </view>
+  </view>
+
+</view>

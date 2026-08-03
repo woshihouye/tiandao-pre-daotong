@@ -1,0 +1,56 @@
+<view class="container">
+  <!-- Tab 切换：全部 / 道友 / 陌生人 -->
+  <view class="conv-tabs">
+    <view class="conv-tab {{strangerFilter === 'all' ? 'active' : ''}}" bindtap="switchTab" data-filter="all">
+      全部<text class="tab-count" wx:if="{{totalCount > 0}}">{{totalCount}}</text>
+    </view>
+    <view class="conv-tab {{strangerFilter === 'normal' ? 'active' : ''}}" bindtap="switchTab" data-filter="normal">
+      道友<text class="tab-count" wx:if="{{normalCount > 0}}">{{normalCount}}</text>
+    </view>
+    <view class="conv-tab {{strangerFilter === 'stranger' ? 'active' : ''}}" bindtap="switchTab" data-filter="stranger">
+      陌生人<text class="tab-count" wx:if="{{strangerCount > 0}}">{{strangerCount}}</text>
+    </view>
+  </view>
+
+  <!-- 陌生人提示 -->
+  <view class="stranger-tip" wx:if="{{strangerFilter === 'stranger' && conversations.length > 0}}">
+    以下为尚未互关的道友发来的消息，请注意辨别
+  </view>
+
+  <view class="conv-list">
+    <view class="conv-swipe-wrap" wx:for="{{conversations}}" wx:key="_id">
+      <!-- 左滑露出的删除按钮 -->
+      <view class="conv-swipe-action" data-item="{{item}}" catchtap="deleteConversation">删除</view>
+      <!-- 主体内容 -->
+      <view class="conv-item {{item.slideOpen ? 'slided' : ''}}" 
+            data-item="{{item}}" 
+            bindtap="openChat"
+            bindtouchstart="onTouchStart"
+            bindtouchmove="onTouchMove"
+            bindtouchend="onTouchEnd"
+            data-index="{{index}}">
+        <!-- 头像 + 在线绿点 -->
+        <view class="conv-avatar-wrap">
+          <view class="conv-avatar">{{item.targetNickName.charAt(0) || '修'}}</view>
+          <view class="conv-online-dot {{item.isOnline ? 'online' : ''}}" wx:if="{{item.isOnline}}"></view>
+        </view>
+        <view class="conv-body">
+          <view class="conv-top">
+            <view class="conv-name">
+              {{item.targetNickName}}
+              <text class="conv-stranger-tag" wx:if="{{item.isStranger}}">陌</text>
+            </view>
+            <view class="conv-time">{{item.timeLabel}}</view>
+          </view>
+          <view class="conv-bottom">
+            <view class="conv-last">{{item.lastMessage}}</view>
+            <view class="conv-badge" wx:if="{{item.unreadCount > 0}}">{{item.unreadCount > 99 ? '99+' : item.unreadCount}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view class="empty-state" wx:if="{{conversations.length === 0 && !loading}}">
+    <view class="empty-text">{{strangerFilter === 'stranger' ? '暂无陌生人消息' : '暂无私信'}}</view>
+  </view>
+</view>

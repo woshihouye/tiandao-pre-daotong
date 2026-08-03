@@ -1,0 +1,14 @@
+<view class="container">
+  <view class="tab-bar">
+    <view class="tab-item {{type === 'follow' ? 'active' : ''}}" data-type="follow" bindtap="loadList">关注</view>
+    <view class="tab-item {{type === 'fans' ? 'active' : ''}}" data-type="fans" bindtap="loadList">粉丝</view>
+  </view>
+  <view class="user-list">
+    <view class="user-item" wx:for="{{list}}" wx:key="userId" data-user-id="{{item.userId}}" bindtap="goToUserHome">
+      <view class="user-avatar">{{item.nickName ? item.nickName.charAt(0) : '修'}}</view>
+      <view class="user-name">{{item.nickName || '无名修士'}}</view>
+      <view class="user-arrow">→</view>
+    </view>
+  </view>
+  <view class="empty" wx:if="{{list.length === 0 && !loading}}">暂无{{type === 'follow' ? '关注' : '粉丝'}}</view>
+</view>

@@ -1,0 +1,102 @@
+.container {
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+  background: #f9fafb;
+}
+
+.log-card {
+  overflow: hidden;
+}
+
+.log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.log-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-version {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+.log-arrow {
+  width: 18rpx;
+  height: 18rpx;
+  flex-shrink: 0;
+  margin-right: 6rpx;
+  border-right: 2rpx solid #9ca3af;
+  border-bottom: 2rpx solid #9ca3af;
+  transform: rotate(45deg);
+  transition: transform 0.3s ease;
+}
+
+.log-arrow.expanded {
+  transform: rotate(225deg);
+}
+
+.log-content {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.log-content.expanded {
+  max-height: 2400rpx;
+  opacity: 1;
+}
+
+.log-content-inner {
+  padding-top: 24rpx;
+}
+
+.section + .section {
+  margin-top: 24rpx;
+}
+
+.section-title {
+  padding-top: 24rpx;
+  border-top: 1rpx solid #e5e7eb;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.section:first-child .section-title {
+  padding-top: 0;
+  border-top: none;
+}
+
+.log-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14rpx;
+  margin-top: 14rpx;
+}
+
+.row-dot {
+  width: 10rpx;
+  height: 10rpx;
+  margin-top: 14rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.row-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
+  font-weight: 400;
+  color: #6b7280;
+  line-height: 1.5;
+}

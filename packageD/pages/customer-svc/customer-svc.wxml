@@ -1,0 +1,21 @@
+<view class="page">
+  <view class="title">🧧 客服中心</view>
+  <view class="section"><view class="section-title">常见问题</view>
+    <view class="faq-item" wx:for="{{ faqs }}" wx:key="q" bindtap="onFaqTap" data-answer="{{ item.a }}">
+      <text class="faq-q">Q: {{ item.q }}</text>
+      <text class="faq-a" wx:if="{{ item.show }}">A: {{ item.a }}</text>
+    </view>
+  </view>
+  <view class="section"><view class="section-title">发送消息</view>
+    <textarea class="msg-input" value="{{ msgText }}" placeholder="请输入您的问题或反馈..." bindinput="onInput" maxlength="500"/>
+    <view class="send-btn {{ msgText ? '' : 'disabled' }}" bindtap="onSendTap">发送</view>
+  </view>
+  <view class="section" wx:if="{{ history.length }}">
+    <view class="section-title">历史消息</view>
+    <view class="msg-list" wx:for="{{ history }}" wx:key="_id">
+      <view class="msg-bubble {{ item.fromUser ? 'self' : 'admin' }}">
+        {{ item.content }}
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,385 @@
+<!-- 大道之行 · 活动库 -->
+<view class="page-body {{themeClass}}">
+
+  <!-- 顶部 Hero 区 -->
+  <view class="section-hero card">
+    <view class="hero-kicker">大道之行</view>
+    <view class="hero-title">万行归一 · 日证道心</view>
+    <view class="hero-desc">收录全天衣食住行所有行为，正行涨修为、妄念耗道基，一键录入每日修行。</view>
+    <view class="hero-debug" wx:if="{{cardMode}}">[{{cardMode}}] 共{{activities.length}}项</view>
+  </view>
+
+  <!-- 主分类 Tab -->
+  <view class="tab-scroll">
+    <scroll-view scroll-x class="tab-scroll-inner">
+      <view
+        wx:for="{{categories}}"
+        wx:key="key"
+        class="tab-chip {{currentCategory === item.key ? 'active' : ''}}"
+        data-category="{{item.key}}"
+        bindtap="switchCategory"
+      >
+        <text class="tab-chip-icon">{{item.icon}}</text>
+        <text class="tab-chip-text">{{item.name}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 搜索框 -->
+  <view class="search-bar">
+    <view class="search-box">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" placeholder="搜索活动名称..." value="{{searchKeyword}}" bindinput="onSearchInput" confirm-type="search"/>
+      <text wx:if="{{searchKeyword}}" class="search-clear" bindtap="clearSearch">✕</text>
+    </view>
+  </view>
+
+  <!-- 筛选 + 内容区 -->
+  <view class="filter-content-wrap">
+
+    <!-- 左右分栏 -->
+    <view class="split-layout">
+
+      <!-- 左侧垂直侧边栏 -->
+      <scroll-view scroll-y class="side-bar">
+        <view
+          wx:for="{{sideFilters}}"
+          wx:key="key"
+          class="side-item {{currentSideFilter === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="tapSideFilter"
+        >{{item.name}}</view>
+      </scroll-view>
+
+      <!-- 右侧 2 列宫格 -->
+      <view class="grid-area">
+        <view class="grid-container">
+          <block wx:for="{{activities}}" wx:for-item="act" wx:key="id">
+            <view wx:if="{{cardMode === 'study'}}" class="grid-card study-card {{act.isNegative ? 'is-negative' : ''}}" data-activity="{{act}}" bindtap="onCardTap">
+              <view wx:if="{{act.isCustom}}" class="card-custom-tag">自定义</view>
+              <view class="card-star {{favorites[act.id] ? 'starred' : ''}}" data-id="{{act.id}}" catchtap="toggleFavorite">
+                <text>{{favorites[act.id] ? '★' : '☆'}}</text>
+              </view>
+              <view class="study-card-name">{{act.name}}</view>
+              <view class="study-card-rule">{{act.calcUnit === 'time' ? '按' + act.unit + '计算' : '按次计算'}}</view>
+            </view>
+            <view wx:elif="{{cardMode === 'food'}}" class="grid-card food-card" data-activity="{{act}}" bindtap="onCardTap">
+              <view wx:if="{{act.isCustom}}" class="card-custom-tag">自定义</view>
+              <view class="card-star {{favorites[act.id] ? 'starred' : ''}}" data-id="{{act.id}}" catchtap="toggleFavorite">
+                <text>{{favorites[act.id] ? '★' : '☆'}}</text>
+              </view>
+              <view class="food-card-name">{{act.name}}</view>
+              <view class="food-card-calories">{{act.calories}} 千卡/100g</view>
+            </view>
+            <view wx:else class="grid-card {{act.isNegative ? 'is-negative' : ''}}" data-activity="{{act}}" bindtap="onCardTap">
+              <view wx:if="{{act.isCustom}}" class="card-custom-tag">自定义</view>
+              <view class="card-star {{favorites[act.id] ? 'starred' : ''}}" data-id="{{act.id}}" catchtap="toggleFavorite">
+                <text>{{favorites[act.id] ? '★' : '☆'}}</text>
+              </view>
+              <view class="card-icon-wrap">
+                <text class="card-icon">{{act.name.charAt(0)}}</text>
+              </view>
+              <view class="card-name">{{act.name}}</view>
+              <view class="card-score {{act.scorePerUnit > 0 ? 'score-positive' : 'score-negative'}}">
+                {{act.scorePerUnit > 0 ? '+' : ''}}{{act.scorePerUnit}}修为/{{act.unit}}
+              </view>
+            </view>
+          </block>
+
+          <!-- 空状态 -->
+          <view wx:if="{{activities.length === 0}}" class="empty-tip">
+            <view class="empty-text">
+              {{searchKeyword ? '未搜索到匹配的活动' : '此处暂无活动'}}
+            </view>
+            <view wx:if="{{searchKeyword}}" class="empty-sub">换个关键词试试</view>
+          </view>
+        </view>
+      </view>
+
+    </view>
+  </view>
+
+  <!-- 悬浮添加按钮 -->
+  <view class="fab-btn" bindtap="openAddModal">
+    <text class="fab-icon">+</text>
+  </view>
+
+  <!-- 添加自定义活动弹窗 -->
+  <view class="modal-overlay {{showAddModal ? 'show' : ''}}" bindtap="closeAddModal">
+    <view class="modal-sheet" catchtap="preventBubble">
+      <view class="modal-title">添加自定义活动</view>
+
+      <!-- 活动名称 -->
+      <view class="form-group">
+        <view class="form-label">活动名称 <text class="form-required">*</text></view>
+        <input class="form-input" placeholder="请输入活动名称" value="{{formData.name}}" bindinput="onFormNameInput" maxlength="20"/>
+      </view>
+
+      <!-- 活动简介 -->
+      <view class="form-group">
+        <view class="form-label">活动简介</view>
+        <textarea class="form-textarea" placeholder="请输入活动说明" value="{{formData.description}}" bindinput="onFormDescInput" maxlength="50" auto-height/>
+      </view>
+
+      <!-- 所属主分类 -->
+      <view class="form-group">
+        <view class="form-label">所属主分类</view>
+        <picker mode="selector" range="{{formCategoryOptions}}" range-key="name" value="{{formData.categoryIndex}}" bindchange="onFormCategoryChange">
+          <view class="form-picker">{{formCategoryOptions[formData.categoryIndex].name}}</view>
+        </picker>
+      </view>
+
+      <!-- 所属子分类 -->
+      <view class="form-group">
+        <view class="form-label">所属子分类</view>
+        <picker mode="selector" range="{{formSideFilterOptions}}" range-key="name" value="{{formData.sideFilterIndex}}" bindchange="onFormSideFilterChange">
+          <view class="form-picker">{{formSideFilterOptions[formData.sideFilterIndex].name}}</view>
+        </picker>
+      </view>
+
+      <!-- 结算单位 -->
+      <view class="form-group">
+        <view class="form-label">{{currentCategory === 'study' ? '计算单位' : '结算单位'}}</view>
+        <picker mode="selector" range="{{formUnitOptions}}" value="{{formData.unitIndex}}" bindchange="onFormUnitChange">
+          <view class="form-picker">{{formUnitOptions[formData.unitIndex]}}</view>
+        </picker>
+      </view>
+
+      <!-- 单位修为值 -->
+      <view class="form-group">
+        <view class="form-label">{{currentCategory === 'study' ? '基准修为值' : '单位修为值'}}</view>
+        <input class="form-input" type="digit" placeholder="{{currentCategory === 'study' ? '如：2（每10分钟/每次）' : '正数为正向，负数为负向'}}" value="{{formData.scorePerUnit}}" bindinput="onFormScoreInput"/>
+      </view>
+
+      <!-- 底部按钮 -->
+      <view class="modal-actions">
+        <view class="btn-cancel" bindtap="closeAddModal">取消</view>
+        <view class="btn-confirm" bindtap="submitCustomActivity">确认添加</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 编辑活动弹窗 -->
+  <view class="modal-overlay {{showEditModal ? 'show' : ''}}" bindtap="closeEditModal">
+    <view class="modal-sheet" catchtap="preventBubble">
+      <view class="modal-title">编辑活动</view>
+
+      <!-- 活动名称 -->
+      <view class="form-group">
+        <view class="form-label">活动名称</view>
+        <input class="form-input {{editData.isCustom ? '' : 'input-disabled'}}"
+          placeholder="活动名称" value="{{editData.name}}"
+          bindinput="onEditNameInput" maxlength="10"
+          disabled="{{!editData.isCustom}}"/>
+      </view>
+
+      <!-- 修为数值 -->
+      <view class="form-group">
+        <view class="form-label">{{editData.isStudyMode ? '基准修为值' : '修为数值'}}</view>
+        <input class="form-input score-input {{editData.scorePerUnit > 0 ? 'score-positive' : editData.scorePerUnit < 0 ? 'score-negative' : ''}}"
+          type="digit" placeholder="{{editData.isStudyMode ? '每10分钟/每次对应的修为' : '正数为涨修为，负数为扣修为'}}"
+          value="{{editData.scorePerUnit}}" bindinput="onEditScoreInput"/>
+      </view>
+
+      <!-- 计算单位 -->
+      <view class="form-group">
+        <view class="form-label">计算单位</view>
+        <picker mode="selector" range="{{editUnitOptions}}" value="{{editData.unitIndex}}" bindchange="onEditUnitChange">
+          <view class="form-picker">{{editUnitOptions[editData.unitIndex]}}</view>
+        </picker>
+      </view>
+
+      <!-- 修行容量（仅单位为「次」时显示） -->
+      <view class="form-group" wx:if="{{editUnitOptions[editData.unitIndex] === '次'}}">
+        <view class="form-label">修行容量</view>
+        <view class="form-group-row">
+          <input class="form-input group-input" type="number" placeholder="默认组数"
+            value="{{editData.defaultGroup}}" bindinput="onEditGroupInput" min="1"/>
+          <text class="group-unit">组</text>
+        </view>
+      </view>
+
+      <!-- 所属分类 -->
+      <view class="form-group">
+        <view class="form-label">所属分类</view>
+        <picker mode="selector" range="{{editCategoryOptions}}" range-key="name" value="{{editData.categoryIndex}}" bindchange="onEditCategoryChange">
+          <view class="form-picker">{{editCategoryOptions[editData.categoryIndex].name}}</view>
+        </picker>
+      </view>
+
+      <!-- 自定义标识（仅展示） -->
+      <view class="form-group" wx:if="{{editData.isCustom}}">
+        <view class="form-label">活动类型</view>
+        <view class="form-tag">自定义</view>
+      </view>
+
+      <!-- 删除按钮（仅自定义活动显示） -->
+      <view class="modal-delete" wx:if="{{editData.isCustom}}" bindtap="deleteCustomActivity">
+        <text>删除活动</text>
+      </view>
+
+      <!-- 底部按钮 -->
+      <view class="modal-actions">
+        <view class="btn-cancel" bindtap="closeEditModal">取消</view>
+        <view class="btn-confirm" bindtap="submitEditActivity">保存</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 食物详情 & 换算面板 -->
+  <view class="modal-overlay {{showFoodDetail ? 'show' : ''}}" bindtap="closeFoodDetail">
+    <view class="modal-sheet" catchtap="preventBubble">
+      <!-- 顶部：名称 + 分类标签 -->
+      <view class="food-detail-header">
+        <view class="food-detail-name">{{foodDetail.name}}</view>
+        <view class="food-detail-tag">{{foodDetail.categoryName}}</view>
+        <view wx:if="{{foodDetail.isCustom}}" class="food-edit-btn" bindtap="editFood">编辑</view>
+        <view wx:if="{{foodDetail.isCustom}}" class="food-delete-btn" bindtap="deleteFood">删除</view>
+      </view>
+
+      <!-- 每100g基准营养 -->
+      <view class="food-section-title">每 100g 营养参考值</view>
+      <view class="food-nutrition-grid">
+        <view class="food-nut-item">
+          <view class="food-nut-value">{{foodDetail.nutrition.calories}}</view>
+          <view class="food-nut-label">热量（千卡）</view>
+        </view>
+        <view class="food-nut-item">
+          <view class="food-nut-value">{{foodDetail.nutrition.protein}}</view>
+          <view class="food-nut-label">蛋白质（克）</view>
+        </view>
+        <view class="food-nut-item">
+          <view class="food-nut-value">{{foodDetail.nutrition.carbs}}</view>
+          <view class="food-nut-label">碳水（克）</view>
+        </view>
+        <view class="food-nut-item">
+          <view class="food-nut-value">{{foodDetail.nutrition.fat}}</view>
+          <view class="food-nut-label">脂肪（克）</view>
+        </view>
+      </view>
+
+      <!-- 克重输入区 -->
+      <view class="food-section-title">食用克重</view>
+      <view class="food-weight-row">
+        <input class="food-weight-input" type="number" value="{{foodDetail.weight}}" bindinput="onFoodWeightInput" min="1" max="9999"/>
+        <text class="food-weight-unit">克</text>
+      </view>
+
+      <!-- 换算结果区 -->
+      <view class="food-section-title">实际摄入营养</view>
+      <view class="food-nutrition-grid">
+        <view class="food-nut-item food-nut-converted">
+          <view class="food-nut-value">{{foodDetail.converted.calories}}</view>
+          <view class="food-nut-label">热量（千卡）</view>
+        </view>
+        <view class="food-nut-item food-nut-converted">
+          <view class="food-nut-value">{{foodDetail.converted.protein}}</view>
+          <view class="food-nut-label">蛋白质（克）</view>
+        </view>
+        <view class="food-nut-item food-nut-converted">
+          <view class="food-nut-value">{{foodDetail.converted.carbs}}</view>
+          <view class="food-nut-label">碳水（克）</view>
+        </view>
+        <view class="food-nut-item food-nut-converted">
+          <view class="food-nut-value">{{foodDetail.converted.fat}}</view>
+          <view class="food-nut-label">脂肪（克）</view>
+        </view>
+      </view>
+
+      <!-- 底部按钮 -->
+      <view class="food-detail-actions">
+        <view class="btn-cancel" bindtap="closeFoodDetail">关闭</view>
+        <view class="btn-confirm" bindtap="addFoodToRecord">添加到今日记录</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 修心活动详情 & 换算面板 -->
+  <view class="modal-overlay {{showStudyDetail ? 'show' : ''}}" bindtap="closeStudyDetail">
+    <view class="modal-sheet" catchtap="preventBubble">
+      <!-- 顶部：名称 + 分类标签 -->
+      <view class="food-detail-header">
+        <view class="food-detail-name">{{studyDetail.name}}</view>
+        <view class="food-detail-tag">{{studyDetail.categoryName}}</view>
+      </view>
+
+      <!-- 基准属性区（仅管理员可见） -->
+      <view class="food-section-title" wx:if="{{isAdmin}}">基准规则</view>
+      <view class="study-base-card" wx:if="{{isAdmin}}">
+        <text wx:if="{{studyDetail.calcUnit === 'time'}}">每{{studyDetail.timeBlockMinutes}}分钟基准修为：{{studyDetail.baseScore}}</text>
+        <text wx:else>单次基准修为：{{studyDetail.baseScore}}</text>
+      </view>
+
+      <!-- 数量输入区 -->
+      <view class="food-section-title">输入{{studyDetail.calcUnit === 'time' ? studyDetail.timeBlockLabel : '次数'}}</view>
+      <view class="food-weight-row">
+        <input class="food-weight-input" type="number" value="{{studyDetail.inputValue}}" bindinput="onStudyInput" min="1" max="999"/>
+        <text class="food-weight-unit">{{studyDetail.inputUnit}}</text>
+      </view>
+
+      <!-- 实时换算区 -->
+      <view class="food-section-title">换算结果</view>
+      <view class="study-result-card">
+        <view class="study-result-label">{{studyDetail.baseScore < 0 ? '本次将扣减修为' : '本次可获得修为'}}</view>
+        <view class="study-result-score" style="color: {{studyDetail.baseScore < 0 ? '#ef4444' : '#059669'}}">{{studyDetail.totalScore >= 0 ? '+' + studyDetail.totalScore : studyDetail.totalScore}}</view>
+      </view>
+
+      <!-- 底部按钮 -->
+      <view class="food-detail-actions">
+        <view class="btn-cancel" bindtap="closeStudyDetail">关闭</view>
+        <view class="btn-confirm" bindtap="addStudyToRecord">{{studyDetail.baseScore < 0 ? '标记到今日记录' : '添加到今日记录'}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 新建 / 编辑食物弹窗 -->
+  <view class="modal-overlay {{showFoodModal ? 'show' : ''}}" bindtap="closeFoodModal">
+    <view class="modal-sheet" catchtap="preventBubble">
+      <view class="modal-title">{{_editingFoodId ? '编辑食物' : '新建食物'}}</view>
+
+      <!-- 食物名称 -->
+      <view class="form-group">
+        <view class="form-label">食物名称 <text class="form-required">*</text></view>
+        <input class="form-input" placeholder="请输入食物名称" value="{{foodFormData.name}}" bindinput="onFoodFormNameInput" maxlength="20"/>
+      </view>
+
+      <!-- 所属分类 -->
+      <view class="form-group">
+        <view class="form-label">所属分类</view>
+        <picker mode="selector" range="{{foodFormSideOptions}}" range-key="name" value="{{foodFormData.sideFilterIndex}}" bindchange="onFoodFormSideFilterChange">
+          <view class="form-picker">{{foodFormSideOptions[foodFormData.sideFilterIndex].name}}</view>
+        </picker>
+      </view>
+
+      <!-- 每100g热量 -->
+      <view class="form-group">
+        <view class="form-label">每100g热量（千卡） <text class="form-required">*</text></view>
+        <input class="form-input" type="digit" placeholder="如：143" value="{{foodFormData.calories}}" bindinput="onFoodFormCaloriesInput"/>
+      </view>
+
+      <!-- 每100g蛋白质 -->
+      <view class="form-group">
+        <view class="form-label">每100g蛋白质（克）</view>
+        <input class="form-input" type="digit" placeholder="如：19.4" value="{{foodFormData.protein}}" bindinput="onFoodFormProteinInput"/>
+      </view>
+
+      <!-- 每100g碳水 -->
+      <view class="form-group">
+        <view class="form-label">每100g碳水化合物（克）</view>
+        <input class="form-input" type="digit" placeholder="如：2.5" value="{{foodFormData.carbs}}" bindinput="onFoodFormCarbsInput"/>
+      </view>
+
+      <!-- 每100g脂肪 -->
+      <view class="form-group">
+        <view class="form-label">每100g脂肪（克）</view>
+        <input class="form-input" type="digit" placeholder="如：5.0" value="{{foodFormData.fat}}" bindinput="onFoodFormFatInput"/>
+      </view>
+
+      <!-- 底部按钮 -->
+      <view class="modal-actions">
+        <view class="btn-cancel" bindtap="closeFoodModal">取消</view>
+        <view class="btn-confirm" bindtap="{{_editingFoodId ? 'submitEditFood' : 'submitNewFood'}}">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

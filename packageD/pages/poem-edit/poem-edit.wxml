@@ -1,0 +1,34 @@
+<view class="container">
+  <view class="card">
+    <view class="section-title">我的定场诗</view>
+    <view class="section-desc">展示在主页的开场诗句，可手动撰写或AI生成</view>
+    
+    <!-- 预览区 -->
+    <view class="poem-preview">
+      <view class="poem-deco">「</view>
+      <view class="poem-content">{{poem || '点击下方按钮生成或手动输入...'}}</view>
+      <view class="poem-deco right">」</view>
+    </view>
+
+    <!-- 输入区 -->
+    <view class="poem-input-wrap">
+      <textarea class="poem-textarea" 
+        placeholder="输入你的定场诗（最多50字）" 
+        value="{{poem}}" 
+        bindinput="onInput"
+        maxlength="50"
+        auto-height/>
+      <view class="poem-count">{{poemLength}}/50</view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="poem-actions">
+      <button class="btn btn-outline" bindtap="generateAI" disabled="{{isGenerating}}">
+        {{isGenerating ? '推演天机中...' : '✨ AI推演天机'}}
+      </button>
+      <button class="btn btn-ghost" bindtap="resetPoem" wx:if="{{poem !== originalPoem}}">恢复</button>
+    </view>
+  </view>
+
+  <button class="btn btn-primary save-btn" bindtap="savePoem">📜 铭刻定场诗</button>
+</view>

@@ -1,0 +1,263 @@
+<!-- 天道修行 - 自定义修行项目页（根骨体系） -->
+<view class="container theme-page {{themeClass}}">
+
+  <!-- ===== 根骨分类 Tab ===== -->
+  <scroll-view scroll-x class="category-tabs">
+    <view
+      wx:for="{{boneCategories}}"
+      wx:key="id"
+      class="cat-tab {{activeBone === item.id ? 'active' : ''}}"
+      style="{{activeBone === item.id ? 'background:' + item.color : ''}}"
+      data-id="{{item.id}}"
+      bindtap="switchBone"
+    >{{item.icon}} {{item.name}}</view>
+  </scroll-view>
+
+  <!-- ===== 综合根骨（全局提档展示） ===== -->
+  <view class="composite-strip" wx:if="{{compositeName && compositeName !== '凡俗之骨'}}">
+    <text class="cs-label">综合根骨</text>
+    <text class="cs-name">{{compositeName}}</text>
+    <text class="cs-bonus">全局加成 +{{globalBonusPercent}}%</text>
+    <text class="cs-score">{{compositeScore}}分</text>
+  </view>
+
+  <!-- ===== 称号面板模式 ===== -->
+  <view class="titles-panel" wx:if="{{showTitles}}">
+    <view class="titles-panel-head">
+      <text class="titles-panel-title">🏆 根骨称号</text>
+      <text class="titles-panel-close" bindtap="closeTitles">关闭</text>
+    </view>
+    <view class="titles-list">
+      <block wx:for="{{boneTitles}}" wx:key="id">
+        <view class="title-card {{item.unlocked ? 'unlocked' : 'locked'}}">
+          <view class="title-card-info">
+            <view class="title-card-name">{{item.name}}</view>
+            <view class="title-card-desc">{{item.desc}}</view>
+            <view class="title-card-meta">
+              <text class="title-rarity {{item.unlocked ? 'top' : ''}}">{{item.unlocked ? item.rarity === 'top' ? '顶级' : item.rarity : '未解锁'}}</text>
+              <text class="title-condition">{{item.currentLevel}}</text>
+            </view>
+          </view>
+          <view class="title-card-status">
+            <text wx:if="{{item.unlocked}}" class="title-unlocked">✓</text>
+            <text wx:else class="title-locked">🔒</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- ===== 根骨属性区（上半区） ===== -->
+  <view class="bone-attr-card" wx:if="{{!showTitles && boneLevel}}">
+    <view class="bone-attr-row">
+      <view class="bone-attr-icon">{{boneMeta.icon}}</view>
+      <view class="bone-attr-info">
+        <view class="bone-attr-name">{{boneMeta.name}}</view>
+        <view class="bone-attr-desc">{{boneMeta.desc}}</view>
+      </view>
+      <view class="bone-attr-badge" style="background:{{boneLevel.color}};color:#fff">{{boneLevel.name}}</view>
+    </view>
+    <view class="bone-attr-stats">
+      <view class="bone-stat-item">
+        <text class="bone-stat-val">全局 +{{globalBonusPercent}}%</text>
+        <text class="bone-stat-label">修为加成</text>
+      </view>
+      <view class="bone-stat-item">
+        <text class="bone-stat-val">{{boneLevel.totalScore}}</text>
+        <text class="bone-stat-label">累计修为</text>
+      </view>
+    </view>
+    <view class="bone-attr-progress" wx:if="{{boneLevel.nextLevel}}">
+      <view class="bone-attr-progress-bar">
+        <view class="bone-attr-progress-fill" style="width:{{boneLevel.progress}}%;background:{{boneMeta.color}}"></view>
+      </view>
+      <text class="bone-attr-progress-label">距{{boneLevel.nextLevel.name}}尚需 {{boneLevel.remaining}} 分</text>
+    </view>
+  </view>
+
+  <!-- ===== 修行项目区（下半区）：仅展示已添加项目 ===== -->
+  <view class="preset-grid">
+    <view
+      wx:for="{{presets}}"
+      wx:key="id"
+      class="preset-card {{item.id === activePreset.id ? 'selected' : ''}}"
+      style="{{item.id === activePreset.id ? 'border-color:' + item.color : ''}}"
+      data-id="{{item.id}}"
+      bindtap="openForm"
+    >
+      <view class="preset-icon">{{item.icon}}</view>
+      <view class="preset-name">{{item.name}}</view>
+      <view class="preset-cname">{{item.cultivationName}}</view>
+      <view class="preset-desc">{{item.desc}}</view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="history-card" wx:if="{{presets.length === 0}}">
+    <view class="history-empty">该根骨下暂无修行项目，点击下方按钮添加</view>
+  </view>
+
+  <!-- 添加修行项目按钮 -->
+  <view class="add-project-bar">
+    <view class="add-project-btn" bindtap="openAddProject">＋ 添加修行项目</view>
+  </view>
+
+  <!-- ===== 今日修行记录 ===== -->
+  <view class="history-card" wx:if="{{historyRecords.length > 0}}">
+    <view class="history-head">📜 今日修行记录</view>
+    <view class="history-item" wx:for="{{historyRecords}}" wx:key="presetId">
+      <view class="history-icon">{{item.icon}}</view>
+      <view class="history-info">
+        <view class="history-name">{{item.name}}</view>
+        <view class="history-meta">{{item.category}} · {{item.date}}</view>
+      </view>
+      <view class="history-score" style="color:{{item.color}}">+{{item.score}}</view>
+    </view>
+  </view>
+
+  <view class="history-card" wx:else>
+    <view class="history-head">📜 今日修行记录</view>
+    <view class="history-empty">今日尚未修炼，择一法门开始吧</view>
+  </view>
+
+</view>
+
+<!-- ===== 添加项目弹窗（多选模式） ===== -->
+<view class="form-mask" wx:if="{{showAddPicker}}" bindtap="closeAddPicker">
+  <view class="form-panel" catchtap="stopPropagation">
+    <view class="form-head">
+      <view class="form-title-wrap">
+        <view class="form-title-icon">{{boneMeta.icon}}</view>
+        <view class="form-title">{{boneMeta.name}} · 全量活动库</view>
+      </view>
+      <view class="form-close" bindtap="closeAddPicker">✕</view>
+    </view>
+
+    <!-- 搜索框 -->
+    <view class="mp-search-box" style="margin: 16rpx 0;">
+      <input class="mp-search-input" placeholder="搜索项目名称..." value="{{addSearchQuery}}" bindinput="onAddSearchInput" focus="{{ true }}" />
+    </view>
+
+    <!-- 多选列表 -->
+    <scroll-view class="add-picker-list" scroll-y enhanced show-scrollbar="{{ false }}">
+      <block wx:for="{{allBonePresets}}" wx:key="id">
+        <view class="add-picker-item {{item.checked ? 'checked' : ''}}" data-id="{{item.id}}" bindtap="onToggleAddItem">
+          <view class="add-picker-checkbox">
+            <text wx:if="{{item.checked}}">✓</text>
+          </view>
+          <view class="add-picker-info">
+            <view class="add-picker-name">{{item.icon}} {{item.cultivationName}}</view>
+            <view class="add-picker-desc">{{item.name}} · {{item.desc}}</view>
+          </view>
+        </view>
+      </block>
+      <view class="mp-empty" wx:if="{{allBonePresets.length === 0}}">
+        <text>该根骨下暂无更多项目</text>
+      </view>
+    </scroll-view>
+
+    <view class="add-picker-actions">
+      <view class="add-picker-cancel" bindtap="closeAddPicker">取消</view>
+      <view class="add-picker-save" style="background:{{boneMeta.color}}" bindtap="saveAddedProjects">保存</view>
+    </view>
+  </view>
+</view>
+
+<!-- ===== 指标输入浮层 ===== -->
+<view class="form-mask" wx:if="{{showForm}}" bindtap="closeForm">
+  <view class="form-panel" catchtap="stopPropagation">
+    <!-- 头部 -->
+    <view class="form-head">
+      <view class="form-title-wrap">
+        <view class="form-title-icon">{{activePreset.icon}}</view>
+        <view class="form-title">{{activePreset.cultivationName}}</view>
+      </view>
+      <view class="form-close" bindtap="closeForm">✕</view>
+    </view>
+
+    <!-- 科学引用 -->
+    <view class="sci-ref" wx:if="{{activePreset.desc}}">
+      <text class="s-label">科学依据：</text>{{activePreset.desc}}
+    </view>
+
+    <!-- 指标项 -->
+    <view class="metrics-wrap">
+      <block wx:for="{{activePreset.metrics}}" wx:key="key">
+        <view class="metric-item">
+          <view class="metric-label">
+            <text class="metric-label-text">{{item.cultivationLabel || item.label}}</text>
+            <text class="metric-label-unit">({{item.unit}})</text>
+            <text class="metric-required" wx:if="{{item.required}}">*必填</text>
+          </view>
+          <view class="metric-tip" wx:if="{{item.tip}}">{{item.tip}}</view>
+
+          <!-- 数值输入 -->
+          <view class="metric-input-wrap" wx:if="{{item.type === 'number' || item.type === 'text'}}">
+            <input
+              class="metric-input"
+              type="{{item.type === 'number' ? 'digit' : 'text'}}"
+              placeholder="{{item.placeholder || ''}}"
+              value="{{metricInputs[item.key]}}"
+              data-key="{{item.key}}"
+              bindinput="onInputChange"
+            />
+            <text class="metric-input-unit" wx:if="{{item.type === 'number'}}">{{item.unit}}</text>
+          </view>
+
+          <!-- 选择器 -->
+          <view class="metric-input-wrap" wx:if="{{item.type === 'select'}}">
+            <picker
+              mode="selector"
+              range="{{item.options}}"
+              range-key="label"
+              value="{{selectValues[item.key]}}"
+              data-key="{{item.key}}"
+              bindchange="onSelectChange"
+            >
+              <view class="metric-picker {{!metricInputs[item.key] ? 'placeholder' : ''}}">
+                {{selectLabels[item.key] || item.placeholder || '请选择'}}
+                <text class="metric-picker-arrow">▼</text>
+              </view>
+            </picker>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 提交 -->
+    <view class="submit-area">
+      <view class="submit-btn" style="background:{{activePreset.color}}" bindtap="submitMetrics">
+        ⚡ 印证修行 · 刻入命盘
+      </view>
+    </view>
+
+    <!-- ===== 计算结果 ===== -->
+    <view class="result-panel" wx:if="{{calcResult}}">
+      <view class="result-score">
+        <view class="result-score-num">+{{calcResult.score}}</view>
+        <view class="result-score-label">{{calcResult.message}}</view>
+      </view>
+
+      <!-- 量化指标 -->
+      <view class="result-metrics-row" wx:if="{{calcResult.metricsComputed}}">
+        <block wx:for="{{calcResult.metricsComputed}}" wx:key="*this" wx:for-index="k">
+          <view class="result-metric-chip" wx:if="{{item !== undefined && item !== '' && k !== 'strength_level'}}">
+            <view class="chip-label">{{k}}</view>
+            <view class="chip-value">{{item}}<text class="chip-unit"></text></view>
+          </view>
+        </block>
+      </view>
+
+      <!-- 积分明细 -->
+      <view class="breakdown-list" wx:if="{{calcResult.breakdown.length > 0}}">
+        <view class="breakdown-title">⚗️ 积分演算明细</view>
+        <view class="breakdown-row" wx:for="{{calcResult.breakdown}}" wx:key="index">
+          <text class="breakdown-label">{{item.label}}</text>
+          <text class="breakdown-detail">{{item.detail}}</text>
+          <text class="breakdown-contribution">{{item.contribution}}</text>
+        </view>
+      </view>
+    </view>
+
+  </view>
+</view>

@@ -1,0 +1,40 @@
+<!-- 模板广场 / 分享 / 导入 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+  <view class="card">
+    <view class="section-title">分享码</view>
+    <view class="code-row">
+      <input class="input" placeholder="输入分享码导入" value="{{inputCode}}" bindinput="onCodeInput" />
+      <view class="learn-btn" bindtap="lookupCode">查询</view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{template}}">
+    <view class="section-title">{{template.name}}</view>
+    <view class="desc">{{template.description}}</view>
+    <view class="meta">分享码：{{template.shareCode}}</view>
+    <view class="meta">单日上限 {{template.dailyCap}} · 功课 {{template.tasks.length}} 项</view>
+    <view class="action-row">
+      <button class="btn btn-primary" bindtap="importNow">一键导入</button>
+      <view class="ghost-btn" bindtap="copyCode">复制分享码</view>
+    </view>
+    <view class="hint">导入后生成本地摹本，可自行修改，不影响原模板。</view>
+  </view>
+
+  <view class="section-title-out">公开模板广场</view>
+  <view class="card" wx:if="{{plazaList.length}}">
+    <view
+      class="plaza-item"
+      wx:for="{{plazaList}}"
+      wx:key="id"
+      bindtap="openPlazaItem"
+      data-code="{{item.shareCode}}"
+    >
+      <view class="plaza-name">{{item.name}}</view>
+      <view class="plaza-desc">{{item.goal || item.description}}</view>
+      <view class="plaza-code">{{item.shareCode}}</view>
+    </view>
+  </view>
+  <view class="empty card" wx:else>广场暂无公开模板，去自定义页发布第一套吧</view>
+</view>

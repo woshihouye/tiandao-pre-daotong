@@ -1,0 +1,147 @@
+<!-- 我的模板 — 已选模板进度总览 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+
+  <!-- 顶部概览 -->
+  <view class="card header-card">
+    <view class="hc-title">📜 我的修炼模板</view>
+    <view class="hc-stats" wx:if="{{!isEmpty}}">
+      <text>总修为 {{totalCultivation}}</text>
+      <text wx:if="{{mainDetail}}"> · 证道主修 1 道</text>
+      <text wx:if="{{sideDetails.length > 0}}"> · 旁门辅修 {{sideDetails.length}} 道</text>
+    </view>
+    <view class="hc-empty" wx:if="{{isEmpty}}">暂未选择修炼模板</view>
+  </view>
+
+  <!-- ========== 证道主修 ========== -->
+  <block wx:if="{{mainDetail}}">
+  <view class="card tm-card tm-main-card">
+    <!-- 头部 -->
+    <view class="tm-head">
+      <view class="tm-cover-wrap">
+        <view class="tm-cover main-cover">{{mainDetail.cover}}</view>
+        <view class="tm-cover-badge main-badge">大道</view>
+      </view>
+      <view class="tm-head-text">
+        <view class="tm-head-name">{{mainDetail.name}}</view>
+        <view class="tm-head-goal">{{mainDetail.goal || '择一而终，日修不辍'}}</view>
+      </view>
+    </view>
+
+    <!-- 道则等级 Lv.1-5 -->
+    <view class="tm-row-label">道则熟练度</view>
+    <view class="tm-level-group">
+      <view class="tm-level-stars">
+        <text class="tms {{si < mainDetail.level ? 'active' : ''}}" wx:for="{{starIndexes}}" wx:for-index="si" wx:for-item="d" wx:key="*this">★</text>
+      </view>
+      <view class="tm-level-text">Lv.{{mainDetail.level}}</view>
+    </view>
+    <view class="tm-level-bar">
+      <view class="tm-level-fill main-fill" style="width:{{mainDetail.levelPct}}%"></view>
+    </view>
+
+    <!-- 当前境界 -->
+    <block wx:if="{{mainRealm}}">
+      <view class="tm-row-label">当前境界</view>
+      <view class="tm-realm-info">
+        <text class="tm-realm-name">{{mainRealm.name}}</text>
+        <text class="tm-realm-stage">第{{mainRealm.stage}}阶</text>
+      </view>
+      <view class="tm-level-bar realm-bar">
+        <view class="tm-level-fill realm-fill" style="width:{{mainRealm.stage / 9 * 100}}%"></view>
+      </view>
+      <view class="tm-realm-tip">距下一阶 {{mainRealm.remaining || 0}} 修为</view>
+    </block>
+
+    <!-- 境界阶梯 -->
+    <view class="tm-row-label" wx:if="{{mainDetail.realmNames.length > 0}}">成长阶梯</view>
+    <view class="tm-realm-steps" wx:if="{{mainDetail.realmNames.length > 0}}">
+      <view class="tm-rs-item" wx:for="{{mainDetail.realmNames}}" wx:for-index="ri" wx:key="*this">
+        <view class="tm-rs-dot {{mainRealm && ri + 1 <= mainRealm.stage ? 'done' : ''}}"></view>
+        <view class="tm-rs-name {{mainRealm && ri + 1 === mainRealm.stage ? 'current' : ''}}">{{item}}</view>
+        <view class="tm-rs-line" wx:if="{{ri < mainDetail.realmNames.length - 1}}"></view>
+      </view>
+    </view>
+
+    <!-- 元信息 -->
+    <view class="tm-meta-row">
+      <text>日上限 {{mainDetail.dailyCap}}</text>
+      <text>基准分 {{mainDetail.baseScore}}</text>
+      <text>任务数 {{mainDetail.taskCount}}</text>
+    </view>
+
+    <!-- 跳转详情 -->
+    <view class="tm-arrow" bindtap="goToTemplateDetail" data-id="{{mainTemplate.id}}">查看模板详情 →</view>
+  </view>
+  </block>
+
+  <!-- ========== 旁门辅修 ========== -->
+  <block wx:if="{{sideDetails.length > 0}}">
+  <view class="section-title-row">🌿 小道 · 旁门辅修</view>
+
+  <view class="card tm-card tm-side-card" wx:for="{{sideDetails}}" wx:key="id">
+    <view class="tm-head">
+      <view class="tm-cover-wrap">
+        <view class="tm-cover side-cover">{{item.cover}}</view>
+        <view class="tm-cover-badge side-badge">辅修</view>
+      </view>
+      <view class="tm-head-text">
+        <view class="tm-head-name">{{item.name}}</view>
+        <view class="tm-head-goal">{{item.goal || ''}}</view>
+      </view>
+    </view>
+
+    <!-- 道则等级 -->
+    <view class="tm-row-label">道则熟练度</view>
+    <view class="tm-level-group">
+      <view class="tm-level-stars">
+        <text class="tms {{si < item.level ? 'active' : ''}}" wx:for="{{starIndexes}}" wx:for-index="si" wx:for-item="d" wx:key="*this">★</text>
+      </view>
+      <view class="tm-level-text">Lv.{{item.level}}</view>
+    </view>
+    <view class="tm-level-bar">
+      <view class="tm-level-fill side-fill" style="width:{{item.levelPct}}%"></view>
+    </view>
+
+    <!-- 当前境界 -->
+    <block wx:if="{{item.realm}}">
+      <view class="tm-row-label">当前境界</view>
+      <view class="tm-realm-info">
+        <text class="tm-realm-name">{{item.realm.name}}</text>
+        <text class="tm-realm-stage">第{{item.realm.stage}}阶</text>
+      </view>
+      <view class="tm-level-bar realm-bar">
+        <view class="tm-level-fill realm-fill" style="width:{{item.realmPct}}%"></view>
+      </view>
+      <view class="tm-realm-tip">距下一阶 {{item.realm.remaining || 0}} 修为</view>
+    </block>
+
+    <!-- 分类标签 -->
+    <view class="tm-tags-row" wx:if="{{item.industry || item.subcategory || item.category}}">
+      <view class="tm-tag" wx:if="{{item.industry}}">{{item.industry}}</view>
+      <view class="tm-tag" wx:elif="{{item.subcategory}}">{{item.subcategory}}</view>
+      <view class="tm-tag tm-tag-cat">{{item.category === 'career' ? '行业成长' : item.category === 'learning' ? '学习精进' : item.category === 'fitness' ? '运动健康' : '生活修行'}}</view>
+    </view>
+
+    <!-- 元信息 -->
+    <view class="tm-meta-row">
+      <text>日上限 {{item.dailyCap}}</text>
+      <text>基准分 {{item.baseScore}}</text>
+      <text>任务数 {{item.taskCount}}</text>
+    </view>
+
+    <view class="tm-arrow" bindtap="goToTemplateDetail" data-id="{{item.id}}">查看模板详情 →</view>
+  </view>
+  </block>
+
+  <!-- 空状态 + 引导 -->
+  <view class="card empty-card" wx:if="{{isEmpty}}">
+    <view class="ec-icon">📜</view>
+    <view class="ec-text">尚未选择任何修炼模板</view>
+    <view class="ec-desc">模板广场有多条预设与行业模板，选一条作为证道主修</view>
+    <button class="ec-btn" bindtap="goToTemplates">前往模板广场</button>
+  </view>
+
+  <view style="height:40rpx"></view>
+</view>

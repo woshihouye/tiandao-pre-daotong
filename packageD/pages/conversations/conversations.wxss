@@ -1,0 +1,97 @@
+.container { min-height: 100vh; background: var(--page-bg); }
+
+/* ==================== Tab 栏 ==================== */
+.conv-tabs {
+  display: flex;
+  padding: 16rpx 24rpx 0;
+  background: var(--page-bg);
+  position: sticky; top: 0; z-index: 10;
+}
+.conv-tab {
+  flex: 1; text-align: center;
+  padding: 16rpx 0; font-size: 26rpx; color: var(--text-secondary);
+  border-bottom: 4rpx solid transparent;
+  position: relative;
+  transition: all 0.2s;
+}
+.conv-tab.active {
+  color: var(--primary);
+  font-weight: 700;
+  border-bottom-color: var(--primary);
+}
+.tab-count {
+  margin-left: 6rpx; font-size: 22rpx; color: var(--text-secondary);
+}
+.conv-tab.active .tab-count { color: var(--primary); }
+
+/* ==================== 陌生人提示 ==================== */
+.stranger-tip {
+  margin: 12rpx 24rpx; padding: 12rpx 20rpx;
+  background: #fef3c7; border-radius: 8rpx;
+  font-size: 22rpx; color: #92400e;
+}
+
+/* ==================== 会话列表 ==================== */
+.conv-list { padding: 0; }
+.conv-swipe-wrap { position: relative; overflow: hidden; border-bottom: 1rpx solid var(--border-color); }
+.conv-swipe-action {
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 140rpx; display: flex; align-items: center; justify-content: center;
+  background: #ef4444; color: #fff; font-size: 26rpx; font-weight: 600; z-index: 1;
+}
+.conv-item {
+  position: relative; z-index: 2;
+  display: flex; align-items: center;
+  padding: 24rpx 24rpx;
+  background: var(--page-bg);
+  transition: transform 0.2s ease;
+}
+.conv-item.slided { transform: translateX(-140rpx); }
+
+/* ==================== 头像 + 在线点 ==================== */
+.conv-avatar-wrap { position: relative; flex-shrink: 0; }
+.conv-avatar {
+  width: 88rpx; height: 88rpx;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  border: 2rpx solid var(--primary);
+  font-size: 36rpx; font-weight: 700; color: var(--primary);
+}
+.conv-online-dot {
+  position: absolute; right: 0; bottom: 0;
+  width: 20rpx; height: 20rpx;
+  border-radius: 50%;
+  background: #d1d5db;
+  border: 3rpx solid var(--page-bg);
+}
+.conv-online-dot.online { background: #10b981; }
+
+/* ==================== 会话内容 ==================== */
+.conv-body { flex: 1; margin-left: 20rpx; min-width: 0; }
+.conv-top { display: flex; justify-content: space-between; align-items: center; }
+.conv-name { font-size: 28rpx; font-weight: 700; color: var(--text-primary); }
+.conv-time { font-size: 22rpx; color: var(--text-secondary); flex-shrink: 0; }
+.conv-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 8rpx; }
+.conv-last { font-size: 24rpx; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.conv-badge {
+  min-width: 36rpx; height: 36rpx;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: #ef4444; color: #fff;
+  font-size: 20rpx; font-weight: 700;
+  margin-left: 12rpx; padding: 0 8rpx;
+}
+
+/* ==================== 陌生人标签 ==================== */
+.conv-stranger-tag {
+  display: inline-block;
+  margin-left: 8rpx; padding: 2rpx 10rpx;
+  font-size: 18rpx; color: #92400e;
+  background: #fef3c7; border-radius: 4rpx;
+  vertical-align: middle;
+}
+
+/* ==================== 空状态 ==================== */
+.empty-state { padding: 120rpx 0; text-align: center; }
+.empty-text { font-size: 26rpx; color: var(--text-secondary); }

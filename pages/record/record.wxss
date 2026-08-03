@@ -1,0 +1,161 @@
+/* pages/record/record.wxss — v2 极简·修仙风格 */
+
+page {
+  background-color: #F9FAFB;
+  height: 100%;
+}
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 16px;
+}
+
+/* ========== Tab 栏 ========== */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  margin-top: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.tab-item {
+  padding: 12px 4px 10px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  flex: 1;
+  text-align: center;
+}
+
+.tab-text {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tab-item.active .tab-text {
+  font-weight: 700;
+}
+
+/* ========== 模板选择栏 ========== */
+.template-scroll {
+  width: 100%;
+  white-space: nowrap;
+  margin-top: 12px;
+}
+
+.template-list {
+  display: inline-flex;
+  gap: 10px;
+  padding: 2px 0;
+}
+
+.template-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #E5E7EB;
+  background-color: #FFFFFF;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.template-chip.selected {
+  border-width: 2px;
+}
+
+.template-chip-cover {
+  font-size: 16px;
+  font-weight: 700;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.template-chip-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.template-chip-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* ========== 内容区 ========== */
+.content-scroll {
+  flex: 1;
+  margin-top: 12px;
+  overflow-y: auto;
+}
+
+.card-list {
+  padding-bottom: 8px;
+}
+
+.empty-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  gap: 8px;
+}
+
+.empty-icon {
+  font-size: 40px;
+}
+
+.empty-text {
+  font-size: 15px;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.empty-sub {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+/* ========== 结果区 ========== */
+.result-section {
+  padding: 0 0 8px;
+}
+
+/* ========== 提交按钮 ========== */
+.submit-bar {
+  padding: 12px 0;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+.submit-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.2s ease;
+}
+
+.submit-btn:active {
+  opacity: 0.85;
+}
+
+.submit-text {
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 600;
+}

@@ -1,0 +1,28 @@
+<view class="container">
+  <view class="card hero">
+    <view class="hero-title">我的收藏</view>
+    <view class="hero-desc">已收藏 {{templates.length}} 条道则</view>
+  </view>
+
+  <view class="fav-list" wx:if="{{templates.length > 0}}">
+    <view class="fav-card card" wx:for="{{templates}}" wx:key="_id">
+      <view class="fav-left">
+        <view class="fav-cover">{{item.cover || '道'}}</view>
+      </view>
+      <view class="fav-body" bindtap="importTemplate" data-template="{{item}}">
+        <view class="fav-name">{{item.name || item.templateName}}</view>
+        <view class="fav-desc">{{item.description || ''}}</view>
+        <view class="fav-meta">
+          <text wx:if="{{item.creatorName}}">👤 {{item.creatorName}}</text>
+        </view>
+      </view>
+      <view class="fav-right">
+        <view class="fav-remove" data-id="{{item._id || item.templateId || item.id}}" catchtap="removeFavorite">✕</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty-state" wx:if="{{templates.length === 0 && !loading}}">
+    <view class="empty-text">还没有收藏任何道则</view>
+  </view>
+</view>

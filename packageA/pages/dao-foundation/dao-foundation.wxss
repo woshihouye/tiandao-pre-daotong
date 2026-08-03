@@ -1,0 +1,9 @@
+.page{min-height:100vh;padding:40rpx;background:#1a1a2e;color:#fff}
+.title{font-size:36rpx;font-weight:700;margin-bottom:32rpx}
+.empty{text-align:center;color:#64748b;padding:120rpx 0;font-size:26rpx}
+.found-card{background:rgba(30,41,59,.8);border-radius:24rpx;padding:24rpx;margin-bottom:20rpx}
+.found-header{display:flex;align-items:center;gap:12rpx;margin-bottom:16rpx}
+.found-icon{font-size:36rpx}.found-realm{font-size:28rpx;font-weight:600;flex:1}
+.found-grade{font-size:28rpx;font-weight:700}
+.found-row{display:flex;justify-content:space-between;padding:8rpx 0;font-size:24rpx}
+.found-label{color:#94a3b8}.found-val{color:#fff}.found-val.bonus{color:#22c55e}

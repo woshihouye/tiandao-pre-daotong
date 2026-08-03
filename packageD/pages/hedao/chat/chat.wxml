@@ -1,0 +1,170 @@
+<!-- 悟道童儿 - AI精灵聊天页 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="chat-page theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+
+  <!-- 顶部道童入口 -->
+  <view class="chat-header">
+    <view class="chat-header-avatar {{spiritMode === 'mowan' ? 'avatar-mowan' : 'avatar-lingzhu'}} {{avatarSwitching ? 'switching' : ''}}">{{spiritMode === 'mowan' ? '魔' : '灵'}}</view>
+    <view class="chat-header-info">
+      <view class="chat-header-name">{{spiritMode === 'mowan' ? '魔丸道童' : '灵珠道童'}}</view>
+      <view class="chat-header-desc">AI道童 · 语音/文字记录修行</view>
+    </view>
+    <view class="chat-header-actions">
+      <view class="chat-header-icon" bindtap="openFeedbackPanel">✉</view>
+      <view class="chat-header-icon" bindtap="openModePanel">⚙</view>
+    </view>
+  </view>
+
+  <!-- 聊天消息区 -->
+  <scroll-view
+    class="chat-body"
+    scroll-y
+    scroll-into-view="{{scrollToBottom ? 'chatBottom' : ''}}"
+    scroll-with-animation
+  >
+    <block wx:for="{{messages}}" wx:key="_id">
+      <!-- 道童消息（浅米色） -->
+      <view class="chat-row spirit" wx:if="{{item.role === 'spirit'}}">
+        <view class="chat-avatar-small {{spiritMode === 'mowan' ? 's-avatar-mowan' : 's-avatar-lingzhu'}}">{{spiritMode === 'mowan' ? '魔' : '灵'}}</view>
+        <view class="chat-bubble spirit-bubble">{{item.content}}</view>
+      </view>
+
+      <!-- 用户消息（朱红色） -->
+      <view class="chat-row user" wx:elif="{{item.role === 'user'}}">
+        <view class="chat-bubble user-bubble">{{item.content}}</view>
+      </view>
+    </block>
+
+    <!-- AI思考中 -->
+    <view class="chat-row spirit" wx:if="{{isAiThinking}}">
+      <view class="chat-avatar-small {{spiritMode === 'mowan' ? 's-avatar-mowan' : 's-avatar-lingzhu'}}">{{spiritMode === 'mowan' ? '魔' : '灵'}}</view>
+      <view class="chat-bubble spirit-bubble typing">
+        <text class="dot">·</text><text class="dot">·</text><text class="dot">·</text>
+      </view>
+    </view>
+
+    <!-- 确认卡片 -->
+    <view class="confirm-card-wrap" wx:if="{{showConfirmCard}}">
+      <view class="confirm-card">
+        <view class="confirm-card-title">{{showConfirmCard.summary || '道童儿已识得'}}</view>
+
+        <view class="confirm-items">
+          <view class="confirm-item" wx:for="{{showConfirmCard.items}}" wx:key="index" bindlongpress="onEditItem" data-idx="{{index}}">
+            <view class="confirm-item-top">
+              <view class="confirm-item-tag">{{item.dimLabel || item.dim}}</view>
+              <view class="confirm-item-name">{{item.name}}</view>
+            </view>
+            <view class="confirm-item-score">
+              <text class="score-base">{{item.baseScore}}分</text>
+              <text class="score-weighted" wx:if="{{item.weightedScore !== item.baseScore}}">→ {{item.weightedScore}}分</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="confirm-meta">
+          <text>媒体权重：{{showConfirmCard.mediaWeightLabel}}（×{{showConfirmCard.mediaWeight}}）</text>
+          <text wx:if="{{!showConfirmCard.mediaRelevant}}" class="media-warn">媒体与记录内容不符，未计入加成</text>
+        </view>
+        <view class="confirm-total">共计 +{{showConfirmCard.totalWeightedScore}} 修为</view>
+
+        <view class="confirm-actions">
+          <view class="confirm-btn ghost" bindtap="cancelConfirm">撤销</view>
+          <view class="confirm-btn primary" bindtap="confirmRecords" wx:if="{{!isSubmitting}}">确认入账</view>
+          <view class="confirm-btn primary disabled" wx:else>入账中...</view>
+        </view>
+
+        <view class="confirm-edit-hint">长按条目可修改名称、维度或删除</view>
+      </view>
+    </view>
+
+    <view id="chatBottom"></view>
+  </scroll-view>
+
+  <!-- 媒体预览 -->
+  <view class="media-preview" wx:if="{{mediaList.length > 0}}">
+    <view class="media-item" wx:for="{{mediaList}}" wx:key="index">
+      <image wx:if="{{item.type === 'image'}}" class="media-thumb" src="{{item.tempFilePath}}" mode="aspectFill" />
+      <video wx:else class="media-thumb" src="{{item.tempFilePath}}" />
+      <view class="media-remove" data-idx="{{index}}" bindtap="removeMedia">×</view>
+    </view>
+  </view>
+
+  <!-- 录音提示 -->
+  <view class="recording-bar" wx:if="{{isRecording}}">
+    <view class="recording-pulse"></view>
+    <text class="recording-text">正在聆听... {{recordingDuration}}s</text>
+    <view class="recording-stop-btn" bindtap="stopRecord">停止</view>
+  </view>
+
+  <!-- 求加持 / 求棒喝 快捷按钮 -->
+  <view class="quick-actions">
+    <view class="quick-btn" bindtap="requestBlessing">🙏 求加持</view>
+    <view class="quick-btn" bindtap="requestCriticism">⚡ 求棒喝</view>
+  </view>
+
+  <!-- 底部输入区 -->
+  <view class="chat-input-bar">
+    <view class="chat-input-media" bindtap="chooseMedia">+</view>
+    <input
+      class="chat-input"
+      placeholder="说点什么..."
+      value="{{inputText}}"
+      bindinput="onInputChange"
+      bindconfirm="onInputConfirm"
+      confirm-type="send"
+      adjust-position="{{true}}"
+    />
+    <view class="chat-input-voice" bindtap="startRecord" wx:if="{{!isRecording}}">🎤</view>
+    <view class="chat-input-send" bindtap="onInputConfirm" wx:if="{{inputText}}">→</view>
+  </view>
+
+  <!-- 模式选择面板 -->
+
+  <!-- 沟通天道 - 客服邮箱弹窗 -->
+  <view class="feedback-mask" wx:if="{{showFeedbackPanel}}" bindtap="closeFeedbackPanel" catchtouchmove="noop">
+    <view class="feedback-panel" catchtap="noop">
+      <view class="feedback-close" bindtap="closeFeedbackPanel">✕</view>
+      <view class="feedback-title">沟通天道</view>
+      <view class="feedback-desc">若您有功能建议、问题反馈或其他事宜，可通过邮件与我们联系</view>
+      <view class="feedback-email-card" bindtap="copyFeedbackEmail">
+        <text class="feedback-email-text">2992571197@qq.com</text>
+        <text class="feedback-email-hint">点击复制</text>
+      </view>
+      <view class="feedback-actions">
+        <view class="feedback-btn secondary" bindtap="closeFeedbackPanel">关闭</view>
+        <view class="feedback-btn primary" bindtap="copyFeedbackEmail">复制邮箱</view>
+      </view>
+      <view class="feedback-footer">我们会认真查阅每一封邮件，感谢您的反馈</view>
+    </view>
+  </view>
+  <view class="mode-panel-mask" wx:if="{{showModePanel}}" bindtap="closeModePanel">
+    <view class="mode-panel" catchtap="noop">
+      <view class="mode-panel-title">选择道童模式</view>
+      <view class="mode-options">
+        <view 
+          class="mode-option {{spiritMode === 'lingzhu' ? 'active' : ''}}" 
+          data-mode="lingzhu" 
+          bindtap="switchMode"
+        >
+          <view class="mode-option-avatar opt-lingzhu">灵</view>
+          <view class="mode-option-name">灵珠道童</view>
+          <view class="mode-option-desc">温柔鼓励，正向引导</view>
+          <view wx:if="{{spiritMode === 'lingzhu'}}" class="mode-option-badge">当前</view>
+        </view>
+        <view 
+          class="mode-option {{spiritMode === 'mowan' ? 'active' : ''}}" 
+          data-mode="mowan" 
+          bindtap="switchMode"
+        >
+          <view class="mode-option-avatar opt-mowan">魔</view>
+          <view class="mode-option-name">魔丸道童</view>
+          <view class="mode-option-desc">毒舌吐槽，搞笑有梗</view>
+          <view wx:if="{{spiritMode === 'mowan'}}" class="mode-option-badge">当前</view>
+        </view>
+      </view>
+      <view class="mode-panel-close" bindtap="closeModePanel">关闭</view>
+    </view>
+  </view>
+
+</view>

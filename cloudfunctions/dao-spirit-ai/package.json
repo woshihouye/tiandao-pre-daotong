@@ -1,0 +1,10 @@
+{
+  "name": "dao-spirit-ai",
+  "version": "3.0.0",
+  "description": "道童AI云函数 v3 — 火山引擎方舟多模态对话 + 活动自动记录（Function Calling）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.0",
+    "axios": "^1.6.0"
+  }
+}

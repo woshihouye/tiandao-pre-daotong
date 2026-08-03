@@ -1,0 +1,328 @@
+/* 我的模板页 — 进度总览 */
+
+.container {
+  min-height: 100vh;
+  padding: 20rpx 24rpx 0;
+  background: var(--page-bg);
+}
+
+.card {
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  border-radius: 24rpx;
+  background: var(--card-bg);
+  border: 1rpx solid var(--border-color);
+}
+
+/* ===== 顶部概览 ===== */
+.header-card {
+  text-align: center;
+  padding: 28rpx 24rpx;
+}
+
+.hc-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6rpx;
+}
+
+.hc-stats {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.hc-empty {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.section-title-row {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 14rpx;
+  padding-left: 4rpx;
+}
+
+/* ===== 模板卡片 ===== */
+.tm-card {
+  padding-bottom: 18rpx;
+}
+
+.tm-main-card {
+  border-left: 4rpx solid #10b981;
+}
+
+.tm-side-card {
+  border-left: 4rpx solid #8b5cf6;
+}
+
+/* 头部 */
+.tm-head {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin-bottom: 18rpx;
+}
+
+.tm-cover-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.tm-cover {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.main-cover { background: #10b981; }
+.side-cover { background: #8b5cf6; }
+
+.tm-cover-badge {
+  position: absolute;
+  bottom: -6rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
+  font-size: 18rpx;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.main-badge { background: #10b981; }
+.side-badge { background: #8b5cf6; }
+
+.tm-head-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.tm-head-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tm-head-goal {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  margin-top: 2rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 行标签 */
+.tm-row-label {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  margin-bottom: 8rpx;
+}
+
+/* 等级星级 */
+.tm-level-group {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-bottom: 6rpx;
+}
+
+.tm-level-stars {
+  display: flex;
+  gap: 4rpx;
+}
+
+.tms {
+  font-size: 30rpx;
+  color: var(--border-color);
+}
+
+.tms.active {
+  color: #f59e0b;
+}
+
+.tm-level-text {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* 进度条 */
+.tm-level-bar {
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: var(--surface-soft);
+  overflow: hidden;
+  margin-bottom: 14rpx;
+}
+
+.tm-level-fill {
+  height: 100%;
+  border-radius: 4rpx;
+  transition: width 0.5s ease;
+}
+
+.main-fill { background: linear-gradient(90deg, #10b981, #34d399); }
+.side-fill { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.realm-bar { background: var(--surface-soft); }
+.realm-fill { background: linear-gradient(90deg, var(--primary), rgba(var(--primary-rgb), 0.6)); }
+
+/* 境界 */
+.tm-realm-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6rpx;
+}
+
+.tm-realm-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tm-realm-stage {
+  font-size: 22rpx;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.tm-realm-tip {
+  font-size: 20rpx;
+  color: var(--text-secondary);
+  text-align: right;
+  margin-top: 2rpx;
+  margin-bottom: 10rpx;
+}
+
+/* 境界阶梯 */
+.tm-realm-steps {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: 14rpx;
+}
+
+.tm-rs-item {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.tm-rs-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: var(--border-color);
+  flex-shrink: 0;
+}
+
+.tm-rs-dot.done {
+  background: #10b981;
+}
+
+.tm-rs-name {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.tm-rs-name.current {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.tm-rs-line {
+  width: 24rpx;
+  height: 2rpx;
+  background: var(--border-color);
+  margin: 0 4rpx;
+  flex-shrink: 0;
+}
+
+/* 标签 */
+.tm-tags-row {
+  display: flex;
+  gap: 8rpx;
+  margin-bottom: 12rpx;
+  flex-wrap: wrap;
+}
+
+.tm-tag {
+  padding: 2rpx 12rpx;
+  border-radius: 6rpx;
+  font-size: 20rpx;
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+}
+
+.tm-tag-cat {
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+}
+
+/* 元信息 */
+.tm-meta-row {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 10rpx;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}
+
+/* 跳转 */
+.tm-arrow {
+  text-align: right;
+  font-size: 24rpx;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* 空状态 */
+.empty-card {
+  text-align: center;
+  padding: 60rpx 24rpx;
+}
+
+.ec-icon {
+  font-size: 64rpx;
+  margin-bottom: 14rpx;
+}
+
+.ec-text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8rpx;
+}
+
+.ec-desc {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-bottom: 24rpx;
+  line-height: 1.6;
+}
+
+.ec-btn {
+  display: inline-block;
+  padding: 14rpx 40rpx;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #fff;
+  background: var(--primary);
+  border: none;
+}

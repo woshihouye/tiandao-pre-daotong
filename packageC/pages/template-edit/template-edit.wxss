@@ -1,0 +1,76 @@
+.container {
+  min-height: 100vh;
+  padding-bottom: 48rpx;
+  background: var(--page-bg);
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16rpx;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.link {
+  font-size: 24rpx;
+  color: #10b981;
+}
+
+.hint {
+  margin-bottom: 12rpx;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}
+
+.form-item {
+  margin-bottom: 18rpx;
+}
+
+.label {
+  margin-bottom: 8rpx;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.input,
+.picker {
+  min-height: 72rpx;
+  padding: 0 18rpx;
+  border-radius: 16rpx;
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+  font-size: 26rpx;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.task-editor {
+  padding: 16rpx 0;
+  border-top: 1rpx solid var(--border-color);
+}
+
+.remove {
+  font-size: 22rpx;
+  color: var(--danger-text);
+  text-align: right;
+}
+
+.bottom-actions {
+  padding: 0 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.btn.ghost {
+  background: var(--surface-soft);
+  color: var(--text-primary);
+  border: 1rpx solid var(--border-color);
+}

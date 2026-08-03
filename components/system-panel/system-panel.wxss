@@ -1,0 +1,419 @@
+/**
+ * system-panel - 系统通知面板组件样式
+ * RPG系统对话框风格：暗色基底 + 等级光晕 + 扫描线 + 入场动画
+ * 使用项目 CSS 变量：var(--card-bg), var(--text-primary), var(--text-secondary)
+ */
+
+/* ═══════════════════════════════════════════
+   面板容器
+   ═══════════════════════════════════════════ */
+.sys-panel {
+  position: relative;
+  overflow: hidden;
+  margin: var(--space-lg);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(160deg, #141418 0%, #0e0e12 100%);
+  border: 2rpx solid rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  transform: translateY(20rpx);
+}
+
+/* 入场动画 */
+.sys-panel.sys-enter {
+  animation: systemPanelEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes systemPanelEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(20rpx) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   外发光层
+   ═══════════════════════════════════════════ */
+.sys-glow {
+  position: absolute;
+  inset: -3rpx;
+  border-radius: 28rpx;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.6;
+  filter: blur(20rpx);
+}
+
+/* info - 蓝色光晕 */
+.sys-glow-info {
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.25) 0%, rgba(59, 130, 246, 0.1) 50%, rgba(96, 165, 250, 0.25) 100%);
+}
+
+/* progress - 绿色光晕 */
+.sys-glow-progress {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(5, 150, 105, 0.12) 50%, rgba(16, 185, 129, 0.3) 100%);
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+/* milestone - 金色光晕 */
+.sys-glow-milestone {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.35) 0%, rgba(245, 158, 11, 0.15) 50%, rgba(255, 215, 0, 0.35) 100%);
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+/* breakthrough - 紫色光晕 */
+.sys-glow-breakthrough {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.4) 0%, rgba(139, 92, 246, 0.18) 50%, rgba(168, 85, 247, 0.4) 100%);
+  animation: breakthroughGlow 1.5s ease-in-out infinite;
+  opacity: 0.8;
+  filter: blur(24rpx);
+}
+
+/* glory - 彩虹渐变光晕 */
+.sys-glow-glory {
+  background: linear-gradient(
+    135deg,
+    rgba(236, 72, 153, 0.35) 0%,
+    rgba(168, 85, 247, 0.2) 33%,
+    rgba(59, 130, 246, 0.2) 66%,
+    rgba(236, 72, 153, 0.35) 100%
+  );
+  animation: gloryRainbow 3s linear infinite;
+  opacity: 0.7;
+  filter: blur(22rpx);
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes breakthroughGlow {
+  0%, 100% {
+    opacity: 0.6;
+    filter: blur(20rpx);
+  }
+  50% {
+    opacity: 1;
+    filter: blur(28rpx);
+  }
+}
+
+@keyframes gloryRainbow {
+  0% {
+    filter: blur(22rpx) hue-rotate(0deg);
+  }
+  50% {
+    filter: blur(26rpx) hue-rotate(30deg);
+  }
+  100% {
+    filter: blur(22rpx) hue-rotate(0deg);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   边框光晕（等级区分）
+   ═══════════════════════════════════════════ */
+.sys-panel-info {
+  box-shadow: 0 0 30rpx rgba(96, 165, 250, 0.12), inset 0 0 30rpx rgba(96, 165, 250, 0.04);
+  border-color: rgba(96, 165, 250, 0.15);
+}
+
+.sys-panel-progress {
+  box-shadow: 0 0 30rpx rgba(16, 185, 129, 0.15), inset 0 0 30rpx rgba(16, 185, 129, 0.05);
+  border-color: rgba(16, 185, 129, 0.18);
+}
+
+.sys-panel-milestone {
+  border-color: rgba(255, 215, 0, 0.35);
+  box-shadow:
+    0 0 40rpx rgba(255, 215, 0, 0.18),
+    0 0 80rpx rgba(255, 215, 0, 0.06),
+    inset 0 0 40rpx rgba(255, 215, 0, 0.04);
+  animation: milestoneBorderPulse 2s ease-in-out infinite;
+}
+
+.sys-panel-breakthrough {
+  border-color: rgba(168, 85, 247, 0.45);
+  box-shadow:
+    0 0 50rpx rgba(168, 85, 247, 0.25),
+    0 0 100rpx rgba(168, 85, 247, 0.08),
+    inset 0 0 50rpx rgba(168, 85, 247, 0.06);
+  animation: breakthroughBorderPulse 1.5s ease-in-out infinite;
+}
+
+.sys-panel-glory {
+  border-color: transparent;
+  background-clip: padding-box;
+  animation: gloryBorderSpin 4s linear infinite;
+  /* 使用伪元素实现渐变边框效果由 glow 层配合 */
+  box-shadow:
+    0 0 40rpx rgba(236, 72, 153, 0.2),
+    0 0 80rpx rgba(168, 85, 247, 0.1),
+    0 0 120rpx rgba(59, 130, 246, 0.06);
+}
+
+@keyframes milestoneBorderPulse {
+  0%, 100% {
+    border-color: rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 40rpx rgba(255, 215, 0, 0.15), inset 0 0 40rpx rgba(255, 215, 0, 0.03);
+  }
+  50% {
+    border-color: rgba(255, 215, 0, 0.55);
+    box-shadow: 0 0 50rpx rgba(255, 215, 0, 0.25), inset 0 0 50rpx rgba(255, 215, 0, 0.06);
+  }
+}
+
+@keyframes breakthroughBorderPulse {
+  0%, 100% {
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 50rpx rgba(168, 85, 247, 0.2), inset 0 0 50rpx rgba(168, 85, 247, 0.05);
+  }
+  50% {
+    border-color: rgba(168, 85, 247, 0.7);
+    box-shadow: 0 0 70rpx rgba(168, 85, 247, 0.35), inset 0 0 70rpx rgba(168, 85, 247, 0.08);
+  }
+}
+
+@keyframes gloryBorderSpin {
+  0% {
+    border-color: rgba(236, 72, 153, 0.45);
+  }
+  25% {
+    border-color: rgba(168, 85, 247, 0.45);
+  }
+  50% {
+    border-color: rgba(59, 130, 246, 0.45);
+  }
+  75% {
+    border-color: rgba(16, 185, 129, 0.45);
+  }
+  100% {
+    border-color: rgba(236, 72, 153, 0.45);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   扫描线纹理（横向细线）
+   ═══════════════════════════════════════════ */
+.sys-scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0rpx,
+    transparent 4rpx,
+    rgba(255, 255, 255, 0.015) 4rpx,
+    rgba(255, 255, 255, 0.015) 5rpx
+  );
+}
+
+/* ═══════════════════════════════════════════
+   点阵纹理
+   ═══════════════════════════════════════════ */
+.sys-dotmatrix {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.6) 1rpx,
+    transparent 1rpx
+  );
+  background-size: var(--space-md) var(--space-md);
+}
+
+/* ═══════════════════════════════════════════
+   主内容区
+   ═══════════════════════════════════════════ */
+.sys-content {
+  position: relative;
+  z-index: 2;
+  padding: var(--space-xl) 28rpx;
+}
+
+/* ═══════════════════════════════════════════
+   头部区域
+   ═══════════════════════════════════════════ */
+.sys-header {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+/* 等级图标 */
+.sys-icon {
+  width: 60rpx;
+  height: 60rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 2rpx solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sys-icon-text {
+  font-size: var(--font-xl);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 各等级图标色彩 */
+.sys-icon-info {
+  background: rgba(96, 165, 250, 0.12);
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+.sys-icon-progress {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.sys-icon-milestone {
+  background: rgba(255, 215, 0, 0.12);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.sys-icon-breakthrough {
+  background: rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.3);
+  animation: iconBreakthroughGlow 1.5s ease-in-out infinite;
+}
+
+.sys-icon-glory {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(168, 85, 247, 0.15));
+  border-color: rgba(236, 72, 153, 0.3);
+  animation: gloryBorderSpin 4s linear infinite;
+}
+
+@keyframes iconBreakthroughGlow {
+  0%, 100% {
+    box-shadow: 0 0 8rpx rgba(168, 85, 247, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20rpx rgba(168, 85, 247, 0.5);
+  }
+}
+
+/* 标题组 */
+.sys-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.sys-title-prefix {
+  display: block;
+  font-size: var(--font-sm);
+  font-weight: var(--weight-semibold);
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.5;
+  letter-spacing: 2rpx;
+}
+
+.sys-title-main {
+  display: block;
+  margin-top: 2rpx;
+  font-size: 30rpx;
+  font-weight: var(--weight-bold);
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+  letter-spacing: 1rpx;
+}
+
+/* 状态指示灯 */
+.sys-status-dots {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+.sys-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.sys-dot-active {
+  background: rgba(16, 185, 129, 0.8);
+  box-shadow: 0 0 8rpx rgba(16, 185, 129, 0.5);
+  animation: dotBlink 2s ease-in-out infinite;
+}
+
+@keyframes dotBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ═══════════════════════════════════════════
+   分隔线
+   ═══════════════════════════════════════════ */
+.sys-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: 22rpx 0;
+}
+
+.sys-divider-line {
+  flex: 1;
+  height: 1rpx;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 20%,
+    rgba(255, 255, 255, 0.12) 80%,
+    transparent 100%
+  );
+}
+
+.sys-divider-diamond {
+  width: 10rpx;
+  height: 10rpx;
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════
+   消息正文
+   ═══════════════════════════════════════════ */
+.sys-body {
+  padding: var(--space-xs) 0;
+}
+
+.sys-message {
+  font-size: var(--font-xl);
+  font-weight: var(--weight-normal);
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.8;
+  letter-spacing: 0.5rpx;
+}
+
+/* ═══════════════════════════════════════════
+   底部角标
+   ═══════════════════════════════════════════ */
+.sys-footer {
+  margin-top: 20rpx;
+  padding-top: var(--space-md);
+  border-top: 1rpx solid rgba(255, 255, 255, 0.04);
+  text-align: right;
+}
+
+.sys-footer-text {
+  font-size: var(--font-xs);
+  font-weight: var(--weight-semibold);
+  color: rgba(255, 255, 255, 0.18);
+  letter-spacing: 4rpx;
+}

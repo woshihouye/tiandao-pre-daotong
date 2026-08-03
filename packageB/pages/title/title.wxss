@@ -1,0 +1,226 @@
+.equipped-card { overflow: hidden; }
+.equipped-label { font-size: var(--font-md); color: var(--text-secondary); letter-spacing: 4rpx; margin-bottom: 20rpx; }
+
+.equipped-badge {
+  display: inline-flex; align-items: center; gap: var(--space-sm);
+  padding: 14rpx 28rpx; border-radius: var(--radius-md); border: 2rpx solid;
+  background: var(--surface-soft);
+}
+.equipped-badge-icon { font-size: var(--font-xl); font-weight: var(--weight-bold); }
+.equipped-badge-name { font-size: var(--font-xl); font-weight: var(--weight-bold); }
+.equipped-badge-bonus { font-size: var(--font-md); font-weight: var(--weight-semibold); opacity: 0.8; }
+.equipped-hint { margin-top: 20rpx; font-size: var(--font-sm); color: var(--text-muted); }
+
+.loading-card { padding: 80rpx; text-align: center; }
+.loading-text { font-size: var(--font-xl); color: var(--text-muted); }
+
+/* ===== 等级 Tab 栏 ===== */
+.level-tabs {
+  white-space: nowrap;
+  padding: 16rpx 0 12rpx;
+  margin-bottom: 16rpx;
+}
+.level-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx 28rpx;
+  margin-right: 12rpx;
+  border-radius: var(--radius-full);
+  font-size: var(--font-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  background: var(--surface-muted);
+  transition: all 0.2s;
+}
+.level-tab.active {
+  color: #fff;
+  background: var(--primary);
+  font-weight: var(--weight-bold);
+}
+
+/* ===== 称号网格 ===== */
+.title-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-md); }
+
+.title-card {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 28rpx var(--space-md) 22rpx; border-radius: var(--radius-lg);
+  background: var(--card-bg); border: 1rpx solid var(--border-color);
+  text-align: center; position: relative;
+}
+.title-card:active { opacity: 0.7; }
+.title-card.locked { opacity: 0.55; }
+.title-card.equipped {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3rpx rgba(16, 185, 129, 0.15);
+}
+
+.title-badge {
+  width: 72rpx; height: 72rpx; display: flex; align-items: center; justify-content: center;
+  border-radius: 18rpx; background: var(--surface-muted); border: 1rpx solid var(--border-color);
+  color: var(--text-muted); font-size: var(--font-md); font-weight: var(--weight-bold); margin-bottom: 14rpx;
+}
+.title-badge-text { line-height: 1; }
+
+.title-name { font-size: var(--font-lg); font-weight: var(--weight-bold); color: var(--text-primary); line-height: 1.4; margin-bottom: var(--space-xs); }
+.title-card.locked .title-name { color: var(--text-muted); }
+
+.title-bonus {
+  font-size: var(--font-sm); font-weight: var(--weight-bold); color: var(--primary);
+  padding: 4rpx 14rpx; border-radius: var(--radius-full); background: rgba(16, 185, 129, 0.1);
+}
+
+.title-condition { font-size: var(--font-xs); color: var(--text-muted); line-height: 1.4; padding: 0 4rpx; }
+
+/* 业务分类（底部小字补充说明） */
+.title-category-tag {
+  margin-top: 8rpx;
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  opacity: 0.65;
+}
+
+/* ===== 等级标签（右上角） ===== */
+.level-badge {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  padding: 2rpx 10rpx;
+  border-radius: var(--radius-sm);
+  font-size: 18rpx;
+  font-weight: var(--weight-bold);
+  line-height: 1.6;
+  z-index: 1;
+}
+
+/* 夯爆了：金底红字 + 描边 */
+.level-explosive {
+  color: #DC143C;
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  border: 2rpx solid #DC143C;
+  text-shadow: 0 1rpx 0 rgba(255,255,255,0.5);
+}
+
+/* 顶级：橙金色纯色标签 */
+.level-top {
+  color: #fff;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* 人上人：紫色纯色标签 */
+.level-superior {
+  color: #fff;
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+}
+
+/* npc：蓝色纯色标签 */
+.level-normal {
+  color: #fff;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+/* 拉完了：灰色纯色标签 */
+.level-bottom {
+  color: #fff;
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+}
+
+.equipped-tag {
+  position: absolute;
+  top: 40rpx;
+  right: var(--space-sm);
+  padding: 4rpx var(--space-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-xs);
+  font-weight: var(--weight-semibold);
+  color: #fff;
+  background: var(--primary);
+  z-index: 2;
+}
+
+/* 空状态 */
+.empty-state {
+  padding: 80rpx 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-md);
+}
+
+/* 印章弹窗 */
+.stamp-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.45); z-index: 9999;
+}
+.stamp-card {
+  animation: stampIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes stampIn {
+  from { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+  to { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.stamp-seal {
+  width: 280rpx; height: 280rpx; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; border-radius: 50%;
+  border: 8rpx solid; background: rgba(255, 255, 255, 0.95); position: relative;
+}
+.stamp-ring {
+  position: absolute; width: 240rpx; height: 240rpx; border-radius: 50%;
+  border: 2rpx dashed; opacity: 0.4;
+}
+.stamp-name { font-size: var(--font-4xl); font-weight: var(--weight-bold); line-height: 1.2; letter-spacing: 4rpx; z-index: 1; margin-bottom: var(--space-sm); }
+.stamp-label { font-size: var(--font-sm); font-weight: var(--weight-semibold); letter-spacing: 8rpx; z-index: 1; opacity: 0.7; }
+
+/* 定场诗面板 */
+.poem-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  animation: fadeIn 0.3s ease;
+}
+
+.poem-panel {
+  width: 560rpx;
+  margin: 0 40rpx;
+  padding: 48rpx 36rpx 40rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(160deg, #1a1020 0%, #0c0810 100%);
+  border: 2rpx solid rgba(255, 215, 0, 0.3);
+  text-align: center;
+  animation: panelUp 0.4s ease;
+}
+
+.poem-panel-title {
+  font-size: 38rpx;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 4rpx;
+}
+
+.poem-panel-divider {
+  width: 120rpx;
+  height: 2rpx;
+  margin: 24rpx auto;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+
+.poem-panel-text {
+  font-size: 30rpx;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 2.2;
+  letter-spacing: 3rpx;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes panelUp {
+  from { transform: translateY(40rpx); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

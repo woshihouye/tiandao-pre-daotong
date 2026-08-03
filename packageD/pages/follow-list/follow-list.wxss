@@ -1,0 +1,9 @@
+.container { min-height: 100vh; background: var(--page-bg); padding: 20rpx 24rpx; }
+.tab-bar { display: flex; margin-bottom: 20rpx; border-radius: 14rpx; background: var(--surface-soft); overflow: hidden; }
+.tab-item { flex: 1; text-align: center; padding: 18rpx 0; font-size: 26rpx; color: var(--text-secondary); }
+.tab-item.active { background: var(--primary); color: #fff; }
+.user-item { display: flex; align-items: center; gap: 16rpx; padding: 20rpx 16rpx; margin-bottom: 8rpx; border-radius: 16rpx; background: var(--card-bg); border: 1rpx solid var(--border-color); }
+.user-avatar { width: 72rpx; height: 72rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--surface-soft); border: 2rpx solid var(--primary); font-size: 30rpx; font-weight: 700; color: var(--primary); }
+.user-name { flex: 1; font-size: 28rpx; font-weight: 600; color: var(--text-primary); }
+.user-arrow { font-size: 28rpx; color: var(--text-secondary); }
+.empty { text-align: center; padding: 80rpx 0; font-size: 26rpx; color: var(--text-secondary); }

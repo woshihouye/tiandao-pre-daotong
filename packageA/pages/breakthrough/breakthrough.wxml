@@ -1,0 +1,62 @@
+<view class="breakthrough-page">
+  <!-- 准备阶段 -->
+  <view class="phase-prepare" wx:if="{{ phase === 'prepare' }}">
+    <view class="ritual-title">{{ ritual.description }}</view>
+    <view class="ritual-poem">{{ ritual.poem }}</view>
+    <view class="ritual-btn" bindtap="onAnimationTap">开始突破</view>
+  </view>
+
+  <!-- 动画阶段 -->
+  <view class="phase-animate" wx:if="{{ phase === 'animate' }}" bindtap="onAnimationTap">
+    <view class="anim-container">
+      <view class="anim-core" style="animation:corePulse {{ animCoreDuration }} ease infinite">
+        <text class="anim-icon">✦</text>
+      </view>
+      <view class="anim-rings">
+        <view class="anim-ring r1" style="animation-duration:{{ animRing1Duration }}"></view>
+        <view class="anim-ring r2" style="animation-delay:0.5s"></view>
+        <view class="anim-ring r3" style="animation-delay:1s;opacity:{{ animRing3Opacity }}"></view>
+      </view>
+    </view>
+    <view class="anim-progress-bar">
+      <view class="anim-progress-fill" style="width:{{ animProgressWidth }}"></view>
+    </view>
+    <view class="anim-text">{{ animText }}</view>
+    <view class="skip-btn" wx:if="{{ showSkip }}" bindtap="onSkipTap" catchtap="onSkipTap">跳过动画</view>
+  </view>
+
+  <!-- 结算阶段 -->
+  <view class="phase-settle" wx:if="{{ phase === 'settle' }}">
+    <block wx:if="{{ settlement && settlement.realmAfter }}">
+      <view class="settle-header">
+        <view class="settle-icon">🌟</view>
+        <view class="settle-title">恭喜突破成功！</view>
+        <view class="settle-new-realm">{{ settlement.realmAfter.realmName }}</view>
+      </view>
+      <view class="settle-card">
+        <view class="settle-row">
+          <text class="settle-label">道基品质</text>
+          <text class="settle-value {{ rewardGradeId }}">{{ settlement.daoFoundation.gradeName }}</text>
+        </view>
+        <view class="settle-row">
+          <text class="settle-label">修炼天数</text>
+          <text class="settle-value">{{ settlement.daoFoundation.daysSpent }}天</text>
+        </view>
+        <view class="settle-row">
+          <text class="settle-label">道基加成</text>
+          <text class="settle-value bonus">{{ rewardBonusText }}</text>
+        </view>
+      </view>
+      <view class="settle-card" wx:if="{{ settlement.newFeatures.length }}">
+        <view class="settle-section-title">新解锁能力</view>
+        <view class="settle-row" wx:for="{{ settlement.newFeatures }}" wx:key="key">
+          <text class="settle-value new-feature">✦ {{ item.label }}</text>
+        </view>
+      </view>
+    </block>
+    <block wx:else>
+      <view class="settle-error">{{ settlement ? settlement.error : '突破异常' }}</view>
+    </block>
+    <view class="confirm-btn" bindtap="onConfirmTap">大道通明，继续修行</view>
+  </view>
+</view>

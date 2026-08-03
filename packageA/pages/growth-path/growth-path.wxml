@@ -1,0 +1,111 @@
+<!-- 成长路径 — 修行成长时间线 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+
+  <!-- 顶部总览 -->
+  <view class="card summary-card">
+    <view class="summary-title">🌱 修行成长之路</view>
+    <view class="summary-sub">总修为 {{totalCultivation}} · {{timeline.length}} 个成长印记</view>
+  </view>
+
+  <!-- 添加手动记录按钮 -->
+  <view class="add-bar" wx:if="{{!showAddForm}}">
+    <view class="add-btn" bindtap="showAddForm">+ 记录生活中的成长</view>
+  </view>
+
+  <!-- 手动录入表单 -->
+  <view class="card add-form" wx:if="{{showAddForm}}">
+    <view class="form-title">记录新的成长</view>
+    <input class="form-input" placeholder="标题，如：读完一本书、学会游泳" value="{{newTitle}}" bindinput="onTitleInput" maxlength="30"/>
+    <textarea class="form-textarea" placeholder="详细描述这次成长的经历或感悟..." value="{{newContent}}" bindinput="onContentInput" maxlength="200"/>
+    <view class="form-actions">
+      <view class="form-cancel" bindtap="hideAddForm">取消</view>
+      <view class="form-save" bindtap="saveManualRecord">保存记录</view>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-box" wx:if="{{loading}}">
+    <view class="loading-dot"></view>
+    <text>加载成长数据中...</text>
+  </view>
+
+  <!-- 时间线 -->
+  <view class="timeline" wx:if="{{!loading && timeline.length > 0}}">
+
+    <view class="tl-group" wx:for="{{timeline}}" wx:key="unique" wx:for-index="tidx">
+      <!-- 日期分组头（新日期显示） -->
+      <view class="tl-date-header" wx:if="{{tidx === 0 || item.date !== timeline[tidx - 1].date}}">
+        <view class="tl-date-dot"></view>
+        <text class="tl-date-text">{{item.date || '久远的记忆'}}</text>
+      </view>
+
+      <!-- ===== 打卡事件 ===== -->
+      <view class="tl-item tl-checkin" wx:if="{{item.type === 'checkin'}}">
+        <view class="tl-dot">
+          <text class="tl-dot-emoji">{{item.emoji}}</text>
+        </view>
+        <view class="tl-card">
+          <view class="tl-card-top">
+            <view class="tl-card-label" wx:if="{{item.label}}">{{item.label}}</view>
+            <view class="tl-card-score {{item.score > 0 ? 'pos' : 'neg'}}">{{item.score > 0 ? '+' : ''}}{{item.score}} 修为</view>
+          </view>
+          <view class="tl-card-name" wx:if="{{item.name}}">{{item.name}}</view>
+        </view>
+      </view>
+
+      <!-- ===== 境界突破事件 ===== -->
+      <view class="tl-item tl-breakthrough" wx:if="{{item.type === 'breakthrough'}}">
+        <view class="tl-dot tl-dot-big">
+          <text class="tl-dot-emoji">{{item.emoji}}</text>
+        </view>
+        <view class="tl-card tl-card-highlight">
+          <view class="tl-card-label">{{item.label}}</view>
+          <view class="tl-card-name tl-card-big">{{item.name}}</view>
+          <view class="tl-card-meta">累计 {{item.cumScore}} 修为达成此境</view>
+        </view>
+      </view>
+
+      <!-- ===== 称号解锁事件 ===== -->
+      <view class="tl-item tl-title" wx:if="{{item.type === 'title'}}">
+        <view class="tl-dot">
+          <text class="tl-dot-emoji">{{item.emoji}}</text>
+        </view>
+        <view class="tl-card">
+          <view class="tl-card-label">{{item.label}}</view>
+          <view class="tl-card-name" style="color:{{item.titleColor}}">
+            {{item.name}}
+            <text wx:if="{{item.bonus > 0}}" style="font-size:20rpx;opacity:0.7"> +{{Math.round(item.bonus * 100)}}%加成</text>
+          </view>
+          <view class="tl-card-poem" wx:if="{{item.poem}}">{{item.poem}}</view>
+        </view>
+      </view>
+
+      <!-- ===== 手动记录 ===== -->
+      <view class="tl-item tl-manual" wx:if="{{item.type === 'manual'}}">
+        <view class="tl-dot">
+          <text class="tl-dot-emoji">{{item.emoji}}</text>
+        </view>
+        <view class="tl-card">
+          <view class="tl-card-top">
+            <view class="tl-card-label">{{item.label}}</view>
+            <view class="tl-delete" data-idx="{{item.sortKey}}" bindtap="deleteManualRecord">删除</view>
+          </view>
+          <view class="tl-card-name">{{item.name}}</view>
+        </view>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- 空状态 -->
+  <view class="card empty-card" wx:if="{{!loading && isEmpty}}">
+    <view class="ec-icon">🌱</view>
+    <view class="ec-text">修行之路尚未开始</view>
+    <view class="ec-desc">前往模板广场选择证道主修，开启你的成长之旅<br/>或点击上方按钮记录生活中的成长</view>
+    <button class="ec-btn" bindtap="goToTemplates">前往模板广场</button>
+  </view>
+
+  <view style="height:40rpx"></view>
+</view>

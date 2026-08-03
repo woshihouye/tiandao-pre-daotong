@@ -1,0 +1,48 @@
+<view class="container">
+  <!-- 在线状态条 -->
+  <view class="status-bar {{isOnline ? 'online' : ''}}">
+    <view class="status-dot {{isOnline ? 'online' : ''}}"></view>
+    <text wx:if="{{isOnline}}">对方当前在线</text>
+    <text wx:else>{{lastOnlineText || '对方已离线'}}</text>
+  </view>
+
+  <!-- 陌生人警告 -->
+  <view class="stranger-warning" wx:if="{{isStranger}}">
+    ⚠ 你与对方尚未互关，请注意辨别信息真伪
+    <view class="stranger-sub-btn" bindtap="subscribeNotify">开通消息通知</view>
+  </view>
+
+  <!-- 消息列表 -->
+  <scroll-view class="msg-scroll" scroll-y scroll-into-view="{{scrollToView}}" scroll-top="{{scrollTop}}" bindscrolltoupper="loadMoreMessages">
+    <view class="load-more" wx:if="{{hasMore}}" bindtap="loadMoreMessages">加载更多...</view>
+    
+    <view class="msg-list">
+      <block wx:for="{{messages}}" wx:key="_id">
+        <view class="msg-date-divider" wx:if="{{item._showDate}}"><text>{{item._dateLabel}}</text></view>
+        <view class="msg-item {{item.isMe ? 'msg-me' : 'msg-other'}}" id="msg-{{index}}">
+          <view class="msg-bubble {{item.isMe ? 'bubble-me' : 'bubble-other'}}" 
+                data-id="{{item._id}}" 
+                data-is-me="{{item.isMe}}"
+                bindlongpress="onMessageLongPress">
+            <text class="msg-content">{{item.content}}</text>
+          </view>
+          <view class="msg-time">{{item.createdAt}}</view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- 底部输入栏 -->
+  <view class="input-bar">
+    <view class="input-bar-inner">
+      <input class="chat-input" 
+        placeholder="发送消息..." 
+        value="{{inputText}}" 
+        bindinput="onInputChange"
+        bindconfirm="sendMessage"
+        confirm-type="send"
+        maxlength="1000"/>
+      <view class="send-btn {{inputText ? 'active' : ''}}" bindtap="sendMessage">发送</view>
+    </view>
+  </view>
+</view>

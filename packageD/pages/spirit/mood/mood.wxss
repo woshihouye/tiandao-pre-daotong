@@ -1,0 +1,120 @@
+.container {
+  min-height: 100vh;
+  padding-bottom: 140rpx;
+  background: var(--page-bg);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.mood-option {
+  padding: 24rpx 12rpx;
+  border-radius: 24rpx;
+  border: 2rpx solid var(--border-color);
+  background: var(--card-bg);
+  text-align: center;
+}
+
+.mood-option.active {
+  background: var(--surface-soft);
+}
+
+.mood-icon {
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.mood-label {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.tag-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 20rpx;
+}
+
+.tag-group-title {
+  margin-top: 18rpx;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.tag-group-title.second {
+  margin-top: 24rpx;
+}
+
+.tag-item {
+  padding: 12rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid var(--border-color);
+  background: var(--surface-soft);
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.tag-item.active {
+  color: #ffffff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.note-input {
+  width: 100%;
+  min-height: 220rpx;
+  margin-top: 20rpx;
+  padding: 20rpx;
+  border-radius: 24rpx;
+  border: 1rpx solid var(--border-color);
+  background: var(--surface-soft);
+  font-size: 26rpx;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.advice-title {
+  margin-top: 18rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.advice-title.second {
+  margin-top: 24rpx;
+}
+
+.advice-text {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.action-bar {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: 24rpx;
+}
+
+.save-btn {
+  width: 100%;
+}

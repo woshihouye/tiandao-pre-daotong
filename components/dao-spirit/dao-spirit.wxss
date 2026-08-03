@@ -1,0 +1,116 @@
+/* 悟道童儿全局悬浮组件样式 */
+/* 使用项目设计令牌 */
+
+.dao-spirit-wrap {
+  position: fixed;
+  z-index: 999;
+  width: 96rpx;
+  height: 96rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: right 0.2s ease;
+}
+
+.dao-spirit-wrap.edge-hidden {
+  opacity: 0.5;
+}
+
+.dao-spirit-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+/* 悬浮头像 - 灵珠（蓝色主题） */
+.ds-avatar-lingzhu {
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 3rpx solid #93c5fd;
+  box-shadow: 0 4rpx 16rpx rgba(37, 99, 235, 0.2);
+}
+
+/* 悬浮头像 - 魔丸（红色主题） */
+.ds-avatar-mowan {
+  background: linear-gradient(135deg, #1f1f1f, #2d1a1a);
+  border: 3rpx solid var(--danger-text);
+  box-shadow: 0 4rpx 16rpx rgba(220, 38, 38, 0.25);
+}
+
+.dao-spirit-icon {
+  font-size: var(--font-4xl);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+  transition: color 0.3s ease;
+}
+
+.ds-icon-lingzhu {
+  color: #2563eb;
+}
+
+.ds-icon-mowan {
+  color: #fca5a5;
+}
+
+/* 微光呼吸动画 */
+.dao-spirit-pulse {
+  position: absolute;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(147, 197, 253, 0.3);
+  animation: spiritPulse 2s ease-in-out infinite;
+  z-index: 1;
+  transition: border-color 0.3s ease;
+}
+
+.ds-pulse-lingzhu {
+  border-color: rgba(147, 197, 253, 0.3);
+}
+
+.ds-pulse-mowan {
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+@keyframes spiritPulse {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.15); opacity: 0; }
+}
+
+/* 道童说话气泡 */
+.spirit-speech {
+  position: absolute;
+  bottom: 120rpx;
+  right: 10rpx;
+  z-index: 20;
+  opacity: 0;
+  transform: translateY(10rpx);
+  transition: all 0.3s ease;
+  pointer-events: auto;
+}
+
+.spirit-speech.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.speech-bubble {
+  max-width: 320rpx;
+  padding: 18rpx var(--space-lg);
+  border-radius: var(--radius-lg) var(--radius-lg) 6rpx var(--radius-lg);
+  background: var(--card-bg);
+  border: 1rpx solid var(--border-color);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.speech-text {
+  font-size: var(--font-md);
+  color: var(--text-primary);
+  line-height: 1.6;
+}

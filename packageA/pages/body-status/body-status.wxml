@@ -1,0 +1,103 @@
+<!-- 肉身状态：纯数据展示 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+  <!-- 当日状态总览 -->
+  <view class="card overview-card">
+    <view class="section-kicker">当日状态总览</view>
+    <view class="overview-grid">
+      <view class="overview-item">
+        <view class="overview-value">{{sportMinutes}}</view>
+        <view class="overview-label">运动时长(分)</view>
+      </view>
+      <view class="overview-item">
+        <view class="overview-value">{{dietCount}}</view>
+        <view class="overview-label">饮食记录(次)</view>
+      </view>
+      <view class="overview-item">
+        <view class="overview-value">{{sleepMinutes}}</view>
+        <view class="overview-label">睡眠时长(分)</view>
+      </view>
+      <view class="overview-item">
+        <view class="overview-value">{{studyMinutes}}</view>
+        <view class="overview-label">功课时长(分)</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 精神状态入口 -->
+  <view class="card spirit-entry" bindtap="goToSpirit">
+    <view class="spirit-entry-top">
+      <view>
+        <view class="section-kicker">精神状态</view>
+        <view class="spirit-entry-title">精 · 神</view>
+      </view>
+      <view class="spirit-arrow">></view>
+    </view>
+    <view class="spirit-entry-row">
+      <view class="spirit-entry-col">
+        <view class="spirit-entry-label">精</view>
+        <view class="spirit-entry-value">{{energyValue}}</view>
+      </view>
+      <view class="spirit-entry-col">
+        <view class="spirit-entry-label">神</view>
+        <view class="spirit-entry-value">{{moodValue}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 当日明细 -->
+  <view class="card">
+    <view class="section-kicker">当日明细</view>
+    <view class="detail-list" wx:if="{{todayList.length}}">
+      <view class="detail-item" wx:for="{{todayList}}" wx:key="id">
+        <view class="detail-time">{{item.timeLabel}}</view>
+        <view class="detail-body">
+          <view class="detail-head">
+            <view class="detail-kind">{{item.kind}}</view>
+            <view class="detail-title">{{item.title}}</view>
+            <view class="detail-score" wx:if="{{item.scoreText}}">{{item.scoreText}}</view>
+          </view>
+          <view class="detail-meta">{{item.meta}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="empty-tip" wx:else>今日暂无记录</view>
+  </view>
+
+  <!-- 周期可视化 -->
+  <view class="card chart-card">
+    <view class="chart-header">
+      <view class="section-kicker">周期走势</view>
+      <view class="period-tabs">
+        <view
+          class="period-tab {{currentPeriod === item.key ? 'active' : ''}}"
+          wx:for="{{periodTabs}}"
+          wx:key="key"
+          bindtap="switchPeriod"
+          data-key="{{item.key}}"
+        >{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="legend-row">
+      <view class="legend-item" wx:for="{{chartLegend}}" wx:key="key">
+        <view class="legend-dot" style="background: {{item.color}};"></view>
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+
+    <scroll-view scroll-x="true" class="chart-scroll" enable-flex="{{true}}">
+      <view class="chart-bars">
+        <view class="chart-col" wx:for="{{chartBars}}" wx:key="date">
+          <view class="bar-group">
+            <view class="mini-bar" style="height: {{item.sportHeight}}%; background: #10b981;"></view>
+            <view class="mini-bar" style="height: {{item.dietHeight}}%; background: #3b82f6;"></view>
+            <view class="mini-bar" style="height: {{item.sleepHeight}}%; background: #8b5cf6;"></view>
+          </view>
+          <view class="chart-label">{{item.label}}</view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

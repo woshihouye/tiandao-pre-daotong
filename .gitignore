@@ -1,0 +1,36 @@
+# ─── Windows ───
+[Dd]esktop.ini
+Thumbs.db
+$RECYCLE.BIN/
+
+# ─── macOS ───
+.DS_Store
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+
+# ─── Node.js ───
+node_modules/
+
+# ─── 微信小程序 ───
+# 本地私有配置（含个人 appid、本地路径等敏感信息）
+project.private.config.json
+
+# 微信开发者工具 IDE 配置
+.idea/
+.vscode/
+
+# npm 构建产物（微信开发者工具自动生成）
+miniprogram_npm/
+
+# 云函数模板目录（仅本地开发用）
+cloudfunctionTemplate/
+
+# ─── 日志 ───
+*.log
+npm-debug.log*
+
+# ─── 编译/缓存 ───
+dist/
+.cache/

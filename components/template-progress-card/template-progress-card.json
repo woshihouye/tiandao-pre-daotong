@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "activity-progress-item": "/components/activity-progress-item/activity-progress-item"
+  }
+}

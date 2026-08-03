@@ -1,0 +1,325 @@
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+
+  <!-- ===== 类别切换 Tab ===== -->
+  <scroll-view scroll-x class="category-tabs-bar">
+    <view
+      class="cat-tab {{activeCategory === item.key ? 'cat-tab-active' : ''}}"
+      wx:for="{{categoryTabs}}"
+      wx:key="key"
+      style="{{activeCategory === item.key ? 'background:' + item.color + ';color:#fff;border-color:' + item.color : ''}}"
+      data-cat="{{item.key}}"
+      bindtap="switchCategory"
+    >{{item.icon}} {{item.shortTitle}}</view>
+  </scroll-view>
+
+  <view class="overview-card card-premium card">
+    <view class="overview-top">
+      <view>
+        <view class="panel-kicker">{{boardConfig.shortTitle}} · 修行看板</view>
+        <view class="panel-title">{{boardConfig.title}}</view>
+      </view>
+      <view class="overview-actions">
+        <view class="realm-badge">{{currentRealm.name}} · {{currentRealm.stage}}阶</view>
+        <view class="vision-quick" bindtap="goToVision">拍照识别</view>
+      </view>
+    </view>
+    <view class="overview-grid">
+      <view class="overview-item" wx:for="{{overviewCards}}" wx:key="label">
+        <view class="overview-value">{{item.value}}</view>
+        <view class="overview-label">{{item.label}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{type === 'debuff'}}" class="debuff-ref-card card">
+    <view class="card-header">
+      <view class="card-title">心魔百科·煞气图鉴</view>
+      <view class="card-sub">了解每种心魔的类型与扣分规则</view>
+    </view>
+    <view class="debuff-ref-list">
+      <view class="debuff-ref-item" wx:for="{{debuffTypes}}" wx:key="type">
+        <view class="debuff-ref-icon">{{item.icon}}</view>
+        <view class="debuff-ref-body">
+          <view class="debuff-ref-head">
+            <text class="debuff-ref-name">{{item.name}}</text>
+            <text class="debuff-ref-score">-{{Math.abs(item.score)}} 修为 / 次</text>
+          </view>
+          <view class="debuff-ref-desc">{{item.desc}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="debuff-ref-tip">
+      <text class="debuff-tip-icon">⚠️</text>
+      <text class="debuff-tip-text">心魔不仅扣除修为，还会影响当日修炼加成系数与次日运势判定。连续触发同类心魔将加速修为衰减。</text>
+    </view>
+  </view>
+
+  <view class="period-card card">
+    <view class="period-tabs">
+      <view
+        class="period-tab {{currentPeriod === item.key ? 'active' : ''}}"
+        wx:for="{{periodTabs}}"
+        wx:key="key"
+        data-key="{{item.key}}"
+        bindtap="switchPeriod"
+      >
+        {{item.label}}
+      </view>
+    </view>
+  </view>
+
+  <view class="chart-card card">
+    <view class="card-title">周期图谱</view>
+
+    <view wx:if="{{type === 'sport'}}">
+      <view class="chart-subtitle">消耗热量 / 总做功</view>
+      <view class="bar-chart dual">
+        <view class="bar-group" wx:for="{{chartBars}}" wx:key="label">
+          <view class="bar-values">
+            <text class="bar-value left">{{item.leftValue}}</text>
+            <text class="bar-value right">{{item.rightValue}}</text>
+          </view>
+          <view class="bar-shell dual-shell">
+            <view class="bar-column left" style="height: {{item.leftHeight}}%;"></view>
+            <view class="bar-column right" style="height: {{item.rightHeight}}%;"></view>
+          </view>
+          <view class="bar-label">{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="chart-subtitle second">运动频次趋势</view>
+      <view class="line-chart">
+        <view class="line-point" wx:for="{{linePoints}}" wx:key="label">
+          <view class="line-value">{{item.value}}</view>
+          <view class="line-shell">
+            <view class="line-dot" style="bottom: {{item.height}}%;"></view>
+          </view>
+          <view class="line-label">{{item.label}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:elif="{{type === 'diet'}}">
+      <view class="diet-chart-wrap">
+        <view class="pie-panel">
+          <view class="pie-chart" style="{{pieStyle}}">
+            <view class="pie-inner">
+              <view class="pie-value">{{periodLabel}}</view>
+              <view class="pie-label">营养占比</view>
+            </view>
+          </view>
+        </view>
+        <view class="legend-panel">
+          <view class="legend-item" wx:for="{{nutritionLegend}}" wx:key="label">
+            <view class="legend-left">
+              <view class="legend-dot" style="background: {{item.color}};"></view>
+              <text class="legend-name">{{item.label}}</text>
+            </view>
+            <view class="legend-right">{{item.percent}}%</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="chart-subtitle second">总热量摄入趋势</view>
+      <view class="line-chart calories">
+        <view class="health-line" style="bottom: {{healthLine}}%;"></view>
+        <view class="line-point" wx:for="{{linePoints}}" wx:key="label">
+          <view class="line-value">{{item.value}}</view>
+          <view class="line-shell">
+            <view class="line-dot" style="bottom: {{item.height}}%;"></view>
+          </view>
+          <view class="line-label">{{item.label}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else>
+      <view class="chart-subtitle">恶习触发频次</view>
+      <view class="bar-chart">
+        <view class="bar-group single" wx:for="{{chartBars}}" wx:key="label">
+          <view class="bar-values">
+            <text class="bar-value left">{{item.leftValue}}</text>
+          </view>
+          <view class="bar-shell">
+            <view class="bar-column single" style="height: {{item.leftHeight}}%;"></view>
+          </view>
+          <view class="bar-label clamp">{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="chart-subtitle second">扣减修为趋势</view>
+      <view class="line-chart">
+        <view class="line-point" wx:for="{{linePoints}}" wx:key="label">
+          <view class="line-value">{{item.value}}</view>
+          <view class="line-shell">
+            <view class="line-dot danger" style="bottom: {{item.height}}%;"></view>
+          </view>
+          <view class="line-label">{{item.label}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="list-card card">
+    <view class="list-top">
+      <view class="card-title">历史记录</view>
+      <view class="list-meta">{{allRecords.length}} 条</view>
+    </view>
+
+    <view class="empty-state" wx:if="{{visibleRecords.length === 0}}">
+      <view class="empty-icon">{{boardConfig.shortTitle}}</view>
+      <view class="empty-text">{{boardConfig.emptyText}}</view>
+    </view>
+
+    <view wx:else>
+      <block wx:for="{{visibleRecords}}" wx:key="_id">
+        <view class="section-title" wx:if="{{item.sectionTitle}}">{{item.sectionTitle}}</view>
+
+        <view class="history-item" bindtap="openEditor" data-id="{{item._id}}">
+          <view class="history-top">
+            <view class="history-title">{{item.name}}</view>
+            <view class="history-source">{{item.metrics.source}}</view>
+          </view>
+
+          <view class="history-grid" wx:if="{{type === 'sport'}}">
+            <view class="history-field">类型：{{item.metrics.trainingType}}</view>
+            <view class="history-field">总次数：{{item.metrics.totalReps}}</view>
+            <view class="history-field">训练容量：{{item.metrics.volume}}</view>
+            <view class="history-field">总做功：{{item.metrics.totalWork}}</view>
+            <view class="history-field">消耗热量：{{item.metrics.calories}}</view>
+            <view class="history-field">总时长：{{item.metrics.duration}}分</view>
+          </view>
+
+          <view class="history-grid" wx:elif="{{type === 'diet'}}">
+            <view class="history-field">重量：{{item.metrics.weight}}g</view>
+            <view class="history-field">热量：{{item.metrics.calories}}</view>
+            <view class="history-field">蛋白质：{{item.metrics.protein}}g</view>
+            <view class="history-field">碳水：{{item.metrics.carbs}}g</view>
+            <view class="history-field">脂肪：{{item.metrics.fat}}g</view>
+            <view class="history-field">膳食纤维：{{item.metrics.fiber}}g</view>
+          </view>
+
+          <view class="history-grid" wx:else>
+            <view class="history-field">恶习类型：{{item.name}}</view>
+            <view class="history-field">本次扣减修为：{{item.metrics.deductCultivation}}</view>
+          </view>
+
+          <view class="history-bottom">
+            <text>{{item.dateLabel}} {{item.timeLabel}}</text>
+            <text>点击可编辑 / 删除</text>
+          </view>
+        </view>
+      </block>
+
+      <view class="load-more" wx:if="{{hasMore}}">上滑继续载入更多记录</view>
+      <view class="load-more done" wx:else>叮，系统提示：已阅尽此页历史记录</view>
+    </view>
+  </view>
+
+  <view class="fab-bar">
+    <view class="fab-btn" bindtap="goToRecord">{{boardConfig.addLabel}}</view>
+  </view>
+
+  <view class="editor-mask" wx:if="{{showEditor}}" bindtap="closeEditor">
+    <view class="editor-panel" catchtap="">
+      <view class="editor-title">单条记录修正</view>
+
+      <view class="editor-form">
+        <view class="editor-row">
+          <text class="editor-label">名称</text>
+          <input class="editor-input" value="{{editForm.name}}" bindinput="onEditInput" data-field="name" />
+        </view>
+
+        <view class="editor-row">
+          <text class="editor-label">来源</text>
+          <input class="editor-input" value="{{editForm.source}}" bindinput="onEditInput" data-field="source" />
+        </view>
+
+        <block wx:if="{{type === 'sport'}}">
+          <view class="editor-row">
+            <text class="editor-label">运动类型</text>
+            <input class="editor-input" value="{{editForm.trainingType}}" bindinput="onEditInput" data-field="trainingType" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">重量</text>
+            <input class="editor-input" type="digit" value="{{editForm.weight}}" bindinput="onEditInput" data-field="weight" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">次数</text>
+            <input class="editor-input" type="number" value="{{editForm.reps}}" bindinput="onEditInput" data-field="reps" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">组数</text>
+            <input class="editor-input" type="number" value="{{editForm.sets}}" bindinput="onEditInput" data-field="sets" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">动作总次数</text>
+            <input class="editor-input" type="number" value="{{editForm.totalReps}}" bindinput="onEditInput" data-field="totalReps" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">训练容量</text>
+            <input class="editor-input" type="digit" value="{{editForm.volume}}" bindinput="onEditInput" data-field="volume" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">总做功</text>
+            <input class="editor-input" type="digit" value="{{editForm.totalWork}}" bindinput="onEditInput" data-field="totalWork" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">卡路里</text>
+            <input class="editor-input" type="digit" value="{{editForm.calories}}" bindinput="onEditInput" data-field="calories" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">总时长</text>
+            <input class="editor-input" type="digit" value="{{editForm.duration}}" bindinput="onEditInput" data-field="duration" />
+          </view>
+        </block>
+
+        <block wx:elif="{{type === 'diet'}}">
+          <view class="editor-row">
+            <text class="editor-label">餐次</text>
+            <input class="editor-input" value="{{editForm.meal}}" bindinput="onEditInput" data-field="meal" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">重量(g)</text>
+            <input class="editor-input" type="digit" value="{{editForm.weight}}" bindinput="onEditInput" data-field="weight" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">热量</text>
+            <input class="editor-input" type="digit" value="{{editForm.calories}}" bindinput="onEditInput" data-field="calories" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">蛋白质</text>
+            <input class="editor-input" type="digit" value="{{editForm.protein}}" bindinput="onEditInput" data-field="protein" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">碳水</text>
+            <input class="editor-input" type="digit" value="{{editForm.carbs}}" bindinput="onEditInput" data-field="carbs" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">脂肪</text>
+            <input class="editor-input" type="digit" value="{{editForm.fat}}" bindinput="onEditInput" data-field="fat" />
+          </view>
+          <view class="editor-row">
+            <text class="editor-label">膳食纤维</text>
+            <input class="editor-input" type="digit" value="{{editForm.fiber}}" bindinput="onEditInput" data-field="fiber" />
+          </view>
+        </block>
+
+        <block wx:else>
+          <view class="editor-row">
+            <text class="editor-label">扣减修为</text>
+            <input class="editor-input" type="digit" value="{{editForm.deductCultivation}}" bindinput="onEditInput" data-field="deductCultivation" />
+          </view>
+        </block>
+      </view>
+
+      <view class="editor-actions">
+        <view class="editor-btn danger" bindtap="deleteRecord">删除</view>
+        <view class="editor-btn ghost" bindtap="closeEditor">取消</view>
+        <view class="editor-btn primary" bindtap="saveRecord">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

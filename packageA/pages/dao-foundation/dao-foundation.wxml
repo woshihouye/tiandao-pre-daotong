@@ -1,0 +1,25 @@
+<view class="page">
+  <view class="title">📜 道基品质</view>
+  <block wx:if="{{ records.length }}">
+    <view class="found-card" wx:for="{{ records }}" wx:key="index">
+      <view class="found-header">
+        <text class="found-icon">{{ item.icon }}</text>
+        <text class="found-realm">{{ item.realmName }}</text>
+        <text class="found-grade" style="color:{{ item.color }}">{{ item.gradeName }}</text>
+      </view>
+      <view class="found-row">
+        <text class="found-label">修炼天数</text>
+        <text class="found-val">{{ item.daysSpent }}天</text>
+      </view>
+      <view class="found-row">
+        <text class="found-label">突破修为</text>
+        <text class="found-val">{{ item.scoreAtBreakthrough }}</text>
+      </view>
+      <view class="found-row">
+        <text class="found-label">道基加成</text>
+        <text class="found-val bonus">{{ item.bonusDisplay }}</text>
+      </view>
+    </view>
+  </block>
+  <view class="empty" wx:if="{{ !records.length }}">道基未解锁 - 首次大境界突破后开放</view>
+</view>

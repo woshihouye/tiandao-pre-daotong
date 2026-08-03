@@ -1,0 +1,157 @@
+/**
+ * progress-ring - 环形修炼进度组件样式
+ * RPG系统面板风格：暗色基调 + 发光渐变 + 脉动动画
+ */
+
+.progress-ring-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ═══════════════════════════════════════════
+   外层发光光晕
+   ═══════════════════════════════════════════ */
+.ring-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(16, 185, 129, 0.12) 0%,
+    rgba(16, 185, 129, 0.04) 45%,
+    transparent 70%
+  );
+  box-shadow:
+    0 0 40rpx rgba(16, 185, 129, 0.15),
+    0 0 80rpx rgba(16, 185, 129, 0.06);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* 脉动动画 */
+.ring-glow.pulse-anim {
+  animation: ringPulse 3s ease-in-out infinite;
+}
+
+@keyframes ringPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   Canvas 画布
+   ═══════════════════════════════════════════ */
+.ring-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+/* ═══════════════════════════════════════════
+   中心文字区域
+   ═══════════════════════════════════════════ */
+.ring-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.ring-percent {
+  font-size: 56rpx;
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  line-height: 1.2;
+  letter-spacing: 2rpx;
+  text-shadow: 0 2rpx 8rpx rgba(16, 185, 129, 0.3);
+}
+
+.ring-percent-sign {
+  font-size: var(--font-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  line-height: 1;
+  margin-top: -4rpx;
+}
+
+.ring-label {
+  margin-top: 10rpx;
+  font-size: var(--font-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  line-height: 1.4;
+  letter-spacing: 2rpx;
+}
+
+/* ═══════════════════════════════════════════
+   粒子装饰
+   ═══════════════════════════════════════════ */
+.ring-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 6rpx rgba(16, 185, 129, 0.6);
+}
+
+/* 粒子位置 */
+.p1 {
+  top: 8%;
+  right: 22%;
+  width: 6rpx;
+  height: 6rpx;
+  animation: particleFloat 2.5s ease-in-out infinite;
+}
+
+.p2 {
+  bottom: 14%;
+  left: 18%;
+  width: 4rpx;
+  height: 4rpx;
+  animation: particleFloat 3s ease-in-out 0.8s infinite;
+}
+
+.p3 {
+  top: 30%;
+  left: 6%;
+  width: 5rpx;
+  height: 5rpx;
+  animation: particleFloat 2s ease-in-out 1.6s infinite;
+}
+
+@keyframes particleFloat {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translateY(-8rpx) scale(1.5);
+  }
+}

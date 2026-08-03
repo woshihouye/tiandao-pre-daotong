@@ -1,0 +1,256 @@
+/* 肉身状态主页面 */
+
+.container {
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+  background: var(--page-bg);
+}
+
+.section-kicker {
+  font-size: 24rpx;
+  letter-spacing: 3rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+
+.overview-item {
+  padding: 22rpx 16rpx;
+  border-radius: 18rpx;
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+  text-align: center;
+}
+
+.overview-value {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.overview-label {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.spirit-entry-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.spirit-entry-title {
+  margin-top: 8rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.spirit-arrow {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+
+.spirit-entry-row {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+
+.spirit-entry-col {
+  flex: 1;
+  padding: 18rpx;
+  border-radius: 16rpx;
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+  text-align: center;
+}
+
+.spirit-entry-label {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}
+
+.spirit-entry-value {
+  margin-top: 8rpx;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.detail-list {
+  margin-top: 12rpx;
+}
+
+.detail-item {
+  display: flex;
+  gap: 16rpx;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-time {
+  width: 90rpx;
+  flex-shrink: 0;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.detail-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-head {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.detail-kind {
+  flex-shrink: 0;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  color: var(--primary);
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+}
+
+.detail-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-score {
+  flex-shrink: 0;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.detail-meta {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.empty-tip {
+  margin-top: 20rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.period-tabs {
+  display: flex;
+  gap: 8rpx;
+}
+
+.period-tab {
+  min-width: 56rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+}
+
+.period-tab.active {
+  color: #ffffff;
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin: 18rpx 0 12rpx;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+}
+
+.chart-scroll {
+  width: 100%;
+}
+
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 12rpx;
+  min-height: 260rpx;
+  padding-bottom: 8rpx;
+}
+
+.chart-col {
+  width: 64rpx;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bar-group {
+  width: 100%;
+  height: 200rpx;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4rpx;
+}
+
+.mini-bar {
+  width: 12rpx;
+  min-height: 6rpx;
+  border-radius: 999rpx;
+}
+
+.chart-label {
+  margin-top: 10rpx;
+  font-size: 20rpx;
+  color: var(--text-secondary);
+  line-height: 1.2;
+}

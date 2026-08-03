@@ -1,0 +1,103 @@
+/* 单个活动进度项 */
+.progress-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 16px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  transition: background 0.2s ease;
+}
+
+.item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1F2937;
+}
+
+.item-unit {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.item-right {
+  display: flex;
+  align-items: center;
+}
+
+.item-percent {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* slider 弹层 */
+.slider-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.slider-panel {
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: 16px 16px 0 0;
+  padding: 20px 20px 36px;
+}
+
+.slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.slider-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.slider-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #F3F4F6;
+  font-size: 14px;
+  color: #6B7280;
+}
+
+.slider-body {
+  padding: 0 8px;
+}
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+.slider-labels text {
+  font-size: 11px;
+  color: #9CA3AF;
+}

@@ -1,0 +1,109 @@
+<!-- 结果汇总面板 -->
+<view class="result-panel" style="--panel-color: {{categoryColors[activeCategory] || '#EF4444'}}">
+
+  <!-- 武类结果 -->
+  <block wx:if="{{activeCategory === 'wu'}}">
+    <view class="result-summary-bar">
+      <view class="summary-item">
+        <text class="summary-value">{{result.totalCalories || 0}}</text>
+        <text class="summary-label">消耗大卡</text>
+      </view>
+      <view class="summary-divider"></view>
+      <view class="summary-item">
+        <text class="summary-value highlight">+{{result.totalGong || 0}}</text>
+        <text class="summary-label">修为</text>
+      </view>
+      <view class="summary-divider"></view>
+      <view class="summary-item">
+        <text class="summary-value">{{result.trainedMuscleCount || 0}}</text>
+        <text class="summary-label">训练肌群</text>
+      </view>
+    </view>
+
+    <view class="muscle-section" wx:if="{{result.muscleRows && result.muscleRows.length > 0}}">
+      <view class="section-title">肌群激活度</view>
+      <view class="muscle-list">
+        <view class="muscle-row" wx:for="{{result.muscleRows}}" wx:key="key">
+          <text class="muscle-name">{{item.name}}</text>
+          <view class="muscle-bar-wrap">
+            <view
+              class="muscle-bar-fill"
+              style="width: {{item.activationWidth}}%; background-color: {{categoryColors.wu}}"
+            ></view>
+          </view>
+          <text class="muscle-value">{{item.activationPct}}%</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 食类结果 -->
+  <block wx:elif="{{activeCategory === 'shi'}}">
+    <view class="result-summary-bar">
+      <view class="summary-item">
+        <text class="summary-value">{{result.totalCalories || 0}}</text>
+        <text class="summary-label">摄入大卡</text>
+      </view>
+      <view class="summary-divider"></view>
+      <view class="summary-item">
+        <text class="summary-value highlight">+{{result.totalGong || 0}}</text>
+        <text class="summary-label">修为</text>
+      </view>
+    </view>
+
+    <view class="nutrition-section" wx:if="{{result.nutrition}}">
+      <view class="section-title">三大营养素</view>
+      <view class="macro-ring-row">
+        <view class="macro-item">
+          <view class="macro-dot protein"></view>
+          <text class="macro-label">蛋白 {{result.nutrition.protein || 0}}g</text>
+          <text class="macro-percent">{{result.macroRatio.protein || 0}}%</text>
+        </view>
+        <view class="macro-item">
+          <view class="macro-dot carbs"></view>
+          <text class="macro-label">碳水 {{result.nutrition.carbs || 0}}g</text>
+          <text class="macro-percent">{{result.macroRatio.carbs || 0}}%</text>
+        </view>
+        <view class="macro-item">
+          <view class="macro-dot fat"></view>
+          <text class="macro-label">脂肪 {{result.nutrition.fat || 0}}g</text>
+          <text class="macro-percent">{{result.macroRatio.fat || 0}}%</text>
+        </view>
+      </view>
+
+      <view class="macro-ring" wx:if="{{result.nutrition.protein + result.nutrition.carbs + result.nutrition.fat > 0}}">
+        <view class="ring-segment protein" style="flex: {{result.macroRatio.protein}}"></view>
+        <view class="ring-segment carbs" style="flex: {{result.macroRatio.carbs}}"></view>
+        <view class="ring-segment fat" style="flex: {{result.macroRatio.fat}}"></view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 煞类结果 -->
+  <block wx:elif="{{activeCategory === 'sha'}}">
+    <view class="result-summary-bar">
+      <view class="summary-item">
+        <text class="summary-value highlight">{{gongSign}}{{gongDisplay}}</text>
+        <text class="summary-label">修为</text>
+      </view>
+    </view>
+    <view class="placeholder">
+      <text class="placeholder-text">该道途结果统计将在后续版本开放</text>
+    </view>
+  </block>
+
+  <!-- 悟/工：占位 -->
+  <block wx:elif="{{activeCategory === 'wu2' || activeCategory === 'gong'}}">
+    <view class="placeholder">
+      <text class="placeholder-icon">🔮</text>
+      <text class="placeholder-text">该道途结果统计将在后续版本开放</text>
+    </view>
+  </block>
+
+  <!-- 无结果 -->
+  <block wx:else>
+    <view class="placeholder">
+      <text class="placeholder-text">请调整进度以查看修行结果</text>
+    </view>
+  </block>
+</view>

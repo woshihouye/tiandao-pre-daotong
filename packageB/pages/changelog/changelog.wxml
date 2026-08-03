@@ -1,0 +1,370 @@
+<!-- 更新日志页 - v2.1.0 -->
+<view class="container theme-page {{themeClass}}">
+  <!-- ================================================================
+       v2.0.0
+       ================================================================ -->
+  <view class="version-card card">
+    <view class="version-header">
+      <view class="version-tag">v2.0.0</view>
+      <view class="version-date">2026-07-26</view>
+    </view>
+    <view class="version-title">灵气复苏 · 大道争锋</view>
+
+    <!-- 板块一：系统面板 -->
+    <view class="section-label">玄幻系统面板</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">01</view>
+        <view class="update-text">【全新】每日修行任务系统：自动生成修炼/锻体/炼丹任务，完成领取修为奖励</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">02</view>
+        <view class="update-text">【全新】境界突破仪式：炼气→筑基→金丹→元婴，大境界突破触发专属动画与贺文</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">03</view>
+        <view class="update-text">【全新】每日运势占卜：随机生成当日吉凶、宜忌与运势签文</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">04</view>
+        <view class="update-text">【全新】道童精灵：首页悬浮道童，随机口吐修行箴言，点击互动</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">05</view>
+        <view class="update-text">【全新】系统公告：修为里程碑自动推送公告与贺词</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="version-card card">
+    <view class="section-label">称号系统 · 定场诗</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">06</view>
+        <view class="update-text">【全新】道牒称号体系：29个称号按条件解锁，佩戴享修为加成，称号可查看定场诗</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">07</view>
+        <view class="update-text">【全新】主页定场诗专区：支持手动编辑与AI智能生成七言定场诗</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">08</view>
+        <view class="update-text">【全新】道牒成就墙：主页横向滚动展示已解锁称号，突出当前佩戴称号</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="version-card card">
+    <view class="section-label">模板道场 · 社区</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">09</view>
+        <view class="update-text">【全新】云模板广场：道友分享的公开模板，三大分类、云端拉取、搜索筛选</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">10</view>
+        <view class="update-text">【全新】模板互动：点赞、收藏、评论，发现热门模板与优质创作者</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">11</view>
+        <view class="update-text">【全新】创作者中心：管理自己发布的模板，查看获赞、收藏、评论统计数据</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">12</view>
+        <view class="update-text">【全新】模板发布：自定义模板封面、每日积分上限、标签分类，分享给全平台道友</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="version-card card">
+    <view class="section-label">个人主页 · 全局重构</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">13</view>
+        <view class="update-text">【重构】个人主页六大模块：形象头区、定场诗、核心数据、道牒成就、修行轨迹、模板卡片</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">14</view>
+        <view class="update-text">【全新】修为进度条：实时展示当前境界进度，距离下一阶所需修为</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">15</view>
+        <view class="update-text">【全新】五维度修行统计：武·炼体 / 食·丹食 / 悟·修心 / 工·功业 / 煞·心魔，维度占比可视化</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">16</view>
+        <view class="update-text">【全新】近七日修行柱状图：每日修为涨幅一目了然，火/星/警示表情标识</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">17</view>
+        <view class="update-text">【全新】底部快捷栏：我的收藏、创作者中心、修为面板、私信、隐私、设置一键直达</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="version-card card">
+    <view class="section-label">即时私信 · 社交</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">18</view>
+        <view class="update-text">【全新】私信系统：会话列表按时间排序，支持左滑删除，未读红点提醒</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">19</view>
+        <view class="update-text">【全新】聊天详情页：气泡式对话、文本输入、历史消息翻页、长按举报</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">20</view>
+        <view class="update-text">【全新】全局未读角标：底部Tab栏「我的」实时显示私信未读数量</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">21</view>
+        <view class="update-text">【全新】道友主页访问：查看他人的修为、定场诗、称号、模板，支持关注与私信</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="version-card card">
+    <view class="section-label">关注 · 隐私 · 订阅</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">22</view>
+        <view class="update-text">【全新】关注系统：关注/取消关注道友，查看关注列表与粉丝列表</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">23</view>
+        <view class="update-text">【全新】隐私设置：私信权限（所有人/仅关注者/关闭）、黑名单管理</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">24</view>
+        <view class="update-text">【全新】陌生人消息拦截：非互关道友消息自动归入陌生人分组，聊天页安全提醒</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">25</view>
+        <view class="update-text">【全新】在线状态：聊天页顶部显示对方在线/离线状态与最后在线时间</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">26</view>
+        <view class="update-text">【全新】订阅消息：支持新消息与新增粉丝的微信服务通知推送（需在后台配置模板ID生效）</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="version-card card">
+    <view class="section-label">性能优化</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">27</view>
+        <view class="update-text">【优化】道童精灵轮询间隔从10秒延长至60秒，减少云数据库查询</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">28</view>
+        <view class="update-text">【优化】触摸滑动增加50ms节流，打卡页同天数据内存缓存</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">29</view>
+        <view class="update-text">【优化】称号检查增加每日守卫，避免每次进入主页重复查询云函数</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ================================================================
+       v2.1.0
+       ================================================================ -->
+  <view class="version-card card">
+    <view class="version-header">
+      <view class="version-tag">v2.1.0</view>
+      <view class="version-date">2026-07-28</view>
+    </view>
+    <view class="version-title">量化修行 · 以身证道</view>
+
+    <view class="section-label">训练指标量化引擎</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">30</view>
+        <view class="update-text">【全新】科学量化指标引擎：基于 NSCA / ACSM / Daniels / CEFR / Ebbinghaus 等权威文献，将现实训练数据科学换算为修行修为</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">31</view>
+        <view class="update-text">【全新】力量修炼五式：卧推/深蹲/硬拉/肩推/引体向上，输入重量×次数×组数，自动计算 1RM 估测极限、训练容量、相对力量（×BW）与力量评级</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">32</view>
+        <view class="update-text">【全新】RPE 自觉强度体系：RPE 6→10 八级量表，基于 Zourdos & Helms (2016) RPE-RIR 映射，训练强度越接近 7.5→9 最优区间，修为加成越高</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">33</view>
+        <view class="update-text">【全新】组间休息调息：NSCA 建议力量训练 2→5min / 增肌 30→90s / 耐力 15→60s 三重标准，科学休息享额外修为系数</view>
+      </view>
+    </view>
+
+    <view class="section-label">耐力与灵巧修炼</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">34</view>
+        <view class="update-text">【全新】疾风步·五里/十里：5km/10km 路跑，基于 Daniels VDOT 公式计算跑力值，含步频评级（精英≥180spm）与配速推算</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">35</view>
+        <view class="update-text">【全新】游龙术·百丈：100m 游泳，基于 SWOLF（时间+划水数）评估游泳效率，精英级≤40，高级≤50</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">36</view>
+        <view class="update-text">【全新】御风术·千里：20km 骑行，平均速度评级；柔身术·体前屈：ACSM 坐位体前屈百分位标准，按年龄/性别分层评估</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">37</view>
+        <view class="update-text">【全新】瑜伽·天人合一：练习时长+强度三档（阴瑜伽/流瑜伽/力量瑜伽），差异化修为系数</view>
+      </view>
+    </view>
+
+    <view class="section-label">心法与学识修炼</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">38</view>
+        <view class="update-text">【全新】静心诀·入定：冥想打坐，基于 Lazar et al. (2011) 脑科学研究，四等专注品质（散乱/守一/入定/禅定），单次≥20分钟坚持8周可见脑结构变化</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">39</view>
+        <view class="update-text">【全新】天书阁·词汇：英语背单词，基于 Ebbinghaus 遗忘曲线与 Roediger & Karpicke (2006) 主动回忆效应，新词 10→20 最优负荷 + CEFR 等级 A1→C2 量化 + 间隔重复策略检验</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">40</view>
+        <view class="update-text">【全新】藏经阁·阅典：深度阅读，页数×书籍类型系数（学术1.4 / 技术1.3 / 通识1.0 / 文学0.8）；炼器阁·编程：专注时长+番茄钟+代码行三重量化</view>
+      </view>
+    </view>
+
+    <view class="section-label">日常修行</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">41</view>
+        <view class="update-text">【全新】养神诀·安寝：睡眠量化，CDC/NSF 推荐 7→9h 最优区间，深睡眠≥1.5h 享恢复加成，主观质量四档评级</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">42</view>
+        <view class="update-text">【全新】冰心诀·寒浴：冷水浴锤炼意志，时长×水温双重评分，≤15°C 低温挑战享额外修为系数</view>
+      </view>
+    </view>
+
+    <view class="section-label">修为面板全面升级</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">43</view>
+        <view class="update-text">【重构】修为面板新增"修为实力"卡片：展示 1RM 估测极限 / 训练容量 / 相对力量 / VDOT 跑力 / SWOLF 效率 / CEFR 词汇等级等真实量化指标</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">44</view>
+        <view class="update-text">【全新】自定义修行项目页：16 个预设修行项目横跨六大类（力量/耐力/灵巧/心法/学识/日常），用户选择项目→输入现实数据→自动换算显示量化指标与积分演算明细</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">45</view>
+        <view class="update-text">【全新】每个项目入口展示科学引用标注（NSCA / ACSM / Daniels / CEFR / Ebbinghaus 等），确保每一条数值换算有据可查</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">46</view>
+        <view class="update-text">【全新】自适应适配度分析：自定义训练项目接入适配度引擎，根据身体画像（BMI/性别/年龄/训练目标）差异化评分</view>
+      </view>
+    </view>
+
+    <view class="section-label">全局联动优化</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">47</view>
+        <view class="update-text">【重构】记录页运动提交改为自动印证：去除手动"新重量PR""增加容量"开关，选择动作时实时提示将同步到的修行项目（如"卧推→擎天印·卧推"）</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">48</view>
+        <view class="update-text">【核心】运动记录→修为面板自动同步链路：9 个动作（卧推/深蹲/硬拉/引体/跑步/骑行/瑜伽/冥想/阅读）与预设项目建立映射，记录提交时自动计算 1RM/VDOT/SWOLF 等指标并写入修为面板数据源</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">49</view>
+        <view class="update-text">【修复】submitSport 致命顺序错误：entry 使用前未定义 + 科学限制校验在保存之后执行 → 均已修正为先校验再保存的正确流程</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">50</view>
+        <view class="update-text">【优化】custom-metrics 自定义修行页同步写入 records 集合，确保首页天统计、连续天数、配额校验等全局逻辑一致</view>
+      </view>
+    </view>
+
+    <view class="section-label">知识库与体系完善</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">51</view>
+        <view class="update-text">【扩充】运动科学知识库：NSCA 力量标准（1RM/BW分级）×3动作×2性别、VDOT跑力→配速查表、Karvonen心率五区间、步频四档标准、SWOLF效率分级</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">52</view>
+        <view class="update-text">【扩充】认知科学知识库：Ebbinghaus遗忘曲线七节点（20分钟→31天）、间隔重复最佳复习间隔（1/3/7/14/30天）、CEFR词汇量A1→C2分级、主动回忆 vs 被动复习效果对比（56% vs 35%）、每日新词最优负荷四档</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">53</view>
+        <view class="update-text">【全新】训练科学建议生成：每个项目提交后，基于用户指标与科学文献自动生成个性化训练建议与参考文献列表（如步频偏低→建议逐步提升至170→180spm）</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ================================================================
+       历史版本
+       ================================================================ -->
+  <view class="divider"></view>
+
+  <view class="version-card card">
+    <view class="version-header">
+      <view class="version-tag old">v1.0.2</view>
+      <view class="version-date">2026-07-16</view>
+    </view>
+    <view class="version-title">天劫重铸 · 大道初成</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">01</view>
+        <view class="update-text">完整修为境界体系：炼气→筑基→金丹→元婴，四重大境，每境九阶</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">02</view>
+        <view class="update-text">人生模板库（秘籍体系）：三品九阶，天品秘籍带特效</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">03</view>
+        <view class="update-text">宗门系统：创建/加入宗门，宗门主修模板享5%修为加成</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">04</view>
+        <view class="update-text">AI模板匹配度：每日匹配度加权计算，关联修为收益</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">05</view>
+        <view class="update-text">全页面切换为现代极简样式，并接入每日动态主题</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">06</view>
+        <view class="update-text">统一系统提示语：「叮，系统提示：...」</view>
+      </view>
+    </view>
+  </view>
+  
+  <view class="version-card card">
+    <view class="version-header">
+      <view class="version-tag old">v1.0.1</view>
+      <view class="version-date">2026-06-20</view>
+    </view>
+    <view class="version-title">筑基固本 · 初窥门径</view>
+    <view class="update-list">
+      <view class="update-item">
+        <view class="update-icon">01</view>
+        <view class="update-text">基础运动修行与饮食记录功能</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">02</view>
+        <view class="update-text">DEBUFF标记与自动扣分机制</view>
+      </view>
+      <view class="update-item">
+        <view class="update-icon">03</view>
+        <view class="update-text">基础统计与近7天数据可视化</view>
+      </view>
+    </view>
+  </view>
+  
+  <view class="footer text-secondary">
+    道阻且长，行则将至；行而不辍，未来可期。
+  </view>
+</view>

@@ -1,0 +1,8 @@
+.container { min-height: 100vh; padding: 20rpx 24rpx; background: var(--page-bg); }
+.card { padding: 24rpx; margin-bottom: 20rpx; border-radius: 20rpx; background: var(--card-bg); border: 1rpx solid var(--border-color); }
+.section-title { font-size: 28rpx; font-weight: 700; color: var(--text-primary); margin-bottom: 16rpx; }
+.option-group { display: flex; flex-direction: column; gap: 10rpx; }
+.option { padding: 18rpx 20rpx; border-radius: 14rpx; background: var(--surface-soft); border: 1rpx solid var(--border-color); font-size: 26rpx; color: var(--text-secondary); }
+.option.active { border-color: var(--primary); color: var(--primary); background: rgba(var(--primary-rgb), 0.06); font-weight: 600; }
+.action-row { padding: 18rpx 0; font-size: 26rpx; color: var(--text-primary); border-bottom: 1rpx solid var(--border-color); }
+.action-row:last-child { border-bottom: none; }

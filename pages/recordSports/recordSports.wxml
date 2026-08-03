@@ -1,0 +1,231 @@
+<!-- 记录运动修行页 — 仅炼体类 / 炼气类 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+
+  <!-- v4.0 灵气粒子特效 -->
+  <particle-effect show="{{ showFeedbackParticle }}" config="{{ feedbackParticleConfig }}" auto-hide="{{ true }}"></particle-effect>
+
+  <!-- v4.0 里程碑达成弹窗 -->
+  <view class="milestone-popup" wx:if="{{ showMilestone }}">
+    <view class="ms-overlay" bindtap="onCloseMilestone"></view>
+    <view class="ms-card">
+      <view class="ms-icon">{{ milestoneData.icon }}</view>
+      <view class="ms-title">{{ milestoneData.name }}</view>
+      <view class="ms-sub">连续修行 {{ milestoneData.days }} 天达成</view>
+      <view class="ms-prefix">解锁称号前缀：<text class="ms-prefix-val">{{ milestoneData.titlePrefix }}</text></view>
+      <view class="ms-pill" wx:if="{{ milestonePillReward }}">🎁 获得丹药：毛孔拉屎丹 ×1</view>
+      <view class="ms-btn" bindtap="onCloseMilestone">继续修行</view>
+    </view>
+  </view>
+
+  <!-- 武道表单 -->
+  <view class="form-card card">
+    <view class="form-kicker">武道录入</view>
+    <view class="form-title">记录运动修行</view>
+
+    <view class="form-item">
+      <view class="form-label">修炼道途</view>
+      <picker mode="selector" range="{{ trainingPathOptions }}" range-key="name" value="{{ selectedPathIndex }}" bindchange="onPathChange">
+        <view class="picker">
+          {{ selectedPath.name }}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">选择动作</view>
+      <view class="picker" bindtap="openMovementPicker">
+        <text class="{{ selectedMovement ? '' : 'picker-placeholder' }}">{{ selectedMovement ? selectedMovement.name : '请选择动作' }}</text>
+        <text class="picker-arrow">▼</text>
+      </view>
+    </view>
+
+    <!-- 运动选择搜索弹窗 -->
+    <view class="movement-picker-mask" wx:if="{{ showMovementPicker }}" bindtap="closeMovementPicker">
+      <view class="movement-picker-panel" catchtap="noop">
+        <view class="mp-search-box">
+          <input class="mp-search-input" placeholder="搜索动作名称..." value="{{ movementSearchQuery }}" bindinput="onMovementSearch" focus="{{ true }}" />
+          <view class="mp-search-clear" wx:if="{{ movementSearchQuery }}" bindtap="clearMovementSearch">✕</view>
+        </view>
+        <scroll-view class="mp-list" scroll-y enhanced show-scrollbar="{{ false }}">
+          <block wx:for="{{ movementGroups }}" wx:key="groupName">
+            <view class="mp-group-title">{{ item.groupName }}</view>
+            <view class="mp-group-desc" wx:if="{{ item.groupDesc }}">{{ item.groupDesc }}</view>
+            <block wx:for="{{ item.items }}" wx:for-item="mov" wx:key="id">
+              <view class="mp-item {{ selectedMovement && selectedMovement.id === mov.id ? 'mp-item-active' : '' }}" bindtap="onMovementSelect" data-movement="{{ mov }}">
+                <text class="mp-item-name">{{ mov.name }}</text>
+              </view>
+            </block>
+          </block>
+          <view class="mp-empty" wx:if="{{ movementGroups.length === 0 }}">
+            <text>未找到匹配动作，请尝试其他关键词</text>
+          </view>
+        </scroll-view>
+        <view class="mp-close-btn" bindtap="closeMovementPicker">关闭</view>
+      </view>
+    </view>
+
+    <view class="form-item" wx:if="{{ isLiantiPath && selectedMovement && selectedMovement.needWeight }}">
+      <view class="form-label">重量 (kg)</view>
+      <input
+        class="form-input"
+        type="digit"
+        placeholder="请输入重量"
+        value="{{ draftForm.weight }}"
+        bindinput="onInputChange"
+        bindblur="onInputBlur"
+        data-field="weight"
+      />
+    </view>
+
+    <view class="form-item" wx:if="{{ isLiantiPath }}">
+      <view class="form-label">次数</view>
+      <input
+        class="form-input"
+        type="number"
+        placeholder="请输入次数"
+        value="{{ draftForm.reps }}"
+        bindinput="onInputChange"
+        bindblur="onInputBlur"
+        data-field="reps"
+      />
+    </view>
+
+    <view class="form-item" wx:if="{{ isLiantiPath }}">
+      <view class="form-label">组数</view>
+      <input
+        class="form-input"
+        type="number"
+        placeholder="每组 +2 修为"
+        value="{{ draftForm.sets }}"
+        bindinput="onInputChange"
+        bindblur="onInputBlur"
+        data-field="sets"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">时长 (分钟)</view>
+      <input
+        class="form-input"
+        type="number"
+        placeholder="用于结算修为"
+        value="{{ draftForm.duration }}"
+        bindinput="onInputChange"
+        bindblur="onInputBlur"
+        data-field="duration"
+      />
+    </view>
+
+    <!-- 印章·自动印证 -->
+    <view class="sync-notice" wx:if="{{ selectedPath.key === 'lianti' && selectedMovement }}">
+      <view class="sync-notice-icon">🔗</view>
+      <view class="sync-notice-text">
+        记录后将<text class="sync-hl">自动印证</text>到修为面板{{syncedPresetName ? '：' + syncedPresetName : ''}}
+      </view>
+    </view>
+
+    <view class="score-preview">
+      <text class="preview-label">预计修为：</text>
+      <text class="preview-score text-positive">+{{ previewScore }}</text>
+      <text class="preview-intensity" wx:if="{{ predictData && predictData.intensityLabel }}" style="color:{{predictData.intensityColor}}"> · {{predictData.intensityLabel}}</text>
+    </view>
+    <view class="preview-meta" wx:if="{{ previewMeta }}">{{ previewMeta }}</view>
+
+    <!-- 实时预测数据卡片 -->
+    <view class="predict-card" wx:if="{{ predictData }}">
+      <view class="predict-grid">
+        <!-- 热量消耗 -->
+        <view class="predict-cell" wx:if="{{ predictData.calorie && predictData.calorie.kcal > 0 }}">
+          <view class="pcell-icon">🔥</view>
+          <view class="pcell-body">
+            <view class="pcell-value">{{predictData.calorie.kcal}}<text class="pcell-unit"> kcal</text></view>
+            <view class="pcell-label">
+              预计消耗{{predictData.calorie.movementLabel || '热量'}} · {{predictData.calorie.durationMin}}min
+              <text class="pcell-sub">(MET {{predictData.calorie.met}})</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 总做功（仅力量训练） -->
+        <view class="predict-cell" wx:if="{{ predictData.work && predictData.work.type === 'strength' && predictData.work.volumeLoad > 0 }}">
+          <view class="pcell-icon">💪</view>
+          <view class="pcell-body">
+            <view class="pcell-value">{{predictData.work.volumeLabel}}</view>
+            <view class="pcell-label">总训练容量 · {{predictData.work.formula}}</view>
+          </view>
+        </view>
+
+        <!-- 1RM 预测 -->
+        <view class="predict-cell" wx:if="{{ predictData.strength }}">
+          <view class="pcell-icon">🏋️</view>
+          <view class="pcell-body">
+            <view class="pcell-value">{{predictData.strength.weight1RM}}<text class="pcell-unit"> kg</text></view>
+            <view class="pcell-label">
+              估算1RM · {{predictData.strength.level}}级
+              <text class="pcell-sub">({{predictData.strength.ratio}}×体重)</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 超限告警标记 -->
+      <view class="predict-overlimit-tag" wx:if="{{ predictData.overLimit && predictData.overLimit.hasOverLimit }}">
+        <text class="polt-icon">{{predictData.overLimit.hasCritical ? '🚫' : '⚠️'}}</text>
+        <text class="polt-text">{{predictData.overLimit.warnings.length}} 项数据超限，提交时会二次确认</text>
+      </view>
+    </view>
+
+    <!-- 配额提示 -->
+    <view class="quota-bar" wx:if="{{ quota }}">
+      <view class="quota-row" wx:if="{{ quota.maxEntries }}">
+        <text class="quota-label">今日修炼次数</text>
+        <text class="quota-val {{ quota.remainingEntries <= 0 ? 'quota-0' : '' }}">{{ quota.usedCount }} / {{ quota.maxEntries }}</text>
+      </view>
+      <view class="quota-row" wx:if="{{ quota.maxDuration }}">
+        <text class="quota-label">累计时长</text>
+        <text class="quota-val {{ quota.remainingDuration <= 0 ? 'quota-0' : '' }}">{{ quota.maxDuration - quota.remainingDuration }} / {{ quota.maxDuration }} min</text>
+      </view>
+    </view>
+    <view class="exhausted-bar" wx:if="{{ isExhausted }}">{{ exhaustedReason }}</view>
+
+    <button class="submit-btn btn btn-primary" bindtap="submitSport" disabled="{{!canSubmit}}">
+      {{ canSubmit ? '提交记录' : '今日已达上限' }}
+    </button>
+
+    <!-- 适配度分析结果 -->
+    <view wx:if="{{ fitResult && fitStyle }}" class="fit-card" style="border-color:{{fitStyle.color}};">
+      <view class="fit-header">
+        <text class="fit-icon">{{ fitStyle.icon }}</text>
+        <text class="fit-label" style="color:{{fitStyle.color}};">{{ fitStyle.label }}</text>
+      </view>
+      <view class="fit-message">{{ fitResult.message }}</view>
+      <view class="fit-warning" wx:for="{{ fitResult.warnings }}" wx:key="*this">
+        ⚠️ {{ item }}
+      </view>
+    </view>
+  </view>
+
+  <!-- 超限数据确认弹窗 -->
+  <view class="overlimit-mask" wx:if="{{ overLimitModal.visible }}" bindtap="onOverLimitCancel" catchtouchmove="noop"></view>
+  <view wx:if="{{ overLimitModal.visible }}" class="overlimit-panel ol-show">
+    <view class="ol-header">
+      <view class="ol-header-icon">⚠️</view>
+      <view class="ol-header-text">数据超限确认</view>
+    </view>
+    <view class="ol-body">
+      <view class="ol-desc">你输入的运动参数超过了基于你身体数据推断的合理范围，请逐项确认：</view>
+      <view class="ol-warnings">
+        <view class="ol-warn-item ol-{{item.severity}}" wx:for="{{ overLimitModal.warnings }}" wx:key="index">
+          <text class="ol-warn-sev">{{item.severity === 'critical' ? '🚫' : item.severity === 'warning' ? '⚠️' : 'ℹ️'}}</text>
+          <text class="ol-warn-msg">{{item.message}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="ol-footer">
+      <button class="ol-btn ol-btn-cancel" bindtap="onOverLimitCancel">取消，回去修改</button>
+      <button class="ol-btn ol-btn-confirm" bindtap="onOverLimitConfirm">确认无误，继续提交</button>
+    </view>
+  </view>
+</view>

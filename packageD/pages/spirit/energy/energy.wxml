@@ -1,0 +1,70 @@
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+  <view class="card energy-card">
+    <view class="section-header">
+      <text class="section-icon">⚡</text>
+      <text class="section-title">精 · 精力管理</text>
+    </view>
+    <view class="energy-display">
+      <text class="energy-value" style="color: {{progressColor}};">{{energyValue}}</text>
+      <text class="energy-level" style="color: {{progressColor}};">{{energyLevel}}</text>
+    </view>
+    <view class="progress-bar energy-progress">
+      <view class="progress-fill" style="width: {{progressWidth}}%; background: {{progressColor}};"></view>
+    </view>
+    <view class="buff-tag">{{buff}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">今日记录</view>
+
+    <view class="field-row">
+      <view class="field-label">工作时长</view>
+      <view class="field-control">
+        <input class="field-input" type="digit" value="{{form.workHours}}" bindinput="onInput" data-field="workHours" placeholder="0-16" />
+        <view class="field-unit">小时</view>
+      </view>
+    </view>
+
+    <view class="field-row">
+      <view class="field-label">睡眠时长</view>
+      <view class="field-control">
+        <input class="field-input" type="digit" value="{{form.sleepHours}}" bindinput="onInput" data-field="sleepHours" placeholder="0-16" />
+        <view class="field-unit">小时</view>
+      </view>
+    </view>
+
+    <view class="field-row">
+      <view class="field-label">睡眠质量</view>
+      <view class="quality-group">
+        <view
+          class="quality-item {{form.sleepQuality === item ? 'active' : ''}}"
+          wx:for="{{qualityOptions}}"
+          wx:key="*this"
+          data-value="{{item}}"
+          bindtap="selectQuality"
+        >
+          {{item}}
+        </view>
+      </view>
+    </view>
+
+    <view class="field-row">
+      <view class="field-label">运动时长</view>
+      <view class="field-control">
+        <input class="field-input" type="number" value="{{form.exerciseMinutes}}" bindinput="onInput" data-field="exerciseMinutes" placeholder="0-300" />
+        <view class="field-unit">分钟</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">今日建议</view>
+    <view class="advice-text">{{advice}}</view>
+  </view>
+
+  <view class="action-bar">
+    <view class="btn btn-primary save-btn" bindtap="saveEnergy">保存</view>
+  </view>
+</view>

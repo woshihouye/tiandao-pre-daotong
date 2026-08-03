@@ -1,0 +1,34 @@
+<!-- progress-ring - 环形修炼进度组件 -->
+<view 
+  class="progress-ring-container" 
+  style="width: {{size}}rpx; height: {{size}}rpx;"
+>
+  <!-- 外层发光光晕 -->
+  <view 
+    wx:if="{{showPulse}}"
+    class="ring-glow {{showPulse ? 'pulse-anim' : ''}}"
+    style="width: {{size}}rpx; height: {{size}}rpx;"
+  ></view>
+
+  <!-- Canvas 进度环 -->
+  <canvas 
+    type="2d"
+    id="progressCanvas" 
+    class="ring-canvas"
+    style="width: {{size}}rpx; height: {{size}}rpx;"
+  ></canvas>
+
+  <!-- 中心文字 -->
+  <view class="ring-center">
+    <text class="ring-percent">{{percent}}</text>
+    <text class="ring-percent-sign">%</text>
+    <text class="ring-label">{{label}}</text>
+  </view>
+
+  <!-- 光环粒子装饰 -->
+  <view wx:if="{{showPulse}}" class="ring-particles">
+    <view class="particle p1"></view>
+    <view class="particle p2"></view>
+    <view class="particle p3"></view>
+  </view>
+</view>

@@ -1,0 +1,38 @@
+.container {
+  min-height: 100vh;
+  padding: 24rpx;
+  background: var(--page-bg);
+}
+
+.hero { margin-bottom: 24rpx; padding: 32rpx; }
+.hero-title { font-size: 32rpx; font-weight: 700; color: var(--text-primary); }
+.hero-desc { margin-top: 8rpx; font-size: 24rpx; color: var(--text-secondary); }
+
+.fav-card {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin-bottom: 16rpx;
+  padding: 22rpx 20rpx;
+  border-radius: 20rpx;
+  background: var(--card-bg);
+  border: 1rpx solid var(--border-color);
+}
+
+.fav-cover {
+  width: 72rpx; height: 72rpx;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 18rpx;
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+  font-size: 32rpx; font-weight: 700;
+  color: var(--primary);
+}
+
+.fav-body { flex: 1; min-width: 0; }
+.fav-name { font-size: 28rpx; font-weight: 700; color: var(--text-primary); line-height: 1.5; }
+.fav-desc { margin-top: 4rpx; font-size: 24rpx; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fav-meta { margin-top: 6rpx; font-size: 22rpx; color: var(--text-secondary); }
+.fav-remove { width: 44rpx; height: 44rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: #ef4444; font-size: 24rpx; font-weight: 600; }
+.empty-state { padding: 100rpx 20rpx; text-align: center; }
+.empty-text { font-size: 26rpx; color: var(--text-secondary); }

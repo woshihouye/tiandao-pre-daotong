@@ -1,0 +1,208 @@
+/* 我的道则 - 样式 */
+
+.name-card {
+  padding: 24rpx;
+  margin: 16rpx 16rpx 0;
+}
+
+.name-input-wrap {
+  min-height: 80rpx;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  border-bottom: 2rpx solid var(--border-color);
+  outline: none;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6rpx;
+}
+
+.section-desc {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  margin-bottom: 20rpx;
+}
+
+/* 维度行 */
+.dim-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid var(--surface-soft);
+}
+
+.dim-row:last-child {
+  border-bottom: none;
+}
+
+.dim-icon {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 12rpx;
+  background: var(--surface-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.dim-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  padding: 8rpx 0;
+}
+
+/* 境界行 */
+.realm-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid var(--surface-soft);
+}
+
+.realm-row:last-child {
+  border-bottom: none;
+}
+
+.realm-default {
+  font-size: 26rpx;
+  color: var(--text-muted);
+  min-width: 100rpx;
+}
+
+.realm-arrow {
+  font-size: 24rpx;
+  color: var(--text-muted);
+}
+
+.realm-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  padding: 8rpx 0;
+}
+
+/* 打卡项标签切换 */
+.checkin-tabs {
+  display: flex;
+  gap: 8rpx;
+  margin-bottom: 16rpx;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 4rpx;
+}
+
+.checkin-tab {
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  background: var(--surface-soft);
+  flex-shrink: 0;
+}
+
+.checkin-tab.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.checkin-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.checkin-chip {
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  background: var(--surface-muted);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.chip-remove {
+  color: var(--text-muted);
+  font-size: 28rpx;
+  padding: 0 4rpx;
+}
+
+.checkin-empty {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  padding: 12rpx 0;
+  margin-bottom: 12rpx;
+}
+
+.checkin-add-row {
+  display: flex;
+  gap: 12rpx;
+  align-items: center;
+}
+
+.checkin-input {
+  flex: 1;
+  padding: 12rpx 16rpx;
+  border: 1rpx solid var(--border-color);
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: var(--text-primary);
+}
+
+.btn-small {
+  padding: 10rpx 24rpx;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  background: var(--primary);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* 操作栏 */
+.action-bar {
+  padding: 24rpx 16rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.save-btn {
+  padding: 20rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #fff;
+  background: var(--primary);
+}
+
+.share-btn {
+  padding: 20rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: var(--primary);
+  background: transparent;
+  border: 2rpx solid var(--primary);
+}
+
+.reset-btn {
+  padding: 16rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: var(--text-muted);
+  background: transparent;
+}

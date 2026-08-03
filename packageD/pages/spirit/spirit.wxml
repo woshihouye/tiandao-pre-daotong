@@ -1,0 +1,31 @@
+<!-- 精神二级页：保留精/神录入入口，去掉分析建议文案 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+  <view class="section-card" bindtap="goToEnergy">
+    <view class="section-header">
+      <text class="section-icon">精</text>
+      <text class="section-title">精 · 精力</text>
+    </view>
+    <view class="energy-display">
+      <text class="energy-number">{{energyValue}}</text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width:{{energyPercent}}%;background:{{energyColor}}"></view>
+    </view>
+    <text class="buff-text" wx:if="{{buffText && buffText !== '今日未记录'}}">{{buffText}}</text>
+    <text class="detail-btn">记录精力 ></text>
+  </view>
+
+  <view class="section-card" bindtap="goToMood">
+    <view class="section-header">
+      <text class="section-icon">神</text>
+      <text class="section-title">神 · 心情</text>
+    </view>
+    <view class="mood-display">
+      <text class="mood-emoji">{{moodEmoji}}</text>
+      <text class="mood-text">{{moodText}}</text>
+    </view>
+    <text class="detail-btn">记录心情 ></text>
+  </view>
+</view>

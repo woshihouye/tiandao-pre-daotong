@@ -1,0 +1,12 @@
+<view class="page">
+  <view class="title">🏔️ 修行天梯</view>
+  <view class="ladder" wx:if="{{ nodes.length }}">
+    <view class="ladder-line"></view>
+    <view class="node" wx:for="{{ nodes }}" wx:key="date">
+      <view class="dot" style="background:{{ item.color || '#eab308' }}"></view>
+      <view class="node-info"><text class="node-date">{{ item.date }}</text><text class="node-text">{{ item.label }}</text></view>
+      <view class="node-score">{{ item.score }}</view>
+    </view>
+  </view>
+  <view class="empty" wx:if="{{ !nodes.length }}">暂无修行记录</view>
+</view>

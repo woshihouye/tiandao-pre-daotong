@@ -1,0 +1,67 @@
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+  <view class="card">
+    <view class="section-title">心情选择</view>
+    <view class="mood-grid">
+      <view
+        class="mood-option {{mood === item.key ? 'active' : ''}}"
+        wx:for="{{moodOptions}}"
+        wx:key="key"
+        data-mood="{{item.key}}"
+        bindtap="selectMood"
+        style="border-color: {{mood === item.key ? item.color : '#E5E7EB'}};"
+      >
+        <view class="mood-icon">{{item.icon}}</view>
+        <view class="mood-label">{{item.key}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">心情标签</view>
+    <view class="tag-group-title">正向状态</view>
+    <view class="tag-grid">
+      <view
+        class="tag-item {{tags.indexOf(item) > -1 ? 'active' : ''}}"
+        wx:for="{{positiveTagOptions}}"
+        wx:for-item="item"
+        wx:key="*this"
+        data-value="{{item}}"
+        bindtap="toggleTag"
+      >
+        {{item}}
+      </view>
+    </view>
+    <view class="tag-group-title second">压力状态</view>
+    <view class="tag-grid">
+      <view
+        class="tag-item {{tags.indexOf(item) > -1 ? 'active' : ''}}"
+        wx:for="{{negativeTagOptions}}"
+        wx:for-item="item"
+        wx:key="*this"
+        data-value="{{item}}"
+        bindtap="toggleTag"
+      >
+        {{item}}
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">备注</view>
+    <textarea class="note-input" maxlength="200" placeholder="记录一下今天的精神状态..." value="{{note}}" bindinput="onNoteInput"></textarea>
+  </view>
+
+  <view class="card">
+    <view class="section-title">今日建议</view>
+    <view class="advice-title">生活建议</view>
+    <view class="advice-text">{{lifeAdvice}}</view>
+    <view class="advice-title second">修行建议</view>
+    <view class="advice-text">{{cultivateAdvice}}</view>
+  </view>
+
+  <view class="action-bar">
+    <view class="btn btn-primary save-btn" bindtap="saveMood">保存</view>
+  </view>
+</view>

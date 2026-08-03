@@ -1,0 +1,32 @@
+<view class="container theme-page {{themeClass}}">
+  <view
+    class="log-card card"
+    wx:for="{{versions}}"
+    wx:for-item="version"
+    wx:key="key"
+  >
+    <view class="log-header" bindtap="toggleVersion" data-key="{{version.key}}">
+      <view class="log-copy">
+        <view class="log-version">【{{version.version}} {{version.title}}】</view>
+      </view>
+      <view class="log-arrow {{version.expanded ? 'expanded' : ''}}"></view>
+    </view>
+
+    <view class="log-content {{version.expanded ? 'expanded' : ''}}">
+      <view class="log-content-inner">
+        <view class="section" wx:for="{{version.sections}}" wx:for-item="section" wx:key="title">
+          <view class="section-title">{{section.title}}</view>
+          <view
+            class="log-row"
+            wx:for="{{section.items}}"
+            wx:for-item="row"
+            wx:key="*this"
+          >
+            <view class="row-dot"></view>
+            <view class="row-text">{{row}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

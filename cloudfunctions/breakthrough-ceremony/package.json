@@ -1,0 +1,9 @@
+{
+  "name": "breakthrough-ceremony",
+  "version": "1.0.0",
+  "description": "天道修行 - 境界突破仪式结算",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

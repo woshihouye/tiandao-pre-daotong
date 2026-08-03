@@ -1,0 +1,11 @@
+<view class="page">
+  <view class="title">💊 丹药</view>
+  <block wx:if="{{ pills.length }}">
+    <view class="pill-card" wx:for="{{ pills }}" wx:key="pillId" style="border-left:6rpx solid {{ item.color }}">
+      <view class="pill-header"><text class="pill-icon">{{ item.icon }}</text><text class="pill-name">{{ item.name }}</text><text class="pill-qty">×{{ item.quantity }}</text></view>
+      <view class="pill-desc">{{ item.description }}</view>
+      <view class="pill-footer"><text class="pill-effect">效果：{{ item.effect.type === 'capacity_expand' ? '上限+' + item.effect.value : item.effect.type }}</text><view class="pill-use-btn {{ item.canUse ? '' : 'disabled' }}" bindtap="onUseTap" data-id="{{ item.pillId }}">{{ item.canUse ? '使用' : '无库存' }}</view></view>
+    </view>
+  </block>
+  <view class="empty" wx:if="{{ !pills.length }}">暂无丹药库存，连续修行7天可获得「毛孔拉屎丹」</view>
+</view>

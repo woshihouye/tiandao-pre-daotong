@@ -1,0 +1,87 @@
+<view class="container">
+  <view class="loading-card" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 受限访问提示 -->
+  <block wx:if="{{isRestricted}}">
+    <view class="restricted-card">
+      <view class="restricted-avatar">{{avatarText}}</view>
+      <view class="restricted-name">{{nickName}}</view>
+      <view class="restricted-icon">🔒</view>
+      <view class="restricted-reason">{{restrictedReason || '道友设置了隐私保护'}}</view>
+      <view class="restricted-hint">关注对方后即可查看完整主页</view>
+    </view>
+  </block>
+
+  <block wx:if="{{!loading && !isRestricted && user}}">
+    <!-- 模块1: 形象头区 -->
+    <view class="card hero-card">
+      <view class="hero-avatar">{{avatarText}}</view>
+      <view class="hero-info">
+        <view class="hero-name">{{nickName}}</view>
+        <view class="hero-realm">{{realmName}} · 第{{realmStage}}阶 · 修为{{totalCultivation}}</view>
+      </view>
+      <view class="hero-actions">
+        <image class="hero-more" src="" bindtap="reportUser" style="width:48rpx;height:48rpx;"></image>
+      </view>
+    </view>
+
+    <!-- 模块2: 定场诗 -->
+    <view class="card poem-card" wx:if="{{signaturePoem}}">
+      <view class="poem-text">{{signaturePoem}}</view>
+    </view>
+
+    <!-- 模块3: 核心数据 -->
+    <view class="card stats-card">
+      <view class="stat-item">
+        <view class="stat-value">{{totalCultivation}}</view>
+        <view class="stat-label">总修为</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-value">{{streakDays}}</view>
+        <view class="stat-label">连续天数</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-value">{{sportCount}}</view>
+        <view class="stat-label">修炼</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-value">{{debuffCount}}</view>
+        <view class="stat-label">心魔</view>
+      </view>
+    </view>
+
+    <!-- 模块6: 模板 -->
+    <view class="card" wx:if="{{mainTemplate}}">
+      <view class="section-title">证道主修</view>
+      <view class="template-row" data-id="{{mainTemplate.id}}" bindtap="goToTemplate">
+        <view class="tm-cover">{{mainTemplate.cover || '道'}}</view>
+        <view class="tm-info">
+          <view class="tm-name">{{mainTemplate.name}}</view>
+          <view class="tm-cap">日上限 {{mainTemplate.dailyCap}}</view>
+        </view>
+        <text class="tm-arrow">→</text>
+      </view>
+    </view>
+
+    <!-- 辅修 -->
+    <view class="card" wx:if="{{sideTemplates.length > 0}}">
+      <view class="section-title">旁门辅修 ({{sideTemplates.length}})</view>
+      <view class="side-list">
+        <view class="side-chip" wx:for="{{sideTemplates}}" wx:key="id" data-id="{{item.id}}" bindtap="goToTemplate">
+          <text class="side-cover">{{item.cover || '道'}}</text>
+          <text>{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部操作栏 -->
+    <view class="action-bar">
+      <button class="btn btn-primary" bindtap="sendMessage" wx:if="{{!isSelf}}">✉️ 发送私信</button>
+      <button class="btn {{isFollowing ? 'btn-ghost' : 'btn-outline'}}" bindtap="toggleFollow" wx:if="{{!isSelf}}">
+        {{isFollowing ? '✓ 已关注' : '+ 关注'}}
+      </button>
+    </view>
+  </block>
+</view>

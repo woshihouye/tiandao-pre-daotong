@@ -1,0 +1,37 @@
+/* 宗门占位页 */
+
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx;
+  background: var(--page-bg);
+  box-sizing: border-box;
+}
+
+.placeholder {
+  width: 100%;
+  max-width: 680rpx;
+  padding: 70rpx 44rpx;
+  text-align: center;
+  border-radius: 24rpx;
+  background: var(--card-bg);
+  border: 1rpx solid var(--border-color);
+  box-shadow: none;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.subtitle {
+  margin-top: 18rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}

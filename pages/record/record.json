@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "记录修行",
+  "usingComponents": {
+    "template-progress-card": "/components/template-progress-card/template-progress-card",
+    "daily-result-panel": "/components/daily-result-panel/daily-result-panel"
+  }
+}

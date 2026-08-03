@@ -1,0 +1,14 @@
+.page{min-height:100vh;padding:40rpx;background:#1a1a2e;color:#fff}
+.title{font-size:36rpx;font-weight:700;margin-bottom:32rpx}
+.my-grade-card{display:flex;align-items:center;gap:16rpx;padding:28rpx 24rpx;background:rgba(30,41,59,.8);border-radius:20rpx;margin-bottom:32rpx;border:2rpx solid}
+.mg-icon{font-size:52rpx}.mg-info{flex:1}.mg-label{font-size:22rpx;color:#94a3b8;display:block}
+.mg-name{font-size:36rpx;font-weight:800}.mg-score{font-size:28rpx;color:#fff;font-weight:700}
+.tier-card{background:rgba(30,41,59,.8);border-radius:16rpx;padding:24rpx;margin-bottom:16rpx;border-left-width:6rpx}
+.tier-header{display:flex;align-items:center;gap:12rpx;margin-bottom:8rpx}
+.tier-emoji{font-size:32rpx}.tier-name{font-size:28rpx;font-weight:600}.tier-desc{font-size:22rpx;color:#94a3b8}
+.dim-section{margin-top:40rpx}.section-title{font-size:28rpx;color:#94a3b8;margin-bottom:20rpx;font-weight:600}
+.dim-row{display:flex;align-items:center;gap:16rpx;margin-bottom:16rpx}
+.dim-label{width:80rpx;font-size:24rpx;color:#94a3b8}
+.dim-bar-bg{flex:1;height:12rpx;background:rgba(255,255,255,.1);border-radius:6rpx;overflow:hidden}
+.dim-bar-fill{height:100%;border-radius:6rpx}
+.dim-score{width:80rpx;text-align:right;font-size:24rpx;color:#fff}

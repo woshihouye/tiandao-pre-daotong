@@ -1,0 +1,172 @@
+/* 模板进度卡片 */
+.template-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.template-card.completed {
+  box-shadow: 0 0 0 1px var(--card-color, #EF4444), 0 2px 8px var(--card-color, #EF4444)20;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 72px;
+  padding: 14px 16px;
+  touch-action: none;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.template-cover {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.template-cover text {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.template-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.template-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.template-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.template-tag-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.template-meta {
+  font-size: 12px;
+  color: #9CA3AF;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.progress-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.progress-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.progress-gong {
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 1px;
+}
+
+.progress-label {
+  font-size: 11px;
+  color: #9CA3AF;
+}
+
+.expand-arrow {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.expand-arrow text {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.expand-arrow.expanded {
+  transform: rotate(90deg);
+}
+
+/* 进度条 */
+.card-progress-bar {
+  padding: 0 16px 2px;
+}
+
+.progress-track {
+  height: 3px;
+  background: #E5E7EB;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* 展开体 */
+.card-body {
+  padding: 0 4px 12px;
+  animation: expandIn 0.3s ease;
+}
+
+@keyframes expandIn {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+.activity-list {
+  padding: 8px 8px 0;
+}

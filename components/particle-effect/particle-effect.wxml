@@ -1,0 +1,4 @@
+<!-- 灵气粒子特效 - 纯CSS动画实现 -->
+<view class="particle-container" wx:if="{{ animating }}">
+  <view wx:for="{{ particles }}" wx:key="id" class="particle particle-{{ config.type }}" style="--x: {{ item.x }}px; --y: {{ item.y }}px; --size: {{ item.size }}px; --color: {{ item.color }}; --delay: {{ item.delay }}ms; --duration: {{ item.duration }}ms;"></view>
+</view>

@@ -1,0 +1,9 @@
+<view class="lp-wrap">
+  <view wx:for="{{ substages }}" wx:key="index" class="lp-segment {{ item.isCurrent ? 'current' : '' }}" style="{{ item.segmentStyle }}">
+    <view class="lp-fill" style="{{ item.fillStyle }}"></view>
+  </view>
+</view>
+<view class="lp-label-row">
+  <text wx:for="{{ substages }}" wx:key="index" class="lp-label {{ item.isCurrent ? 'active' : '' }}" style="{{ item.labelStyle }}">{{ item.label }}</text>
+</view>
+<view class="lp-overall">{{ realmName }} · {{ currentStageLabel }} · {{ overallPercent }}%</view>

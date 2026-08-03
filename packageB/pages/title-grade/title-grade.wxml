@@ -1,0 +1,28 @@
+<view class="page">
+  <view class="title">🏅 称号体系</view>
+
+  <!-- v4.0 当前等级 -->
+  <view class="my-grade-card" style="border-color:{{ tierColor }}">
+    <text class="mg-icon">{{ tierIcon }}</text>
+    <view class="mg-info">
+      <text class="mg-label">我的修行等级</text>
+      <text class="mg-name" style="color:{{ tierColor }}">{{ tierName }}</text>
+    </view>
+    <text class="mg-score">{{ overallScore }}分</text>
+  </view>
+
+  <view class="tier-card" wx:for="{{ tiers }}" wx:key="id" style="border-left-color:{{ item.id === 'S' ? '#efb810' : (item.id === 'A' ? '#8b5cf6' : (item.id === 'B' ? '#3b82f6' : '#9ca3af')) }}">
+    <view class="tier-header"><text class="tier-emoji">{{ item.emoji }}</text><text class="tier-name">{{ item.name }}</text></view>
+    <view class="tier-desc">{{ item.desc }}</view>
+  </view>
+  <view class="dim-section">
+    <view class="section-title">我的修行维度</view>
+    <view class="dim-row" wx:for="{{ dimensions }}" wx:key="key">
+      <text class="dim-label">{{ item.name }}</text>
+      <view class="dim-bar-bg">
+        <view class="dim-bar-fill" style="width:{{ item.barWidth }};background:{{ item.barColor }}"></view>
+      </view>
+      <text class="dim-score">{{ item.score }}</text>
+    </view>
+  </view>
+</view>

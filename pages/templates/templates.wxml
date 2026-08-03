@@ -1,0 +1,340 @@
+<!-- 人生模板库 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+  <view class="library-hero card-premium card" bindtap="goToActivityLibrary">
+    <view class="hero-kicker">大道之行</view>
+    <view class="hero-title">修行库</view>
+    <view class="hero-desc">汇总所有日常修行行为，正向行为增加修为，负面行为扣除修为，点击进入可查看和管理全部修行条目。</view>
+  </view>
+
+  <!-- 模板标签切换 -->
+  <view class="tab-bar">
+    <view class="tab-item {{activeTab === 'mytmpl' ? 'active' : ''}}" data-tab="mytmpl" bindtap="switchTab">我的模板</view>
+    <view class="tab-item {{activeTab === 'preset' ? 'active' : ''}}" data-tab="preset" bindtap="switchTab">大道模板</view>
+    <view class="tab-item {{activeTab === 'plaza' ? 'active' : ''}}" data-tab="plaza" bindtap="switchTab">模板广场</view>
+  </view>
+
+  <!-- ===== 我的模板 ===== -->
+  <view wx:if="{{activeTab === 'mytmpl'}}">
+  <block wx:if="{{hasMyTemplates}}">
+    <!-- 顶部统览 -->
+    <view class="card my-summary">
+      <view class="my-summary-title">📜 我的修炼道则</view>
+      <view class="my-summary-stats">总修为 {{totalCultivation}} · 主修{{myDetail ? 1 : 0}}道 · 辅修{{mySideDetails.length}}道</view>
+    </view>
+
+    <!-- 大道主修 -->
+    <view class="card tm-card tm-main-card" wx:if="{{myDetail}}" bindtap="goToMyTemplateDetail">
+      <view class="tm-head">
+        <view class="tm-cover-wrap">
+          <view class="tm-cover main-cover">{{myDetail.cover}}</view>
+          <view class="tm-cover-badge main-badge">大道</view>
+        </view>
+        <view class="tm-head-text">
+          <view class="tm-head-name">{{myDetail.name}}</view>
+          <view class="tm-head-goal">{{myDetail.goal || '择一而终，日修不辍'}}</view>
+        </view>
+      </view>
+      <view class="tm-level-group">
+        <view class="tm-level-stars">
+          <text class="tms {{si < myDetail.level ? 'active' : ''}}" wx:for="{{starIndexes}}" wx:for-index="si" wx:for-item="d" wx:key="*this">★</text>
+        </view>
+        <view class="tm-level-text">Lv.{{myDetail.level}}</view>
+      </view>
+      <view class="tm-level-bar">
+        <view class="tm-level-fill main-fill" style="width:{{myDetail.levelPct}}%"></view>
+      </view>
+      <block wx:if="{{myRealm}}">
+        <view class="tm-realm-info">
+          <text class="tm-realm-name">{{myRealm.name}}</text>
+          <text class="tm-realm-stage">第{{myRealm.stage}}阶</text>
+        </view>
+        <view class="tm-level-bar realm-bar">
+          <view class="tm-level-fill realm-fill" style="width:{{myRealm.stage / 9 * 100}}%"></view>
+        </view>
+      </block>
+      <view class="my-see-detail">点击查看完整进度 →</view>
+    </view>
+
+    <!-- 旁门辅修 -->
+    <view class="mt-section-title" wx:if="{{mySideDetails.length > 0}}">🌿 小道 · 旁门辅修 ({{mySideDetails.length}})</view>
+    <view class="card tm-card tm-side-card" wx:for="{{mySideDetails}}" wx:key="id" bindtap="goToMyTemplateDetail">
+      <view class="tm-head">
+        <view class="tm-cover-wrap">
+          <view class="tm-cover side-cover">{{item.cover}}</view>
+          <view class="tm-cover-badge side-badge">辅修</view>
+        </view>
+        <view class="tm-head-text">
+          <view class="tm-head-name">{{item.name}}</view>
+          <view class="tm-head-goal">{{item.goal || ''}}</view>
+        </view>
+      </view>
+      <view class="tm-level-group">
+        <view class="tm-level-stars">
+          <text class="tms {{si < item.level ? 'active' : ''}}" wx:for="{{starIndexes}}" wx:for-index="si" wx:for-item="d" wx:key="*this">★</text>
+        </view>
+        <view class="tm-level-text">Lv.{{item.level}}</view>
+      </view>
+      <view class="tm-level-bar">
+        <view class="tm-level-fill side-fill" style="width:{{item.levelPct}}%"></view>
+      </view>
+      <block wx:if="{{item.realm}}">
+        <view class="tm-realm-info">
+          <text class="tm-realm-name">{{item.realm.name}}</text>
+          <text class="tm-realm-stage">第{{item.realm.stage}}阶</text>
+        </view>
+        <view class="tm-level-bar realm-bar">
+          <view class="tm-level-fill realm-fill" style="width:{{item.realmPct}}%"></view>
+        </view>
+      </block>
+      <view class="my-see-detail">点击查看完整进度 →</view>
+    </view>
+  </block>
+
+  <!-- 无模板时引导 -->
+  <view class="card my-empty" wx:if="{{!hasMyTemplates}}">
+    <view class="my-empty-icon">📜</view>
+    <view class="my-empty-text">暂未选择修炼模板</view>
+    <view class="my-empty-desc">在大道模板中选择一条证道主修，再从模板广场挑选旁门辅修</view>
+    <view class="my-empty-actions">
+      <view class="my-empty-btn primary" bindtap="switchTab" data-tab="preset">选主修</view>
+      <view class="my-empty-btn" bindtap="switchTab" data-tab="plaza">逛广场</view>
+      <view class="my-empty-btn green" bindtap="openTypeSheet">+ 自建模板</view>
+    </view>
+
+  <!-- 自建模板区域 -->
+  <view class="custom-tmpl-section" wx:if="{{hasCustomTemplates}}">
+    <view class="ct-section-title">🔧 我的自建模板</view>
+    <view class="ct-filter-tabs">
+      <view class="ct-filter-tab {{customFilterType === 'all' ? 'active' : ''}}" data-type="all" bindtap="filterCustomType">全部</view>
+      <view class="ct-filter-tab {{customFilterType === 'daily' ? 'active' : ''}}" data-type="daily" bindtap="filterCustomType">日模板</view>
+      <view class="ct-filter-tab {{customFilterType === 'weekly' ? 'active' : ''}}" data-type="weekly" bindtap="filterCustomType">周模板</view>
+      <view class="ct-filter-tab {{customFilterType === 'pool' ? 'active' : ''}}" data-type="pool" bindtap="filterCustomType">合道模板</view>
+    </view>
+    <view class="ct-list">
+      <view
+        wx:for="{{customTemplatesFiltered}}" wx:key="id"
+        class="ct-card card"
+        data-id="{{item.id}}"
+        bindtap="enableTemplate"
+        bindlongpress="showTemplateActions"
+      >
+        <view class="ct-card-left">
+          <view class="ct-card-name">{{item.name}}</view>
+          <view class="ct-card-meta">
+            <text class="ct-type-tag">{{item.type === 'daily' ? '日模板' : (item.type === 'weekly' ? '周模板' : '合道模板')}}</text>
+            <text class="ct-count">· {{item.type === 'daily' ? (item.timeSlots ? item.timeSlots.length : 0) + '时段' : (item.type === 'weekly' ? '7天' : (item.poolActivities ? item.poolActivities.length : 0) + '项')}}</text>
+          </view>
+        </view>
+        <view class="ct-card-right">
+          <text class="ct-more-btn" data-id="{{item.id}}" catchtap="showTemplateActions">⋯</text>
+        </view>
+      </view>
+      <view wx:if="{{customTemplatesFiltered.length === 0}}" class="empty-tip">暂无此类模板</view>
+    </view>
+  </view>
+
+  </view>
+  </view>
+
+  <!-- ===== 大道模板 ===== -->
+  <view wx:if="{{activeTab === 'preset'}}">
+
+  <!-- ===== 大道·证道主修 ===== -->
+  <view class="section-banner main-banner">
+    <view class="banner-icon">☀️</view>
+    <view class="banner-text">
+      <view class="banner-title">大道 · 证道主修</view>
+      <view class="banner-desc">择一而终，日修不辍，此为立身之本</view>
+    </view>
+    <view class="banner-count">{{mainPresets.length}}道</view>
+  </view>
+  <view class="template-list">
+    <view
+      class="template-card card {{item.active ? 'is-active' : ''}}"
+      wx:for="{{mainPresets}}"
+      wx:key="id"
+      bindtap="goToGrandDao"
+      data-id="{{item.id}}"
+    >
+      <view class="template-emblem">
+        <view class="cover-badge main-cover">{{item.cover}}</view>
+        <view class="grade-stars" wx:if="{{item.active}}">修习中</view>
+      </view>
+      <view class="template-main">
+        <view class="template-header">
+          <view class="template-name">{{item.name}}</view>
+          <view class="template-stats">{{item.goal}}</view>
+        </view>
+        <view class="template-desc text-secondary">{{item.description}}</view>
+        <view class="template-tags">
+          <view class="tag tag-main" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</view>
+        </view>
+        <view class="grand-dao-footer">
+          <view class="gongfa-count" wx:if="{{item.gongfaCount > 0}}">{{item.gongfaCount}}部功法</view>
+          <view class="gongfa-count empty" wx:else>暂无功法</view>
+          <view class="grand-dao-arrow">→</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  </view>
+
+  <!-- 云端模板广场 -->
+  <view class="plaza-section" wx:if="{{activeTab === 'plaza'}}">
+    <!-- 筛选栏 -->
+    <view class="plaza-filters">
+      <view class="filter-group">
+        <view class="filter-item {{cloudSortBy === 'hot' ? 'active' : ''}}" data-sort="hot" bindtap="changeSort">热门</view>
+        <view class="filter-item {{cloudSortBy === 'new' ? 'active' : ''}}" data-sort="new" bindtap="changeSort">最新</view>
+        <view class="filter-item {{cloudSortBy === 'imports' ? 'active' : ''}}" data-sort="imports" bindtap="changeSort">最多导入</view>
+        <view class="filter-item {{cloudSortBy === 'beginner' ? 'active' : ''}}" data-sort="beginner" bindtap="changeSort">新手入门</view>
+      </view>
+      <view class="filter-group">
+        <view class="filter-item {{cloudType === 'all' ? 'active' : ''}}" data-type="all" bindtap="changeType">全部</view>
+        <view class="filter-item {{cloudType === 'official' ? 'active' : ''}}" data-type="official" bindtap="changeType">官方</view>
+        <view class="filter-item {{cloudType === 'user' ? 'active' : ''}}" data-type="user" bindtap="changeType">道友</view>
+      </view>
+    </view>
+
+    <!-- 分类筛选栏 -->
+    <view class="plaza-cat-bar">
+      <view class="cat-item {{cloudCategory === '' ? 'active' : ''}}" data-category="" bindtap="changeCategory">全部道则</view>
+      <view class="cat-item {{cloudCategory === 'preset' ? 'active' : ''}}" data-category="preset" bindtap="changeCategory">生活修行</view>
+      <view class="cat-item {{cloudCategory === 'career' ? 'active' : ''}}" data-category="career" bindtap="changeCategory">行业成长</view>
+      <view class="cat-item {{cloudCategory === 'learning' ? 'active' : ''}}" data-category="learning" bindtap="changeCategory">学习精进</view>
+      <view class="cat-item {{cloudCategory === 'fitness' ? 'active' : ''}}" data-category="fitness" bindtap="changeCategory">运动健康</view>
+    </view>
+
+    <!-- 子分类筛选（按分类动态展示） -->
+    <view class="plaza-industry-bar" wx:if="{{cloudCategory}}">
+      <view class="ind-item {{cloudSubcategory === '' ? 'active' : ''}}" data-subcategory="" bindtap="changeSubcategory">全部</view>
+      <block wx:if="{{cloudCategory === 'career'}}">
+        <view class="ind-item {{cloudSubcategory === '互联网' ? 'active' : ''}}" data-subcategory="互联网" bindtap="changeSubcategory">互联网</view>
+        <view class="ind-item {{cloudSubcategory === '财会' ? 'active' : ''}}" data-subcategory="财会" bindtap="changeSubcategory">财会</view>
+        <view class="ind-item {{cloudSubcategory === '设计' ? 'active' : ''}}" data-subcategory="设计" bindtap="changeSubcategory">设计</view>
+        <view class="ind-item {{cloudSubcategory === '销售' ? 'active' : ''}}" data-subcategory="销售" bindtap="changeSubcategory">销售</view>
+        <view class="ind-item {{cloudSubcategory === '教育' ? 'active' : ''}}" data-subcategory="教育" bindtap="changeSubcategory">教育</view>
+        <view class="ind-item {{cloudSubcategory === '管理' ? 'active' : ''}}" data-subcategory="管理" bindtap="changeSubcategory">管理</view>
+      </block>
+      <block wx:if="{{cloudCategory === 'learning'}}">
+        <view class="ind-item {{cloudSubcategory === '考研' ? 'active' : ''}}" data-subcategory="考研" bindtap="changeSubcategory">考研</view>
+        <view class="ind-item {{cloudSubcategory === '中高考' ? 'active' : ''}}" data-subcategory="中高考" bindtap="changeSubcategory">中高考</view>
+        <view class="ind-item {{cloudSubcategory === '科研' ? 'active' : ''}}" data-subcategory="科研" bindtap="changeSubcategory">科研</view>
+        <view class="ind-item {{cloudSubcategory === '编程' ? 'active' : ''}}" data-subcategory="编程" bindtap="changeSubcategory">编程</view>
+        <view class="ind-item {{cloudSubcategory === '语言' ? 'active' : ''}}" data-subcategory="语言" bindtap="changeSubcategory">语言</view>
+      </block>
+      <block wx:if="{{cloudCategory === 'fitness'}}">
+        <view class="ind-item {{cloudSubcategory === '跑步' ? 'active' : ''}}" data-subcategory="跑步" bindtap="changeSubcategory">跑步</view>
+        <view class="ind-item {{cloudSubcategory === '增肌' ? 'active' : ''}}" data-subcategory="增肌" bindtap="changeSubcategory">增肌</view>
+        <view class="ind-item {{cloudSubcategory === '塑形' ? 'active' : ''}}" data-subcategory="塑形" bindtap="changeSubcategory">塑形</view>
+        <view class="ind-item {{cloudSubcategory === '养生' ? 'active' : ''}}" data-subcategory="养生" bindtap="changeSubcategory">养生</view>
+        <view class="ind-item {{cloudSubcategory === '竞技' ? 'active' : ''}}" data-subcategory="竞技" bindtap="changeSubcategory">竞技</view>
+      </block>
+    </view>
+
+    <!-- 搜索框 -->
+    <view class="plaza-search">
+      <input class="search-input" placeholder="搜索道则名称或描述..." bindinput="onSearchInput" bindconfirm="onSearchConfirm" confirm-type="search"/>
+    </view>
+
+    <!-- 模板列表 -->
+    <view class="plaza-list">
+      <view class="plaza-card" wx:for="{{cloudTemplates}}" wx:key="id" data-id="{{item.id}}" bindtap="openCloudTemplate">
+        <view class="plaza-card-left">
+          <view class="plaza-cover">{{item.cover || '道'}}</view>
+        </view>
+        <view class="plaza-card-body">
+          <view class="plaza-name">
+            {{item.name}}
+            <text class="plaza-official" wx:if="{{item.isOfficial}}">官</text>
+          </view>
+          <view class="plaza-desc">{{item.description || '暂无描述'}}</view>
+          <view class="plaza-tags-row" wx:if="{{item.industry || item.subcategory}}">
+            <view class="plaza-tag" wx:if="{{item.industry}}">{{item.industry}}</view>
+            <view class="plaza-tag" wx:if="{{item.subcategory && !item.industry}}">{{item.subcategory}}</view>
+            <view class="plaza-tag plaza-tag-cat">{{item.category === 'career' ? '行业成长' : item.category === 'learning' ? '学习精进' : item.category === 'fitness' ? '运动健康' : '生活修行'}}</view>
+          </view>
+          <view class="plaza-meta">
+            <text class="plaza-stat">🔥 {{item.likeCount || 0}}</text>
+            <text class="plaza-stat">⭐ {{item.favCount || 0}}</text>
+            <text class="plaza-stat">📥 {{item.importCount || 0}}</text>
+            <text class="plaza-stat" wx:if="{{item.creatorName}}">👤 {{item.creatorName}}</text>
+          </view>
+        </view>
+        <view class="plaza-card-right">
+          <text class="plaza-arrow">→</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="plaza-loadmore" wx:if="{{cloudHasMore}}" bindtap="loadMoreCloud">
+      <text>加载更多...</text>
+    </view>
+    <view class="plaza-empty" wx:if="{{cloudTemplates.length === 0 && !cloudLoading}}">
+      <text>暂无模板，去自定义一个吧！</text>
+    </view>
+    <view class="plaza-total" wx:if="{{cloudTotal > 0}}">
+      <text>共 {{cloudTotal}} 条道则</text>
+    </view>
+  </view>
+
+  <!-- 悬浮创建按钮（非空状态） -->
+  <view class="fab-create-btn" wx:if="{{hasCustomTemplates}}" bindtap="openTypeSheet">
+    <text class="fab-create-icon">+</text>
+  </view>
+
+  <!-- 模板类型选择面板 -->
+  <view class="sheet-overlay {{showTypeSheet ? 'show' : ''}}" bindtap="closeTypeSheet">
+    <view class="sheet-panel" catchtap="preventBubble">
+      <view class="sheet-title">选择模板类型</view>
+      <view class="sheet-cards">
+        <view class="sheet-card" data-type="daily" bindtap="goToTemplateBuilder">
+          <view class="sc-icon">☀️</view>
+          <view class="sc-name">日模板</view>
+          <view class="sc-desc">单日24小时分段计划</view>
+        </view>
+        <view class="sheet-card" data-type="weekly" bindtap="goToTemplateBuilder">
+          <view class="sc-icon">📅</view>
+          <view class="sc-name">周模板</view>
+          <view class="sc-desc">整周周期循环计划</view>
+        </view>
+        <view class="sheet-card" data-type="pool" bindtap="goToTemplateBuilder">
+          <view class="sc-icon">🔄</view>
+          <view class="sc-name">合道模板</view>
+          <view class="sc-desc">动态灵活的日常活动池</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 模板操作菜单 -->
+  <view class="sheet-overlay {{showTemplateMenu ? 'show' : ''}}" bindtap="closeTemplateMenu">
+    <view class="sheet-panel menu-panel" catchtap="preventBubble">
+      <view class="sheet-title">操作 — {{menuTemplate.name}}</view>
+      <view class="menu-items">
+        <view class="menu-item" data-id="{{menuTemplate.id}}" catchtap="enableTemplate">
+          <text class="mi-icon">▶</text>
+          <text class="mi-text">启用</text>
+        </view>
+        <view class="menu-item" data-id="{{menuTemplate.id}}" catchtap="editCustomTemplate">
+          <text class="mi-icon">✎</text>
+          <text class="mi-text">编辑</text>
+        </view>
+        <view class="menu-item" catchtap="duplicateCustomTemplate">
+          <text class="mi-icon">📋</text>
+          <text class="mi-text">另存为新模板</text>
+        </view>
+        <view class="menu-item danger" catchtap="deleteCustomTemplate">
+          <text class="mi-icon">✕</text>
+          <text class="mi-text">删除</text>
+        </view>
+      </view>
+      <view class="menu-cancel" bindtap="closeTemplateMenu">取消</view>
+    </view>
+  </view>
+
+</view>

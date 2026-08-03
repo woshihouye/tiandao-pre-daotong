@@ -1,0 +1,72 @@
+<!-- 我的道则 - 自定义维度境界 -->
+<view class="container theme-page {{themeClass}}">
+  <!-- 道则名称 -->
+  <view class="card name-card">
+    <view class="form-label">道则名称</view>
+    <view class="name-input-wrap">
+      <input style="height: 80rpx; line-height: 80rpx; font-size: 32rpx; padding: 0 20rpx; width: 100%; box-sizing: border-box; overflow: visible; border: none; background: transparent;" value="{{daoName}}" bindinput="onNameInput" placeholder="为你的道则取个名字" maxlength="12" />
+    </view>
+  </view>
+
+  <!-- 维度名称 -->
+  <view class="card">
+    <view class="section-title">五维元神（可自定义显示名称）</view>
+    <view class="section-desc">仅修改维度展示名称，积分规则和算法不变</view>
+
+    <view class="dim-row" wx:for="{{['wu','shi','wu_xin','gong','sha']}}" wx:key="*this" wx:for-item="dim">
+      <view class="dim-icon">{{dim === 'wu' ? '武' : dim === 'shi' ? '食' : dim === 'wu_xin' ? '悟' : dim === 'gong' ? '工' : '煞'}}</view>
+      <input class="form-input dim-input" value="{{dimNames[dim]}}" bindinput="onDimInput" data-dim="{{dim}}" placeholder="{{dim === 'wu' ? '炼体' : dim === 'shi' ? '丹食' : dim === 'wu_xin' ? '修心' : dim === 'gong' ? '功业' : '心魔'}}" maxlength="6" />
+    </view>
+  </view>
+
+  <!-- 境界别名 -->
+  <view class="card">
+    <view class="section-title">四大境界（可自定义别名）</view>
+    <view class="section-desc">仅修改境界显示名称，不影响修为阈值</view>
+
+    <view class="realm-row" wx:for="{{['炼精化气','炼气化神','炼神还虚','炼虚合道']}}" wx:key="*this" wx:for-item="name" wx:for-index="idx">
+      <view class="realm-default">{{name}}</view>
+      <view class="realm-arrow">→</view>
+      <input class="form-input realm-input" value="{{realmNames[idx]}}" bindinput="onRealmInput" data-idx="{{idx}}" placeholder="{{name}}" maxlength="6" />
+    </view>
+  </view>
+
+  <!-- 自定义修行项 -->
+  <view class="card">
+    <view class="section-title">自定义修行项</view>
+    <view class="section-desc">为每个维度添加常用修行项，修行时快捷选择</view>
+
+    <!-- 维度切换 -->
+    <view class="checkin-tabs">
+      <view class="checkin-tab {{activeDim === 'wu' ? 'active' : ''}}" bindtap="switchDim" data-dim="wu">武·炼体</view>
+      <view class="checkin-tab {{activeDim === 'shi' ? 'active' : ''}}" bindtap="switchDim" data-dim="shi">食·丹食</view>
+      <view class="checkin-tab {{activeDim === 'wu_xin' ? 'active' : ''}}" bindtap="switchDim" data-dim="wu_xin">悟·修心</view>
+      <view class="checkin-tab {{activeDim === 'gong' ? 'active' : ''}}" bindtap="switchDim" data-dim="gong">工·功业</view>
+      <view class="checkin-tab {{activeDim === 'sha' ? 'active' : ''}}" bindtap="switchDim" data-dim="sha">煞·心魔</view>
+    </view>
+
+    <!-- 已有打卡项列表 -->
+    <view class="checkin-list" wx:if="{{checkinItems[activeDim].length}}">
+      <view class="checkin-chip" wx:for="{{checkinItems[activeDim]}}" wx:key="*this" wx:for-index="idx">
+        {{item}}
+        <text class="chip-remove" bindtap="removeCheckinItem" data-dim="{{activeDim}}" data-idx="{{idx}}">×</text>
+      </view>
+    </view>
+    <view class="checkin-empty" wx:else>暂无自定义修行项</view>
+
+    <!-- 新增输入 -->
+    <view class="checkin-add-row">
+      <input class="form-input checkin-input" value="{{newItemText}}" bindinput="onItemTextInput" placeholder="输入新修行项名称" maxlength="15" confirm-type="done" bindconfirm="addCheckinItem" />
+      <view class="btn btn-small" bindtap="addCheckinItem">添加</view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-bar">
+    <view class="btn btn-primary save-btn" bindtap="saveDaoRules" wx:if="{{hasChanges}}">
+      {{isSaving ? '保存中...' : '保存道则'}}
+    </view>
+    <view class="btn btn-outline share-btn" bindtap="onShareDao">分享道则</view>
+    <view class="btn btn-text reset-btn" bindtap="resetAll">重置为默认</view>
+  </view>
+</view>

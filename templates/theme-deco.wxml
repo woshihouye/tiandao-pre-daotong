@@ -1,0 +1,53 @@
+<!-- 三界主题装饰层 WXML 模板
+     用法：在页面 WXML 的 theme-page 容器中 <import src="/templates/theme-deco.wxml"/> 然后 <template is="theme-deco" data="{{themeClass}}"/> -->
+
+<template name="theme-deco">
+  <!-- ═══ 仙界装饰：金箔粒子 / 云雾 / 金日 / 远山 ═══ -->
+  <block wx:if="{{themeClass === 'theme-xianjie'}}">
+    <view class="theme-deco foil foil-1"></view>
+    <view class="theme-deco foil foil-2"></view>
+    <view class="theme-deco foil foil-3"></view>
+    <view class="theme-deco foil foil-4"></view>
+    <view class="theme-deco foil foil-5"></view>
+    <view class="theme-deco foil foil-6"></view>
+    <view class="theme-deco foil foil-7"></view>
+    <view class="theme-deco foil foil-8"></view>
+    <view class="theme-deco cloud cloud-1"></view>
+    <view class="theme-deco cloud cloud-2"></view>
+    <view class="theme-deco cloud cloud-3"></view>
+    <view class="theme-deco golden-sun"></view>
+    <view class="theme-deco mountains"></view>
+  </block>
+
+  <!-- ═══ 红尘装饰：灵光粒子 / 暖霞 / 灯影 ═══ -->
+  <block wx:if="{{themeClass === 'theme-hongchen'}}">
+    <view class="theme-deco spark spark-1"></view>
+    <view class="theme-deco spark spark-2"></view>
+    <view class="theme-deco spark spark-3"></view>
+    <view class="theme-deco spark spark-4"></view>
+    <view class="theme-deco spark spark-5"></view>
+    <view class="theme-deco spark spark-6"></view>
+    <view class="theme-deco spark spark-7"></view>
+    <view class="theme-deco spark spark-8"></view>
+    <view class="theme-deco warm-glow"></view>
+    <view class="theme-deco lantern-glow"></view>
+  </block>
+
+  <!-- ═══ 地狱装饰：灰烬 / 熔岩 / 龟裂 / 鬼影 / 血月 ═══ -->
+  <block wx:if="{{themeClass === 'theme-diyu'}}">
+    <view class="theme-deco ash ash-1"></view>
+    <view class="theme-deco ash ash-2"></view>
+    <view class="theme-deco ash ash-3"></view>
+    <view class="theme-deco ash ash-4"></view>
+    <view class="theme-deco ash ash-5"></view>
+    <view class="theme-deco ash ash-6"></view>
+    <view class="theme-deco ash ash-7"></view>
+    <view class="theme-deco ash ash-8"></view>
+    <view class="theme-deco ash ash-9"></view>
+    <view class="theme-deco ash ash-10"></view>
+    <view class="theme-deco lava-glow"></view>
+    <view class="theme-deco cracks"></view>
+    <view class="theme-deco ghost"></view>
+    <view class="theme-deco blood-moon"></view>
+  </block>
+</template>

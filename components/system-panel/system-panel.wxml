@@ -1,0 +1,52 @@
+<!-- system-panel - 系统通知面板组件 -->
+<view class="sys-panel sys-panel-{{level}} {{_animating ? 'sys-enter' : ''}}">
+  <!-- 外发光层 -->
+  <view class="sys-glow sys-glow-{{level}}"></view>
+
+  <!-- 扫描线背景纹理 -->
+  <view class="sys-scanlines"></view>
+
+  <!-- 点阵纹理 -->
+  <view class="sys-dotmatrix"></view>
+
+  <!-- 主内容 -->
+  <view class="sys-content">
+    <!-- 标题栏 -->
+    <view class="sys-header">
+      <!-- 等级图标 -->
+      <view wx:if="{{showIcon}}" class="sys-icon sys-icon-{{level}}">
+        <text class="sys-icon-text">{{_iconChar}}</text>
+      </view>
+
+      <!-- 系统前缀 + 标题 -->
+      <view class="sys-title-wrap">
+        <text class="sys-title-prefix">『{{_levelTitle}}』</text>
+        <text wx:if="{{title}}" class="sys-title-main">{{title}}</text>
+      </view>
+
+      <!-- 状态指示灯 -->
+      <view class="sys-status-dots">
+        <view class="sys-dot sys-dot-active"></view>
+        <view class="sys-dot"></view>
+        <view class="sys-dot"></view>
+      </view>
+    </view>
+
+    <!-- 分隔线 -->
+    <view class="sys-divider">
+      <view class="sys-divider-line"></view>
+      <view class="sys-divider-diamond"></view>
+      <view class="sys-divider-line"></view>
+    </view>
+
+    <!-- 消息正文 -->
+    <view class="sys-body">
+      <text class="sys-message">{{message}}</text>
+    </view>
+
+    <!-- 底部角标 -->
+    <view class="sys-footer">
+      <text class="sys-footer-text">-- SYSTEM --</text>
+    </view>
+  </view>
+</view>

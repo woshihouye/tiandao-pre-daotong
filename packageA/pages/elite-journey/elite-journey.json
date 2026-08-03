@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "修炼之路",
+  "navigationBarBackgroundColor": "#0a0a10",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "backgroundColor": "#0a0a10",
+  "backgroundColorTop": "#0a0a10",
+  "backgroundColorBottom": "#0a0a10",
+  "usingComponents": {}
+}

@@ -1,0 +1,225 @@
+<!-- 天道修行 - 修为详情页 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+
+  <!-- ========== 模块一：当前修为可视化 ========== -->
+  <view class="card realm-hero">
+    <view class="realm-hero-head">
+      <view class="realm-hero-icon">{{realmName.slice(0,1)}}</view>
+      <view class="realm-hero-info">
+        <view class="realm-hero-title">{{realmName}} 第{{stageNumber}}阶</view>
+        <view class="realm-hero-sub">距下一阶还需 <text class="realm-hero-remain">{{remainingToNext}}</text> 修为</view>
+      </view>
+    </view>
+
+    <!-- 进度条 -->
+    <view class="progress-bar realm-progress">
+      <view class="progress-fill realm-progress-fill" style="width: {{realmProgress}}%;"></view>
+    </view>
+    <view class="realm-progress-label">{{realmProgress}}%</view>
+
+    <!-- 数据卡片 2x2 -->
+    <view class="realm-stats-grid">
+      <view class="realm-stat-card">
+        <view class="stat-value">{{totalCultivation}}</view>
+        <view class="stat-label">累计总修为</view>
+      </view>
+      <view class="realm-stat-card">
+        <view class="stat-value">{{weekCultivation}}</view>
+        <view class="stat-label">本周获得修为</view>
+      </view>
+      <view class="realm-stat-card">
+        <view class="stat-value">{{streakDays}}</view>
+        <view class="stat-label">连续修炼天数</view>
+      </view>
+      <view class="realm-stat-card">
+        <view class="stat-value accent">{{bonusRate}}</view>
+        <view class="stat-label">{{bonusRateText}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加成明细 -->
+  <view class="card bonus-card">
+    <view class="card-title-row">
+      <view class="card-title">加成明细</view>
+      <view class="card-title-hint">点击查看溯源</view>
+    </view>
+    <view class="bonus-grid">
+      <view class="bonus-col">
+        <view class="bonus-col-title bonus-positive">正向加成</view>
+        <block wx:if="{{bonusItems.length > 0}}">
+          <view class="bonus-row bonus-row-tappable" wx:for="{{bonusItems}}" wx:key="index" bindtap="onBonusItemTap" data-type="bonus" data-index="{{index}}">
+            <view class="bonus-label">
+              <text>{{item.label}}</text>
+              <text class="bonus-arrow">→</text>
+            </view>
+            <text class="bonus-value positive">{{item.rateText}}</text>
+          </view>
+        </block>
+        <view class="bonus-empty" wx:else>暂无加成</view>
+      </view>
+      <view class="bonus-col">
+        <view class="bonus-col-title bonus-negative">负向加成</view>
+        <block wx:if="{{debuffItems.length > 0}}">
+          <view class="bonus-row bonus-row-tappable" wx:for="{{debuffItems}}" wx:key="index" bindtap="onBonusItemTap" data-type="debuff" data-index="{{index}}">
+            <view class="bonus-label">
+              <text>{{item.label}}</text>
+              <text class="bonus-arrow">→</text>
+            </view>
+            <text class="bonus-value negative">{{item.rateText}}</text>
+          </view>
+        </block>
+        <view class="bonus-empty" wx:else>暂无减益</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加成溯源弹窗 -->
+  <view class="bonus-detail-mask" wx:if="{{bonusDetailVisible}}" bindtap="closeBonusDetail" catchtouchmove="noop"></view>
+  <view class="bonus-detail-popup {{bonusDetailVisible ? 'popup-show' : ''}}">
+    <view class="popup-header">
+      <view class="popup-header-left">
+        <view class="popup-tag" style="background:{{bonusDetailItem.type === 'bonus' ? 'var(--success)' : 'var(--danger-text)'}}">
+          {{bonusDetailItem.type === 'bonus' ? '正向加成' : '负向减益'}}
+        </view>
+        <text class="popup-rate" style="color:{{bonusDetailItem.type === 'bonus' ? 'var(--success)' : 'var(--danger-text)'}}">{{bonusDetailItem.rateText}}</text>
+      </view>
+      <view class="popup-close" bindtap="closeBonusDetail">✕</view>
+    </view>
+    <view class="popup-body">
+      <view class="popup-source-label">{{bonusDetailItem.label}}</view>
+      <view class="popup-progress-row" wx:if="{{bonusDetailItem.progress !== null}}">
+        <text class="popup-progress-label">完成度</text>
+        <text class="popup-progress-value">{{bonusDetailItem.progress}}%</text>
+      </view>
+      <view class="popup-camp" wx:if="{{bonusDetailItem.campLabel}}">
+        <text class="popup-camp-label">归属</text>
+        <text class="popup-camp-value">{{bonusDetailItem.campLabel}}</text>
+      </view>
+      <view class="popup-desc-title">溯源说明</view>
+      <view class="popup-desc">{{bonusDetailItem.desc}}</view>
+    </view>
+  </view>
+
+  <!-- ========== 模块四：根骨体系 ========== -->
+  <view class="card metrics-card" wx:if="{{hasTrainingData}}">
+    <view class="card-title-row">
+      <view class="card-title">根骨</view>
+      <view class="card-title-link" bindtap="navigateToCustomMetrics">全部项目 →</view>
+    </view>
+
+    <!-- 综合根骨等级 -->
+    <view class="composite-bone-badge" wx:if="{{compositeBone && compositeBone.name !== '凡俗之骨'}}">
+      <view class="composite-bone-icon">🦴</view>
+      <view class="composite-bone-info">
+        <view class="composite-bone-name">{{compositeBone.name}}</view>
+        <view class="composite-bone-bonus">全局修为加成 +{{compositeBone.bonusPercent}}%</view>
+      </view>
+      <view class="composite-bone-score">{{compositeBone.score}}分</view>
+    </view>
+
+    <!-- 根骨等级概览（展示前2个核心根骨） -->
+    <view class="bone-overview-grid">
+      <view class="bone-cell" wx:for="{{topBoneOverviews}}" wx:key="id" style="border-left: 3rpx solid {{item.color}}">
+        <view class="bone-cell-head">
+          <text class="bone-cell-icon">{{item.icon}}</text>
+          <text class="bone-cell-name">{{item.name}}</text>
+          <view class="bone-cell-badge" style="background:{{item.levelColor}};color:#fff">{{item.levelName}}</view>
+        </view>
+        <view class="bone-progress-bar" wx:if="{{item.progress < 100}}">
+          <view class="bone-progress-fill" style="width:{{item.progress}}%;background:{{item.color}}"></view>
+        </view>
+        <view class="bone-progress-label" wx:if="{{item.nextLevelName}}">距{{item.nextLevelName}}: {{item.progress}}%</view>
+      </view>
+    </view>
+
+    <!-- 称号入口 -->
+    <view class="bone-title-entry" bindtap="onBoneTitleTap">
+      <text class="bone-title-icon">🏆</text>
+      <text class="bone-title-label">根骨称号</text>
+      <text class="bone-title-count" wx:if="{{boneTitles.length > 0}}">{{unlockedBoneTitleCount}}/{{boneTitles.length}}</text>
+      <text class="bone-title-arrow">→</text>
+    </view>
+
+    <view class="bone-foot-note">基于历史记录数据自动推演 · 根骨称号解锁后可在个人主页佩戴</view>
+  </view>
+
+  <view class="card metrics-card" wx:else>
+    <view class="card-title-row">
+      <view class="card-title">根骨</view>
+      <view class="card-title-link" bindtap="navigateToCustomMetrics">开始修炼 →</view>
+    </view>
+    <view class="metrics-empty">
+      <view class="metrics-empty-icon">🦴</view>
+      <view class="metrics-empty-title">根骨尚待觉醒</view>
+      <view class="metrics-empty-desc">选择修行项目（卧推/跑步/背单词等），录入现实训练数据，根骨将随修行逐步显现</view>
+      <view class="metrics-empty-btn" bindtap="navigateToCustomMetrics">🔮 开启修炼</view>
+    </view>
+  </view>
+
+  <!-- 近7天修为趋势迷你柱状图 -->
+  <view class="card chart-card">
+    <view class="card-title">近七日修行走势</view>
+    <view class="mini-chart" wx:if="{{weekBars.length}}">
+      <view class="chart-bar-wrap" wx:for="{{weekBars}}" wx:key="date">
+        <text class="chart-bar-score">{{item.score > 0 ? '+' : ''}}{{item.score}}</text>
+        <view class="chart-bar" style="height: {{item.height}}rpx; background: {{item.color}};"></view>
+        <text class="chart-bar-label">{{item.date}}</text>
+      </view>
+    </view>
+    <view class="empty-tip" wx:else>暂无走势数据</view>
+  </view>
+
+  <!-- ========== 模块二：完整修行序列图谱 ========== -->
+  <view class="card timeline-card">
+    <view class="card-title">修行序列图谱</view>
+    <view class="timeline-desc">{{timelineExpanded ? '全部36个修行节点' : '当前境界 + 未来3阶'}}</view>
+
+    <view class="timeline-list">
+      <block wx:for="{{realmTimeline}}" wx:key="index">
+        <view class="timeline-node timeline-{{item.status}} {{timelineExpanded && index === realmTimeline.length - 1 ? 'timeline-last' : ''}}" data-index="{{index}}" bindtap="onTapStage">
+          <view class="timeline-line"></view>
+          <view class="timeline-dot" style="background: {{item.status === 'locked' ? '#d1d5db' : item.realmColor}};">
+            <text class="timeline-dot-num" wx:if="{{item.status === 'current'}}">{{item.stage}}</text>
+            <text class="timeline-dot-icon" wx:elif="{{item.status === 'passed'}}">✓</text>
+          </view>
+          <view class="timeline-info">
+            <view class="timeline-info-top">
+              <text class="timeline-name {{item.status === 'locked' ? 'muted' : ''}}">{{item.realmName}} {{item.status === 'current' ? '· 当前' : ''}}</text>
+              <text class="timeline-count" wx:if="{{item.userCount > 0}}">{{item.userCount}}人在此境</text>
+            </view>
+            <view class="timeline-stage-label">第{{item.stage}}阶{{item.status === 'locked' ? ' · 未解锁' : ''}}{{item.status === 'passed' ? ' · 已突破' : ''}}</view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="timeline-expand" bindtap="expandTimeline">
+      <text class="timeline-expand-text">{{timelineExpanded ? '收起「↑」' : '... 展开全部境界序列 「↓」'}}</text>
+    </view>
+  </view>
+
+  <!-- 底部安全区 -->
+  <view style="height: 40rpx;"></view>
+
+  <!-- 突破仪式弹窗 -->
+  <view class="breakthrough-mask" wx:if="{{showBreakthrough}}" catchtap="postponeBreakthrough">
+    <view class="breakthrough-panel" catchtap="">
+      <view class="breakthrough-glow"></view>
+      <view class="breakthrough-title">⚡ 天道感应 ⚡</view>
+      <view class="breakthrough-body">
+        <view class="breakthrough-realm">即将突破至</view>
+        <view class="breakthrough-name">{{breakthroughData.nextRealm}}</view>
+        <view class="breakthrough-poem" wx:if="{{breakthroughData.poem}}">{{breakthroughData.poem}}</view>
+        <view class="breakthrough-desc">{{breakthroughData.description || '修为已至临界，天地灵气涌动，正是突破之机！'}}</view>
+      </view>
+      <view class="breakthrough-actions">
+        <view class="breakthrough-btn ghost" bindtap="postponeBreakthrough">暂缓 · 继续积累</view>
+        <view class="breakthrough-btn primary" bindtap="confirmBreakthrough">引天劫 · 强行突破</view>
+      </view>
+    </view>
+  </view>
+
+</view>

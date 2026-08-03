@@ -1,0 +1,198 @@
+<!-- 人生模板详情 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}} {{isElite ? 'elite-page' : ''}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+  <view class="hero card-premium card" wx:if="{{template}}">
+    <view class="hero-top">
+      <view class="cover">{{template.cover}}</view>
+      <view class="hero-copy">
+        <view class="kicker">人生模板</view>
+        <view class="title">{{template.name}}</view>
+        <view class="goal">{{template.goal}}</view>
+      </view>
+    </view>
+    <view class="desc">{{template.description}}</view>
+    <view class="meta-row">
+      <view class="meta">境界：{{realm.name}} · 第{{realm.stage}}阶</view>
+      <view class="meta">今日 {{todayScore}}/{{dailyCap}}</view>
+    </view>
+    <view class="buff-tip" wx:if="{{buffTip}}">{{buffTip}}</view>
+  </view>
+
+  <!-- ===== 精英模板专属视图 ===== -->
+  <block wx:if="{{isElite && eliteTemplateData}}">
+    <!-- 精英简介 -->
+    <view class="section card">
+      <view class="section-title">{{eliteTemplateData.eliteName}}</view>
+      <view class="section-sub">{{eliteTemplateData.eliteIntro}}</view>
+      <view class="elite-bio">{{eliteTemplateData.eliteBio}}</view>
+    </view>
+
+    <!-- 修炼阶段 -->
+    <view class="section card">
+      <view class="section-title">修炼阶段</view>
+      <view class="section-sub">精英走过的路，就是你将要走的路</view>
+      <view class="elite-section">
+        <view class="elite-phase-card" wx:for="{{eliteTemplateData.phases}}" wx:key="id">
+          <view class="elite-phase-badge">第{{item.order}}阶</view>
+          <view class="elite-phase-body">
+            <view class="elite-phase-name">{{item.name}}</view>
+            <view class="elite-phase-desc">{{item.description}}</view>
+            <view class="elite-phase-milestones" wx:if="{{item.milestones && item.milestones.length}}">
+              <view class="elite-milestone" wx:for="{{item.milestones}}" wx:for-item="ms" wx:key="id">
+                <text class="elite-milestone-icon">{{ms.icon}}</text>
+                <text class="elite-milestone-name">{{ms.name}}</text>
+                <text class="elite-milestone-reward">+{{ms.reward}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 核心理念 -->
+    <view class="section card" wx:if="{{eliteTemplateData.principles && eliteTemplateData.principles.length}}">
+      <view class="section-title">核心理念</view>
+      <view class="elite-principles">
+        <view class="elite-principle" wx:for="{{eliteTemplateData.principles}}" wx:key="*this">
+          <view class="elite-principle-num">{{index + 1}}</view>
+          <view class="elite-principle-text">{{item}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 每日作息 -->
+    <view class="section card" wx:if="{{eliteTemplateData.dailyRhythm}}">
+      <view class="section-title">每日作息</view>
+      <view class="section-sub">精英的节奏：{{eliteTemplateData.dailyRhythm.wakeUp}} 起床 · {{eliteTemplateData.dailyRhythm.sleep}} 入定</view>
+      <view class="elite-rhythm">
+        <view class="elite-rhythm-row" wx:for="{{eliteTemplateData.dailyRhythm.slots}}" wx:key="time">
+          <view class="elite-rhythm-time">{{item.time}}</view>
+          <view class="elite-rhythm-task">{{item.task}}</view>
+          <view class="elite-rhythm-cat">{{item.category}}</view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view class="actions card">
+    <button class="btn btn-primary" bindtap="activateTemplate" wx:if="{{!isActive}}">启用此模板</button>
+    <view class="active-tag" wx:else>当前修习中</view>
+    <view class="action-row">
+      <view class="ghost-btn" bindtap="shareTemplate">分享</view>
+      <view class="ghost-btn" wx:if="{{canEdit}}" bindtap="editTemplate">编辑</view>
+      <view class="ghost-btn" wx:if="{{template.id === 'thin_muscle'}}" bindtap="openAdvanced">进阶炼体</view>
+      <view class="ghost-btn" wx:if="{{template.extras.weeklyPlanReward}}" bindtap="claimWeekPlan">周计划奖励</view>
+    </view>
+  </view>
+
+  <view class="section card">
+    <view class="section-title">每日功课</view>
+    <view class="section-sub">剩余可获 {{remainScore}} 修为 · 点击完成即写入总修为</view>
+    <view class="task-list">
+      <view
+        class="task-item {{item.done ? 'done' : ''}}"
+        wx:for="{{taskStates}}"
+        wx:key="id"
+        bindtap="completeTask"
+        data-id="{{item.id}}"
+      >
+        <view class="task-main">
+          <view class="task-name">{{item.name}}</view>
+          <view class="task-desc">{{item.desc}}</view>
+        </view>
+        <view class="task-reward">+{{item.reward}}</view>
+        <view class="task-state">{{item.done ? '已成' : '修行'}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section card" wx:if="{{template.realmNames.length}}">
+    <view class="section-title">专属境界</view>
+    <view class="realm-list">
+      <view class="realm-chip" wx:for="{{template.realmNames}}" wx:key="*this">{{item}}</view>
+    </view>
+  </view>
+
+  <!-- >>> v3: 成长路径展示（行业模板专属） -->
+  <view class="section card" wx:if="{{template.realmDescs && template.realmDescs.length}}">
+    <view class="section-title">📈 成长路径</view>
+    <view class="section-sub">从入门到独当一面，每一步都是修行</view>
+    <view class="growth-path-list">
+      <view class="growth-step" wx:for="{{template.realmNames}}" wx:for-index="idx" wx:key="*this">
+        <view class="growth-step-dot {{idx < realm.stage ? 'done' : ''}}">{{idx + 1}}</view>
+        <view class="growth-step-line" wx:if="{{idx < template.realmNames.length - 1}}"></view>
+        <view class="growth-step-content">
+          <view class="growth-step-title">{{item}}</view>
+          <view class="growth-step-desc" wx:if="{{template.realmDescs[idx]}}">{{template.realmDescs[idx]}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- >>> v2: 云端互动 -->
+  <view class="section card" wx:if="{{fromPlaza}}">
+    <view class="section-title">道则互动</view>
+    <view class="interact-row">
+      <view class="interact-btn {{isLiked ? 'active' : ''}}" bindtap="onToggleLike">
+        <text>🔥 {{likeCount}}</text>
+        <text class="interact-label">{{isLiked ? '已赞' : '点赞'}}</text>
+      </view>
+      <view class="interact-btn {{isFavorited ? 'active' : ''}}" bindtap="onToggleFav">
+        <text>⭐ {{favCount}}</text>
+        <text class="interact-label">{{isFavorited ? '已收藏' : '收藏'}}</text>
+      </view>
+      <view class="interact-btn" bindtap="onOpenCommentInput">
+        <text>💬 {{commentCount}}</text>
+        <text class="interact-label">评论</text>
+      </view>
+      <view class="interact-btn">
+        <text>📥 {{importCount}}</text>
+        <text class="interact-label">导入</text>
+      </view>
+    </view>
+    <button class="btn btn-primary" style="margin-top:24rpx" bindtap="importToMyTemplates">📥 导入为我的辅修小道</button>
+  </view>
+
+  <!-- >>> 评论输入框 -->
+  <view class="section card" wx:if="{{showCommentInput}}">
+    <view class="comment-input-row">
+      <input class="comment-input" placeholder="留下你的修炼感悟..." value="{{inputComment}}" bindinput="onInputComment" maxlength="500"/>
+      <view class="comment-submit" bindtap="onSubmitComment">发送</view>
+    </view>
+  </view>
+
+  <!-- >>> 评论列表 -->
+  <view class="section card" wx:if="{{comments.length > 0 || fromPlaza}}">
+    <view class="section-title">道友论道 ({{commentCount}})</view>
+    <view class="comment-list">
+      <view class="comment-item" wx:for="{{comments}}" wx:key="_id">
+        <view class="comment-header">
+          <text class="comment-author">{{item.nickName || '无名修士'}}</text>
+          <text class="comment-time">{{item.createdAt}}</text>
+        </view>
+        <view class="comment-body">{{item.content}}</view>
+        <view class="comment-actions" wx:if="{{item.userId === currentUserId}}">
+          <text class="comment-delete" data-id="{{item._id}}" catchtap="onDeleteComment">删除</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 精英模板：底部操作栏 ===== -->
+  <view class="elite-sticky-bar" wx:if="{{isElite}}">
+    <block wx:if="{{isFollowingElite}}">
+      <view class="elite-progress-wrap">
+        <view class="elite-progress-bar">
+          <view class="elite-progress-fill" style="width: {{eliteProgress}}%"></view>
+        </view>
+        <view class="elite-progress-text">修炼进度 {{eliteProgress}}%</view>
+      </view>
+      <button class="btn btn-primary elite-action-btn" bindtap="goToEliteJourney">进入修炼之路</button>
+    </block>
+    <block wx:else>
+      <view class="elite-cta-text">追随此道，以精英为镜</view>
+      <button class="btn btn-primary elite-action-btn" bindtap="adoptEliteTemplate">追随此道 · 开始修炼</button>
+    </block>
+  </view>
+</view>

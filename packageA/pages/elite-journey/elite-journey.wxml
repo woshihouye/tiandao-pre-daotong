@@ -1,0 +1,247 @@
+<!-- ============================================================ -->
+<!-- 修炼之路 - 精英追随系统核心页面 -->
+<!-- 玄幻小说「系统」叙事体验 -->
+<!-- ============================================================ -->
+
+<view class="page-wrapper">
+
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">『叮！系统启动中……』</text>
+  </view>
+
+  <!-- 无绑定模板状态 -->
+  <view class="empty-container" wx:if="{{!loading && !hasJourney}}">
+    <view class="empty-glow"></view>
+    <text class="empty-icon">🌀</text>
+    <text class="empty-title">『叮！天道系统待命中』</text>
+    <text class="empty-desc">请先选择一位精英作为你的引路人，开启修炼之路。</text>
+    <view class="empty-btn" bindtap="goToTemplates">
+      <text>选择精英模板</text>
+    </view>
+  </view>
+
+  <!-- ===== 主内容区域 ===== -->
+  <block wx:if="{{!loading && hasJourney}}">
+
+    <!-- ═══════════ 精英身份卡 ═══════════ -->
+    <view class="elite-card">
+      <view class="elite-card-bg"></view>
+      <view class="elite-card-content">
+        <view class="elite-avatar-wrap">
+          <view class="elite-avatar-ring"></view>
+          <text class="elite-avatar">{{template.eliteAvatar || '🎯'}}</text>
+        </view>
+        <view class="elite-info">
+          <text class="elite-name">{{template.eliteName || '未知精英'}}</text>
+          <text class="elite-intro">{{template.eliteIntro || ''}}</text>
+          <view class="elite-quote">
+            <text class="quote-mark">"</text>
+            <text class="quote-text">{{template.eliteBio || ''}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="elite-card-footer">
+        <view class="elite-stat">
+          <text class="stat-value">{{streakDays}}</text>
+          <text class="stat-label">连续修炼</text>
+        </view>
+        <view class="elite-stat">
+          <text class="stat-value">{{totalScore}}</text>
+          <text class="stat-label">累计修为</text>
+        </view>
+        <view class="elite-stat">
+          <text class="stat-value">{{matchRate}}%</text>
+          <text class="stat-label">今日匹配</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ═══════════ 系统消息卡 ═══════════ -->
+    <view class="system-card">
+      <view class="system-card-glow"></view>
+      <view class="system-card-header">
+        <text class="system-icon">{{systemLevel.icon}}</text>
+        <text class="system-title" style="color: {{systemLevel.color}};">{{systemMessage.title}}</text>
+      </view>
+      <text class="system-text">{{systemMessage.message}}</text>
+    </view>
+
+    <!-- ═══════════ 总进度 ═══════════ -->
+    <view class="progress-card">
+      <view class="progress-header">
+        <text class="progress-title">模板修炼进度</text>
+        <text class="progress-percent">{{progress}}%</text>
+      </view>
+      <view class="progress-bar-wrap">
+        <view class="progress-bar-bg">
+          <view class="progress-bar-fill" style="width: {{progress}}%;"></view>
+          <view class="progress-bar-glow" style="left: {{progress}}%;"></view>
+        </view>
+      </view>
+      <view class="progress-stats">
+        <view class="progress-stat-item">
+          <text class="pstat-label">已完成阶段</text>
+          <text class="pstat-value">{{completedPhaseCount}} / {{phases.length}}</text>
+        </view>
+        <view class="progress-stat-item">
+          <text class="pstat-label">达成里程碑</text>
+          <text class="pstat-value">{{completedMilestones.length}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ═══════════ 阶段路线图（时间线） ═══════════ -->
+    <view class="roadmap-card">
+      <view class="roadmap-header">
+        <text class="roadmap-title">修炼阶段</text>
+      </view>
+      <view class="roadmap-timeline">
+        <block wx:for="{{phases}}" wx:key="id" wx:for-index="idx">
+          <view class="roadmap-node {{item.status}}"
+                bindtap="onTapPhase"
+                data-index="{{idx}}">
+            <!-- 连接线 -->
+            <view class="roadmap-line {{item.status}}" wx:if="{{idx < phases.length - 1}}"></view>
+            <!-- 节点圆点 -->
+            <view class="roadmap-dot-wrap">
+              <view class="roadmap-dot {{item.status}}">
+                <text wx:if="{{item.status === 'completed'}}">✓</text>
+                <text wx:elif="{{item.status === 'current'}}">●</text>
+                <text wx:else>○</text>
+              </view>
+              <view class="roadmap-ring {{item.status}}"></view>
+            </view>
+            <!-- 节点信息 -->
+            <view class="roadmap-info {{item.status}}">
+              <view class="roadmap-phase-label">
+                <text wx:if="{{item.status === 'completed'}}" class="phase-badge completed">已完成</text>
+                <text wx:elif="{{item.status === 'current'}}" class="phase-badge current">修炼中</text>
+                <text wx:else class="phase-badge locked">未解锁</text>
+              </view>
+              <text class="roadmap-phase-name">{{item.name}}</text>
+              <text class="roadmap-phase-desc">{{item.description}}</text>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- ═══════════ 当前阶段详情 ═══════════ -->
+    <view class="phase-detail-card" wx:if="{{currentPhase}}">
+      <view class="phase-detail-header">
+        <text class="phase-detail-icon">⚔️</text>
+        <view class="phase-detail-title-wrap">
+          <text class="phase-detail-title">阶段目标：{{currentPhase.name}}</text>
+          <text class="phase-detail-desc">{{currentPhase.description || ''}}</text>
+        </view>
+      </view>
+
+      <!-- 阶段进度 -->
+      <view class="phase-progress-wrap">
+        <view class="phase-progress-bar">
+          <view class="phase-progress-fill" style="width: {{phaseProgress}}%;"></view>
+        </view>
+        <text class="phase-progress-text">{{phaseProgress}}%</text>
+      </view>
+
+      <!-- 里程碑清单 -->
+      <view class="milestone-list">
+        <view class="milestone-list-title">里程碑清单</view>
+        <block wx:for="{{currentPhaseMilestones}}" wx:key="id">
+          <view class="milestone-item {{item.completed ? 'completed' : ''}}">
+            <view class="milestone-check">
+              <text wx:if="{{item.completed}}" class="check-icon">✓</text>
+              <text wx:else class="check-icon empty">○</text>
+            </view>
+            <view class="milestone-body">
+              <text class="milestone-name">{{item.name}}</text>
+              <text class="milestone-reward">+{{item.reward}} 修为</text>
+            </view>
+            <text class="milestone-icon">{{item.icon}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- ═══════════ 每日作息对照 ═══════════ -->
+    <view class="rhythm-card" wx:if="{{template.dailyRhythm}}">
+      <view class="rhythm-header">
+        <text class="rhythm-title">精英每日作息</text>
+        <view class="rhythm-schedule">
+          <text class="rhythm-wake">🌅 {{template.dailyRhythm.wakeUp || '--'}}</text>
+          <text class="rhythm-arrow">→</text>
+          <text class="rhythm-sleep">🌙 {{template.dailyRhythm.sleep || '--'}}</text>
+        </view>
+      </view>
+      <view class="rhythm-slots">
+        <block wx:for="{{template.dailyRhythm.slots}}" wx:key="time" wx:for-index="idx">
+          <view class="rhythm-slot"
+                bindtap="onTapDailySlot"
+                data-index="{{idx}}"
+                data-category="{{item.category}}"
+                data-task="{{item.task}}">
+            <view class="slot-time">
+              <text>{{item.time}}</text>
+            </view>
+            <view class="slot-line"></view>
+            <view class="slot-task">
+              <text class="slot-task-text">{{item.task}}</text>
+              <text class="slot-task-cat">{{item.category}}</text>
+            </view>
+            <view class="slot-go">
+              <text>→</text>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- ═══════════ 精英信条 ═══════════ -->
+    <view class="principles-card" wx:if="{{template.principles && template.principles.length > 0}}">
+      <view class="principles-header">
+        <text class="principles-title">精英信条</text>
+        <text class="principles-subtitle">"{{template.eliteName}} 的核心理念"</text>
+      </view>
+      <view class="principles-list">
+        <block wx:for="{{template.principles}}" wx:key="*this">
+          <view class="principle-item">
+            <view class="principle-num">{{index + 1}}</view>
+            <text class="principle-text">{{item}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- ═══════════ 底部间距 ═══════════ -->
+    <view class="bottom-spacer"></view>
+
+  </block>
+
+  <!-- ===== 里程碑庆祝弹窗 ===== -->
+  <view class="celebration-overlay" wx:if="{{showCelebration}}" bindtap="closeCelebration">
+    <view class="celebration-popup" catchtap="noop">
+      <view class="celebration-particles">
+        <view class="particle p1"></view>
+        <view class="particle p2"></view>
+        <view class="particle p3"></view>
+        <view class="particle p4"></view>
+        <view class="particle p5"></view>
+        <view class="particle p6"></view>
+        <view class="particle p7"></view>
+        <view class="particle p8"></view>
+      </view>
+      <view class="celebration-glow-ring"></view>
+      <text class="celebration-icon">{{celebrationData.icon || '🎉'}}</text>
+      <text class="celebration-title">里程碑达成！</text>
+      <text class="celebration-name">{{celebrationData.name}}</text>
+      <text class="celebration-reward">修为 +{{celebrationData.reward}}</text>
+      <text class="celebration-text">{{celebrationData.celebrationText}}</text>
+      <view class="celebration-btn" bindtap="closeCelebration">
+        <text>继续修炼</text>
+      </view>
+    </view>
+  </view>
+
+</view>

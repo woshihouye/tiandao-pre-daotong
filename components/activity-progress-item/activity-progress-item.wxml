@@ -1,0 +1,47 @@
+<!-- 单个活动进度项 -->
+<view
+  class="progress-item"
+  style="background: linear-gradient(90deg, {{categoryColor}}15 {{progress}}%, transparent {{progress}}%)"
+  bindtouchstart="onTouchStart"
+  bindtouchmove="onTouchMove"
+  bindtouchend="onTouchEnd"
+  bindtap="onTapItem"
+>
+  <view class="item-left">
+    <text class="item-name">{{activity.name}}</text>
+    <text class="item-unit">{{activity.unit || '次'}}</text>
+  </view>
+  <view class="item-right">
+    <text class="item-percent" style="color: {{progress >= 100 ? categoryColor : '#374151'}}">{{progress}}%</text>
+  </view>
+</view>
+
+<!-- 精确调整 slider 弹层 -->
+<view class="slider-overlay" wx:if="{{sliderVisible}}" bindtap="onCloseSlider">
+  <view class="slider-panel" catchtap>
+    <view class="slider-header">
+      <text class="slider-title">{{activity.name}}</text>
+      <view class="slider-close" bindtap="onCloseSlider">
+        <text>✕</text>
+      </view>
+    </view>
+    <view class="slider-body">
+      <slider
+        value="{{progress}}"
+        min="0"
+        max="100"
+        step="5"
+        block-size="20"
+        activeColor="{{categoryColor}}"
+        backgroundColor="#E5E7EB"
+        bindchange="onSliderChange"
+        show-value
+      />
+      <view class="slider-labels">
+        <text>0%</text>
+        <text>50%</text>
+        <text>100%</text>
+      </view>
+    </view>
+  </view>
+</view>

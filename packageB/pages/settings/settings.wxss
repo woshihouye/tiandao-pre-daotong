@@ -1,0 +1,204 @@
+.setting-card {
+  overflow: hidden;
+  margin-top: var(--space-lg);
+  padding: var(--space-xs) 0;
+}
+
+/* ===== 通用卡片分组 ===== */
+.group-title {
+  font-size: var(--font-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.group-desc {
+  margin-top: var(--space-xs);
+  margin-bottom: 6rpx;
+  font-size: var(--font-md);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ===== 身体数据表单 ===== */
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.field-row:last-of-type {
+  border-bottom: none;
+}
+
+.field-label {
+  font-size: var(--font-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  flex-shrink: 0;
+  min-width: 100rpx;
+}
+
+.field-control {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+}
+
+.field-input {
+  flex: 1;
+  text-align: right;
+  font-size: var(--font-lg);
+  color: var(--text-primary);
+  padding: 6rpx 0;
+}
+
+.field-unit {
+  font-size: var(--font-md);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.field-picker {
+  font-size: var(--font-lg);
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.action-bar {
+  margin-top: 28rpx;
+  padding-top: var(--space-xs);
+}
+
+.save-btn {
+  width: 100%;
+  border-radius: var(--radius-md);
+  font-size: var(--font-xl);
+  font-weight: var(--weight-semibold);
+  padding: 22rpx;
+}
+
+/* ===== 体系/主题 选择行 ===== */
+.system-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.system-row:last-child {
+  border-bottom: none;
+}
+
+.system-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.system-title {
+  font-size: var(--font-lg);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.system-desc {
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  margin-top: 4rpx;
+}
+
+.system-radio {
+  width: var(--font-3xl);
+  height: var(--font-3xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2rpx solid var(--border-strong);
+  background: var(--card-bg);
+  flex-shrink: 0;
+}
+
+.system-radio-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.system-radio.active {
+  border-color: var(--primary);
+}
+
+.system-radio.active .system-radio-dot {
+  background: var(--primary);
+}
+
+/* ===== 更新日志条目 ===== */
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-lg);
+  padding: 28rpx var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  border: 1rpx solid var(--border-color);
+  font-size: var(--font-xl);
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+}
+
+.settings-item:active {
+  opacity: 0.7;
+}
+
+.arrow {
+  font-size: var(--font-xl);
+  color: var(--text-secondary);
+}
+
+/* ===== 新功能设置分区 ===== */
+.settings-section {
+  margin-top: var(--space-lg);
+  overflow: hidden;
+}
+
+.section-desc {
+  margin-top: var(--space-xs);
+  margin-bottom: 6rpx;
+  font-size: var(--font-md);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.hedao-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.hedao-row:last-child {
+  border-bottom: none;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hedao-locked-tag {
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}

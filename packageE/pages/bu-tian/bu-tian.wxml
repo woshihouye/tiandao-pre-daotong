@@ -1,0 +1,135 @@
+<!-- 补天计划 · 首期官方活动宣传页 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+
+  <template is="theme-deco" data="{{themeClass}}"/>
+
+  <!-- 顶部流光标题区 -->
+  <view class="hero-section">
+    <view class="hero-aura"></view>
+    <view class="hero-glow"></view>
+    <view class="hero-stone">🪨</view>
+    <view class="hero-title-wrap">
+      <text class="hero-title">补天计划</text>
+      <text class="hero-subtitle">天之道，损有余而补不足</text>
+    </view>
+    <view class="hero-seal">首期</view>
+    <view class="hero-particles">
+      <view class="particle p1"></view>
+      <view class="particle p2"></view>
+      <view class="particle p3"></view>
+      <view class="particle p4"></view>
+      <view class="particle p5"></view>
+    </view>
+  </view>
+
+  <!-- 活动定位 -->
+  <view class="section-card card">
+    <view class="section-header">
+      <view class="section-icon">📜</view>
+      <text class="section-title">活动定位</text>
+    </view>
+    <view class="section-body">
+      <text class="section-text">以完善小程序、招募团队成员为核心的首期主题活动。诸位修士齐聚天道，共同打磨修行法器，让天道修行小程序愈发圆满。</text>
+    </view>
+    <view class="tag-row">
+      <view class="tag tag-purple">完善小程序</view>
+      <view class="tag tag-gold">招募团队</view>
+      <view class="tag tag-green">共建社区</view>
+    </view>
+  </view>
+
+  <!-- 专属奖励 -->
+  <view class="reward-card card">
+    <view class="reward-glow-bg"></view>
+    <view class="section-header">
+      <view class="section-icon">💎</view>
+      <text class="section-title">专属奖励</text>
+    </view>
+    <view class="reward-showcase">
+      <view class="reward-stone-wrap">
+        <view class="reward-stone-glow"></view>
+        <view class="reward-stone-icon">🪨</view>
+      </view>
+      <view class="reward-info">
+        <text class="reward-name">五色补天石</text>
+        <text class="reward-desc">活动限定特殊道具，仅本次活动可获取</text>
+        <text class="reward-note">传说女娲炼五色石以补苍天，此石蕴含五行之力，得之可证道途</text>
+      </view>
+    </view>
+    <view class="reward-badge">
+      <text class="badge-text">限 定</text>
+    </view>
+  </view>
+
+  <!-- 参与形式 -->
+  <view class="section-card card">
+    <view class="section-header">
+      <view class="section-icon">⚔️</view>
+      <text class="section-title">参与形式</text>
+    </view>
+    <view class="participate-list">
+      <view class="participate-item">
+        <view class="pi-num">壹</view>
+        <view class="pi-content">
+          <text class="pi-title">问题反馈</text>
+          <text class="pi-desc">发现 Bug 或体验问题，提交详细反馈，助我们修复天道裂痕</text>
+        </view>
+      </view>
+      <view class="participate-item">
+        <view class="pi-num">贰</view>
+        <view class="pi-content">
+          <text class="pi-title">功能创意输出</text>
+          <text class="pi-desc">提出新功能构想、优化建议，为天道修行注入新的灵气</text>
+        </view>
+      </view>
+      <view class="participate-item">
+        <view class="pi-num">叁</view>
+        <view class="pi-content">
+          <text class="pi-title">优质模板贡献</text>
+          <text class="pi-desc">设计并发布高质量修行模板，以自身道则福泽万千修士</text>
+        </view>
+      </view>
+      <view class="participate-item">
+        <view class="pi-num">肆</view>
+        <view class="pi-content">
+          <text class="pi-title">团队加盟</text>
+          <text class="pi-desc">加入补天计划核心团队，以己之长共建天道修行之路</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 联络区 -->
+  <view class="contact-card card">
+    <view class="contact-deco-top"></view>
+    <view class="section-header">
+      <view class="section-icon">🕊️</view>
+      <text class="section-title">联络道场</text>
+    </view>
+    <view class="contact-body">
+      <text class="contact-intro">有志于补天之道者，可以飞书传讯至：</text>
+      <view class="email-box" bindtap="onCopyEmail">
+        <view class="email-icon">📧</view>
+        <text class="email-text">{{contactEmail}}</text>
+        <view class="copy-btn">复制</view>
+      </view>
+      <view class="contact-hint" wx:if="{{showCopyTip}}">✓ 邮箱已复制到剪贴板</view>
+      <text class="contact-footnote">—— 天道修行 · 补天计划组</text>
+    </view>
+    <view class="contact-deco-bottom"></view>
+  </view>
+
+  <!-- 底部结语 -->
+  <view class="footer-card">
+    <view class="footer-divider"></view>
+    <text class="footer-text">炼五色石以补苍天，断鳌足以立四极</text>
+    <text class="footer-sub">——《淮南子·览冥训》</text>
+    <view class="footer-stars">
+      <text class="star s1">✦</text>
+      <text class="star s2">✧</text>
+      <text class="star s3">✦</text>
+    </view>
+  </view>
+
+</view>

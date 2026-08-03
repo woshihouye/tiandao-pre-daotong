@@ -1,0 +1,209 @@
+<import src="/templates/theme-deco.wxml"/>
+<view class="page theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+  <view class="overview card">
+    <view class="overview-top">
+      <view>
+        <view class="overview-kicker">叮，系统提示</view>
+        <view class="overview-title">薄肌模板 · {{techniqueProfile.level}}层</view>
+      </view>
+      <view class="overview-badge">{{weekProgress.overallRate}}%</view>
+    </view>
+
+    <view class="overview-metrics">
+      <view class="metric">
+        <view class="metric-value">{{weekProgress.trainingRate}}%</view>
+        <view class="metric-label">训练达标进度</view>
+      </view>
+      <view class="metric">
+        <view class="metric-value">{{weekProgress.dietRate}}%</view>
+        <view class="metric-label">饮食达标进度</view>
+      </view>
+      <view class="metric">
+        <view class="metric-value">{{todayBonus}}</view>
+        <view class="metric-label">今日修为加成</view>
+      </view>
+    </view>
+
+    <view class="bar">
+      <view class="bar-track">
+        <view class="bar-fill" style="width: {{weekProgress.overallRate}}%;"></view>
+      </view>
+      <view class="bar-note">本功法仅供业余健身参考，不构成专业指导</view>
+    </view>
+
+    <view class="hint" wx:if="{{needBodyProfile}}">
+      <view class="hint-text">叮，系统提示：尚未补全身高/体重/年龄，可前往个人页完善，以便推演更精确的营养法门。</view>
+      <view class="hint-btn" bindtap="goProfile">前往完善</view>
+    </view>
+  </view>
+
+  <view class="tabbar card">
+    <view
+      class="tab {{activeTab === item.key ? 'active' : ''}}"
+      wx:for="{{tabList}}"
+      wx:key="key"
+      data-key="{{item.key}}"
+      bindtap="switchTab"
+    >
+      {{item.label}}
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{activeTab === 'general'}}">
+    <view class="section-title">修炼总纲</view>
+    <view class="paragraph">薄肌模板进阶篇，遵循渐进超负荷之理，打牢肉身根基，适合健身塑形道友修炼。</view>
+    <view class="paragraph">核心原理：逐步提升训练容量与强度，配合对应饮食，稳步提升肉身境界。</view>
+    <view class="small-note">本功法仅供业余健身参考，不构成专业指导</view>
+  </view>
+
+  <view class="card" wx:elif="{{activeTab === 'training'}}">
+    <view class="section-title">训练篇</view>
+    <view class="block">
+      <view class="block-label">训练模式</view>
+      <view class="block-value">{{trainingAdvice.split}} · {{trainingAdvice.workoutMode}}</view>
+    </view>
+    <view class="block">
+      <view class="block-label">组数次数标准</view>
+      <view class="block-value">{{trainingAdvice.repRule}}</view>
+    </view>
+    <view class="block">
+      <view class="block-label">进阶规则</view>
+      <view class="block-value">{{trainingAdvice.suggestion}}</view>
+    </view>
+    <view class="block">
+      <view class="block-label">本周训练完成情况</view>
+      <view class="block-value">完成天数：{{trainingEval.currentWeek.sessionDays}} 天；单部位平均有效组：{{trainingEval.currentWeek.maxMuscleSets}} 组；训练容量：{{trainingEval.currentWeek.totalVolume}}</view>
+    </view>
+    <view class="small-note">{{trainingAdvice.caution}}</view>
+    <view class="paragraph" wx:if="{{canBreakthrough}}">下周建议：维持动作质量，适度加重或加组，循序冲击更高层。</view>
+    <view class="paragraph" wx:else>下周建议：先稳住频次与恢复，再逐步提升有效组数与动作质量。</view>
+  </view>
+
+  <view class="card" wx:elif="{{activeTab === 'diet'}}">
+    <view class="section-title">饮食篇</view>
+    <view class="goal-tabs">
+      <view
+        class="goal-tab {{bodyProfile.goal === item.key ? 'active' : ''}}"
+        wx:for="{{goalTabs}}"
+        wx:key="key"
+        data-key="{{item.key}}"
+        bindtap="switchGoal"
+      >
+        {{item.label}}
+      </view>
+    </view>
+
+    <view class="block">
+      <view class="block-label">每日热量推荐</view>
+      <view class="block-value highlight">{{nutritionTarget.targetCalories}}</view>
+    </view>
+    <view class="macro-grid">
+      <view class="macro">
+        <view class="macro-value">{{nutritionTarget.protein}}g</view>
+        <view class="macro-label">蛋白质</view>
+      </view>
+      <view class="macro">
+        <view class="macro-value">{{nutritionTarget.carbs}}g</view>
+        <view class="macro-label">碳水</view>
+      </view>
+      <view class="macro">
+        <view class="macro-value">{{nutritionTarget.fat}}g</view>
+        <view class="macro-label">脂肪</view>
+      </view>
+    </view>
+
+    <view class="section-subtitle">今日摄入对比</view>
+    <view class="compare">
+      <view class="compare-row">
+        <view class="compare-name">热量</view>
+        <view class="compare-value">推荐 {{nutritionTarget.targetCalories}} / 实际 {{dietToday.calories}}</view>
+      </view>
+      <view class="compare-row">
+        <view class="compare-name">蛋白质</view>
+        <view class="compare-value">推荐 {{nutritionTarget.protein}}g / 实际 {{dietToday.protein}}g</view>
+      </view>
+      <view class="compare-row">
+        <view class="compare-name">碳水</view>
+        <view class="compare-value">推荐 {{nutritionTarget.carbs}}g / 实际 {{dietToday.carbs}}g</view>
+      </view>
+      <view class="compare-row">
+        <view class="compare-name">脂肪</view>
+        <view class="compare-value">推荐 {{nutritionTarget.fat}}g / 实际 {{dietToday.fat}}g</view>
+      </view>
+    </view>
+
+    <view class="section-subtitle">功法契合度</view>
+    <view class="score-card">
+      <view class="score-left">
+        <view class="score-value">{{alignment.score}}%</view>
+        <view class="score-grade">{{alignment.grade}}</view>
+      </view>
+      <view class="score-right">
+        <view class="score-bonus">可得修为 +{{todayBonus}}</view>
+        <view class="score-note">{{nutritionTarget.note}}</view>
+      </view>
+    </view>
+
+    <view class="section-subtitle">个性化参数</view>
+    <view class="form">
+      <view class="form-row">
+        <view class="form-label">身高(cm)</view>
+        <input class="form-input" type="digit" value="{{bodyProfile.height}}" bindinput="onBodyInput" data-field="height" />
+      </view>
+      <view class="form-row">
+        <view class="form-label">体重(kg)</view>
+        <input class="form-input" type="digit" value="{{bodyProfile.weight}}" bindinput="onBodyInput" data-field="weight" />
+      </view>
+      <view class="form-row">
+        <view class="form-label">年龄</view>
+        <input class="form-input" type="number" value="{{bodyProfile.age}}" bindinput="onBodyInput" data-field="age" />
+      </view>
+      <view class="form-row">
+        <view class="form-label">活动系数</view>
+        <picker mode="selector" range="{{activityOptions}}" range-key="label" bindchange="onActivityModeChange">
+          <view class="picker-value">{{bodyProfile.activityMode}}</view>
+        </picker>
+      </view>
+      <view class="form-row" wx:if="{{bodyProfile.activityMode === 'custom'}}">
+        <view class="form-label">自定义系数</view>
+        <input class="form-input" type="digit" value="{{bodyProfile.customActivityFactor}}" bindinput="onBodyInput" data-field="customActivityFactor" />
+      </view>
+      <view class="form-row">
+        <view class="form-label">蛋白质(g/kg)</view>
+        <input class="form-input" type="digit" value="{{bodyProfile.customProteinPerKg}}" bindinput="onBodyInput" data-field="customProteinPerKg" />
+      </view>
+      <view class="form-row">
+        <view class="form-label">碳水(g/kg)</view>
+        <input class="form-input" type="digit" value="{{bodyProfile.customCarbsPerKg}}" bindinput="onBodyInput" data-field="customCarbsPerKg" />
+      </view>
+      <view class="form-row">
+        <view class="form-label">脂肪(g/kg)</view>
+        <input class="form-input" type="digit" value="{{bodyProfile.customFatPerKg}}" bindinput="onBodyInput" data-field="customFatPerKg" />
+      </view>
+    </view>
+  </view>
+
+  <view class="card" wx:else>
+    <view class="section-title">进阶考核</view>
+    <view class="paragraph">当前层级达标条件：连续2周完成对应训练容量、动作次数标准。</view>
+    <view class="block">
+      <view class="block-label">训练达标</view>
+      <view class="block-value">{{trainingEval.canAdvance ? '连续两周已达标' : '仍需稳固'}}</view>
+    </view>
+    <view class="block">
+      <view class="block-label">饮食达标</view>
+      <view class="block-value">{{alignment.score >= 75 ? '契合度已达标' : '契合度不足'}}</view>
+    </view>
+    <view class="block">
+      <view class="block-label">突破奖励</view>
+      <view class="block-value highlight">{{breakthroughReward}} 修为</view>
+    </view>
+    <view class="paragraph" wx:if="{{canBreakthrough}}">叮，系统提示：根基已稳，可破境。</view>
+    <view class="paragraph" wx:else>叮，系统提示：尚欠火候，继续累积训练与饮食契合度。</view>
+
+    <view class="action">
+      <view class="btn primary {{canBreakthrough ? '' : 'disabled'}}" bindtap="confirmBreakthrough">突破境界</view>
+    </view>
+  </view>
+</view>

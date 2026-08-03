@@ -1,0 +1,22 @@
+<!-- 悟道童儿全局悬浮组件 -->
+<view 
+  class="dao-spirit-wrap {{hiddenByEdge ? 'edge-hidden' : ''}}"
+  wx:if="{{visible}}"
+  style="right: {{x}}rpx; bottom: {{y}}rpx;"
+  bindtouchstart="onTouchStart"
+  bindtouchmove="onTouchMove"
+  bindtouchend="onTouchEnd"
+  bindtap="onTapSpirit"
+>
+  <!-- 道童说话气泡 -->
+  <view class="spirit-speech {{showSpeech ? 'show' : ''}}" wx:if="{{showSpeech}}" catchtap="onTapSpeech">
+    <view class="speech-bubble">
+      <text class="speech-text">{{speechBubble}}</text>
+    </view>
+  </view>
+
+  <view class="dao-spirit-avatar {{spiritMode === 'mowan' ? 'ds-avatar-mowan' : 'ds-avatar-lingzhu'}}">
+    <text class="dao-spirit-icon {{spiritMode === 'mowan' ? 'ds-icon-mowan' : 'ds-icon-lingzhu'}}">{{spiritMode === 'mowan' ? '魔' : '灵'}}</text>
+  </view>
+  <view class="dao-spirit-pulse {{spiritMode === 'mowan' ? 'ds-pulse-mowan' : 'ds-pulse-lingzhu'}}"></view>
+</view>

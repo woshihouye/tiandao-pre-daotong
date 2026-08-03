@@ -1,0 +1,25 @@
+<view class="container">
+  <view class="card">
+    <view class="section-title">私信权限</view>
+    <view class="option-group">
+      <view class="option {{msgPermission === 'all' ? 'active' : ''}}" data-value="all" bindtap="changeMsgPerm">所有人 · 任何道友都可发送私信</view>
+      <view class="option {{msgPermission === 'followers' ? 'active' : ''}}" data-value="followers" bindtap="changeMsgPerm">仅关注者 · 只有互相关注的道友可发私信</view>
+      <view class="option {{msgPermission === 'off' ? 'active' : ''}}" data-value="off" bindtap="changeMsgPerm">关闭 · 不接受任何私信</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">主页可见性</view>
+    <view class="option-group">
+      <view class="option {{profileVisibility === 'public' ? 'active' : ''}}" data-value="public" bindtap="changeProfileVis">公开 · 所有道友可查看</view>
+      <view class="option {{profileVisibility === 'followers' ? 'active' : ''}}" data-value="followers" bindtap="changeProfileVis">仅关注者 · 只有互关道友可查看</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">关系管理</view>
+    <view class="action-row" bindtap="goToFollowList">我的关注 →</view>
+    <view class="action-row" bindtap="goToFansList">我的粉丝 →</view>
+    <view class="action-row" bindtap="goToBlacklist">黑名单管理 →</view>
+  </view>
+</view>

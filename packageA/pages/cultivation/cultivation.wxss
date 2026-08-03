@@ -1,0 +1,1046 @@
+/* 天道修行 - 修为详情页样式 */
+/* 严格复用 app.wxss CSS 变量，适配 .theme-fresh / .theme-dusk / .theme-gloom 三套主题 */
+
+/* ========== 模块一：当前修为可视化 ========== */
+
+.realm-hero {
+  overflow: hidden;
+}
+
+.realm-hero-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.realm-hero-icon {
+  width: 88rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xl);
+  font-size: var(--font-3xl);
+  font-weight: var(--weight-bold);
+  color: var(--primary);
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.realm-hero-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.realm-hero-title {
+  font-size: var(--font-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.realm-hero-sub {
+  margin-top: 6rpx;
+  font-size: var(--font-lg);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.realm-hero-remain {
+  color: var(--primary);
+  font-weight: var(--weight-bold);
+}
+
+/* 进度条（复用全局 .progress-bar） */
+.realm-progress {
+  margin-top: 28rpx;
+  height: 20rpx;
+}
+
+.realm-progress-fill {
+  transition: width 0.4s ease;
+}
+
+.realm-progress-label {
+  margin-top: var(--space-xs);
+  text-align: right;
+  font-size: var(--font-md);
+  color: var(--text-secondary);
+}
+
+/* 数据卡片 2x2 网格 */
+.realm-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+  margin-top: 28rpx;
+}
+
+.realm-stat-card {
+  padding: 22rpx 18rpx;
+  border-radius: var(--radius-lg);
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+  text-align: center;
+}
+
+.stat-value {
+  font-size: var(--font-3xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.stat-value.accent {
+  color: var(--primary);
+}
+
+.stat-label {
+  margin-top: 6rpx;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+/* ========== 迷你柱状图 ========== */
+
+.chart-card {
+  overflow: hidden;
+}
+
+.card-title {
+  font-size: var(--font-xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.mini-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  min-height: 240rpx;
+  padding: 0 4rpx;
+}
+
+.chart-bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.chart-bar-score {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 6rpx;
+  white-space: nowrap;
+}
+
+.chart-bar {
+  width: 36rpx;
+  min-height: 8rpx;
+  border-radius: 8rpx 8rpx 2rpx 2rpx;
+  transition: height 0.3s ease;
+}
+
+.chart-bar-label {
+  margin-top: var(--space-xs);
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.empty-tip {
+  margin-top: var(--space-lg);
+  padding: var(--space-2xl) 0;
+  text-align: center;
+  font-size: var(--font-lg);
+  color: var(--text-muted);
+}
+
+/* ========== 模块四：修为实力（训练指标） ========== */
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title-link {
+  font-size: var(--font-md);
+  font-weight: var(--weight-semibold);
+  color: var(--primary);
+}
+
+.metrics-card-desc {
+  margin-top: var(--space-xs);
+  font-size: var(--font-md);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* 指标网格 */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.metric-cell {
+  padding: 20rpx 18rpx;
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+}
+
+.metric-cell-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.metric-cell-icon {
+  font-size: var(--font-xl);
+}
+
+.metric-cell-name {
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric-cell-badge {
+  padding: 2rpx 12rpx;
+  border-radius: 12rpx;
+  font-size: var(--font-xs);
+  font-weight: var(--weight-bold);
+  flex-shrink: 0;
+}
+
+.metric-cell-value {
+  display: flex;
+  align-items: baseline;
+  gap: 6rpx;
+}
+
+.mc-value-num {
+  font-size: var(--font-4xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.mc-value-unit {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+
+.metric-cell-label {
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  margin-top: 4rpx;
+}
+
+.metric-cell-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4rpx 12rpx;
+  margin-top: 10rpx;
+  padding-top: 10rpx;
+  border-top: 1rpx solid var(--border-color);
+}
+
+.mc-sub-label {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+}
+
+.mc-sub-value {
+  font-size: var(--font-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+/* 今日修行徽章 */
+.today-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: 20rpx;
+  padding-top: var(--space-md);
+  border-top: 1rpx solid var(--border-color);
+}
+
+.today-badge-label {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+
+.today-badge {
+  padding: 6rpx var(--space-md);
+  border-radius: 14rpx;
+  background: var(--primary-soft, rgba(16, 185, 129, 0.1));
+  font-size: var(--font-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--primary);
+}
+
+/* 科学知识脚注 */
+.sci-footer {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  margin-top: 20rpx;
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  background: rgba(99, 102, 241, 0.06);
+  border: 1rpx solid rgba(99, 102, 241, 0.1);
+}
+
+.sci-footer-icon {
+  font-size: var(--font-md);
+  flex-shrink: 0;
+}
+
+.sci-footer-text {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* 空状态 */
+.metrics-empty {
+  padding: 48rpx 0;
+  text-align: center;
+}
+
+.metrics-empty-icon {
+  font-size: 64rpx;
+  margin-bottom: var(--space-md);
+}
+
+.metrics-empty-title {
+  font-size: var(--font-xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin-bottom: 10rpx;
+}
+
+.metrics-empty-desc {
+  font-size: var(--font-md);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  padding: 0 20rpx;
+  margin-bottom: var(--space-lg);
+}
+
+.metrics-empty-btn {
+  display: inline-block;
+  padding: var(--space-md) var(--space-2xl);
+  border-radius: var(--radius-xl);
+  background: var(--primary);
+  color: #fff;
+  font-size: var(--font-lg);
+  font-weight: var(--weight-bold);
+}
+
+/* ========== 加成明细 ========== */
+
+.bonus-card {
+  overflow: hidden;
+}
+
+.bonus-grid {
+  display: flex;
+  gap: 20rpx;
+  margin-top: var(--space-lg);
+}
+
+.bonus-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.bonus-col-title {
+  font-size: var(--font-md);
+  font-weight: var(--weight-bold);
+  line-height: 1.5;
+  padding-bottom: 14rpx;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.bonus-col-title.bonus-positive {
+  color: var(--success);
+}
+
+.bonus-col-title.bonus-negative {
+  color: var(--danger-text);
+}
+
+.bonus-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid var(--border-color);
+  gap: var(--space-sm);
+}
+
+.bonus-row:last-child {
+  border-bottom: none;
+}
+
+.bonus-label {
+  font-size: var(--font-md);
+  color: var(--text-primary);
+  line-height: 1.5;
+  flex: 1;
+  min-width: 0;
+}
+
+.bonus-value {
+  font-size: var(--font-md);
+  font-weight: var(--weight-bold);
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.bonus-value.positive {
+  color: var(--success);
+}
+
+.bonus-value.negative {
+  color: var(--danger-text);
+}
+
+.bonus-empty {
+  padding: 20rpx 0;
+  text-align: center;
+  font-size: var(--font-md);
+  color: var(--text-muted);
+}
+
+/* ========== 加成明细 -- 可点击溯源 ========== */
+
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.card-title-hint {
+  font-size: var(--font-sm);
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.bonus-row-tappable {
+  cursor: pointer;
+  border-radius: 8rpx;
+  padding: 14rpx 8rpx;
+  margin: 0 -8rpx;
+  transition: background 0.15s ease;
+}
+
+.bonus-row-tappable:active {
+  background: var(--surface-muted);
+}
+
+.bonus-arrow {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  margin-left: 6rpx;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.bonus-row-tappable:active .bonus-arrow {
+  opacity: 1;
+}
+
+/* ========== 加成溯源弹窗 ========== */
+
+.bonus-detail-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 900;
+  animation: maskFadeIn 0.2s ease;
+}
+
+@keyframes maskFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.bonus-detail-popup {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--card-bg);
+  border-radius: var(--space-xl) var(--space-xl) 0 0;
+  z-index: 901;
+  padding-bottom: env(safe-area-inset-bottom);
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.28s ease;
+}
+
+.bonus-detail-popup.popup-show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx var(--space-xl) 20rpx;
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.popup-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.popup-tag {
+  font-size: var(--font-sm);
+  color: #fff;
+  padding: 4rpx var(--space-md);
+  border-radius: 6rpx;
+  font-weight: var(--weight-semibold);
+}
+
+.popup-rate {
+  font-size: var(--font-2xl);
+  font-weight: var(--weight-bold);
+}
+
+.popup-close {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-2xl);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  background: var(--surface-soft);
+  cursor: pointer;
+}
+
+.popup-close:active {
+  background: var(--surface-muted);
+}
+
+.popup-body {
+  padding: var(--space-lg) var(--space-xl) var(--space-2xl);
+}
+
+.popup-source-label {
+  font-size: 30rpx;
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: 20rpx;
+}
+
+.popup-progress-row,
+.popup-camp {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-soft);
+  border-radius: 10rpx;
+  margin-bottom: var(--space-sm);
+}
+
+.popup-progress-label,
+.popup-camp-label {
+  font-size: var(--font-md);
+  color: var(--text-secondary);
+}
+
+.popup-progress-value,
+.popup-camp-value {
+  font-size: var(--font-md);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.popup-desc-title {
+  font-size: var(--font-md);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin: var(--space-lg) 0 var(--space-sm);
+  padding-left: var(--space-xs);
+  border-left: 4rpx solid var(--primary);
+}
+
+.popup-desc {
+  font-size: var(--font-lg);
+  color: var(--text-secondary);
+  line-height: 1.8;
+  white-space: pre-line;
+}
+
+/* ========== 模块二：修行序列图谱 ========== */
+
+.timeline-card {
+  overflow: hidden;
+}
+
+.timeline-desc {
+  margin-top: var(--space-xs);
+  font-size: var(--font-md);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.timeline-list {
+  margin-top: var(--space-lg);
+}
+
+.timeline-node {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+  padding: 18rpx 0;
+  min-height: 72rpx;
+}
+
+/* 纵向连接线 */
+.timeline-line {
+  position: absolute;
+  left: 17rpx;
+  top: 48rpx;
+  bottom: -18rpx;
+  width: 2rpx;
+  background: var(--border-color);
+}
+
+.timeline-node.timeline-last .timeline-line {
+  display: none;
+}
+
+/* 节点圆点 */
+.timeline-dot {
+  position: relative;
+  z-index: 1;
+  width: var(--font-3xl);
+  height: var(--font-3xl);
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4rpx;
+}
+
+.timeline-dot-num {
+  font-size: var(--font-xs);
+  font-weight: var(--weight-bold);
+  color: #fff;
+  line-height: 1;
+}
+
+.timeline-dot-icon {
+  font-size: 18rpx;
+  font-weight: var(--weight-bold);
+  color: #fff;
+  line-height: 1;
+}
+
+/* 当前节点加大 */
+.timeline-current .timeline-dot {
+  width: 44rpx;
+  height: 44rpx;
+  margin-left: -4rpx;
+  box-shadow: 0 0 0 4rpx rgba(16, 185, 129, 0.2);
+}
+
+.timeline-current .timeline-dot-num {
+  font-size: var(--font-sm);
+}
+
+/* 节点信息 */
+.timeline-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.timeline-info-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-sm);
+}
+
+.timeline-name {
+  font-size: var(--font-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.timeline-name.muted {
+  color: var(--text-muted);
+  font-weight: var(--weight-normal);
+}
+
+.timeline-count {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+
+.timeline-stage-label {
+  margin-top: 2rpx;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.timeline-locked .timeline-stage-label,
+.timeline-locked .timeline-count {
+  color: var(--text-muted);
+}
+
+/* 展开/收起按钮 */
+.timeline-expand {
+  margin-top: var(--space-sm);
+  padding: 20rpx;
+  text-align: center;
+  border-radius: 18rpx;
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+}
+
+.timeline-expand:active {
+  opacity: 0.7;
+}
+
+.timeline-expand-text {
+  font-size: var(--font-lg);
+  font-weight: var(--weight-semibold);
+  color: var(--primary);
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════
+   突破仪式弹窗
+   ═══════════════════════════════════════════ */
+.breakthrough-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+  animation: fadeIn 0.3s ease;
+}
+
+.breakthrough-panel {
+  position: relative;
+  width: 600rpx;
+  margin: 0 40rpx;
+  padding: 48rpx 40rpx 36rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(160deg, #1a1020 0%, #0c0810 100%);
+  border: 2rpx solid rgba(255, 215, 0, 0.4);
+  text-align: center;
+  animation: panelUp 0.4s ease;
+}
+
+.breakthrough-glow {
+  position: absolute;
+  inset: -4rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(200, 100, 255, 0.3) 50%, rgba(255, 215, 0, 0.3) 100%);
+  filter: blur(16rpx);
+  z-index: -1;
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.breakthrough-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #FFD700;
+  letter-spacing: 6rpx;
+  line-height: 1.5;
+}
+
+.breakthrough-body { margin-top: 32rpx; }
+
+.breakthrough-realm {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+  letter-spacing: 2rpx;
+}
+
+.breakthrough-name {
+  margin-top: 8rpx;
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #FFD700;
+  line-height: 1.5;
+  letter-spacing: 4rpx;
+  text-shadow: 0 0 20rpx rgba(255, 215, 0, 0.5);
+}
+
+.breakthrough-poem {
+  margin-top: 24rpx;
+  padding: 24rpx 28rpx;
+  border-radius: 16rpx;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1rpx solid rgba(255, 215, 0, 0.15);
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 2;
+  letter-spacing: 2rpx;
+}
+
+.breakthrough-desc {
+  margin-top: 18rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.6;
+}
+
+.breakthrough-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 36rpx;
+}
+
+.breakthrough-btn {
+  flex: 1;
+  height: 82rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.breakthrough-btn.primary {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #1a1020;
+  box-shadow: 0 4rpx 20rpx rgba(255, 215, 0, 0.3);
+}
+
+.breakthrough-btn.ghost {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1rpx solid rgba(255, 255, 255, 0.15);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes panelUp {
+  from { transform: translateY(40rpx); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ===== 根骨体系（替换原修为实力） ===== */
+/* 综合根骨徽章 */
+.composite-bone-badge {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx;
+  margin: 0 0 16rpx;
+  border-radius: 16rpx;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%);
+  border: 1rpx solid rgba(99, 102, 241, 0.25);
+}
+
+.composite-bone-icon {
+  font-size: 44rpx;
+  line-height: 1;
+}
+
+.composite-bone-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.composite-bone-name {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.composite-bone-bonus {
+  font-size: 22rpx;
+  color: var(--primary);
+  margin-top: 4rpx;
+}
+
+.composite-bone-score {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* 称号入口 */
+.bone-title-entry {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 20rpx;
+  margin-top: 16rpx;
+  border-radius: 14rpx;
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+  transition: all 0.2s;
+}
+
+.bone-title-entry:active {
+  background: var(--primary-light);
+}
+
+.bone-title-icon {
+  font-size: 28rpx;
+}
+
+.bone-title-label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.bone-title-count {
+  font-size: 22rpx;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.bone-title-arrow {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+.bone-overview-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-top: 12rpx;
+}
+
+.bone-cell {
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: var(--surface-soft);
+}
+
+.bone-cell-head {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.bone-cell-icon {
+  font-size: 36rpx;
+  line-height: 1;
+}
+
+.bone-cell-name {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.bone-cell-badge {
+  padding: 4rpx 14rpx;
+  border-radius: 16rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.bone-cell-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  margin-top: 12rpx;
+}
+
+.bone-bonus-rate {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.bone-bonus-label {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+.bone-progress-bar {
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: var(--border-color);
+  overflow: hidden;
+  margin-top: 10rpx;
+}
+
+.bone-progress-fill {
+  height: 100%;
+  border-radius: 4rpx;
+  transition: width 0.5s ease;
+}
+
+.bone-progress-label {
+  font-size: 20rpx;
+  color: var(--text-muted);
+  margin-top: 6rpx;
+  text-align: right;
+}
+
+.bone-foot-note {
+  font-size: 20rpx;
+  color: var(--text-muted);
+  margin-top: 16rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx solid var(--border-color);
+  text-align: center;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}

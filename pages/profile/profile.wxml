@@ -1,0 +1,223 @@
+<!-- 个人主页 — v2 六大模块重构 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+
+  <!-- ============================================================
+       模块1: 形象头区
+       ============================================================ -->
+  <view class="card hero-card">
+    <view class="hero-top">
+      <view class="hero-avatar">
+        <text>{{avatarText}}</text>
+      </view>
+      <view class="hero-meta">
+        <view class="hero-name">{{nickName}}</view>
+        <view class="hero-realm">{{currentRealm.name}} · 第{{currentRealm.stage}}阶</view>
+      </view>
+      <view class="hero-edit-icon" bindtap="goToSettings">⚙</view>
+    </view>
+    <view class="hero-chips">
+      <view class="hero-chip" wx:if="{{streakDays > 0}}">🔥 连续{{streakDays}}日</view>
+      <view class="hero-chip" wx:if="{{sectName}}">🏛 {{sectName}}</view>
+      <view class="hero-chip">{{cultivationSystem === 'body' ? '体修' : cultivationSystem === 'beauty' ? '养气' : cultivationSystem === 'worldly' ? '入世' : '传统修仙'}}</view>
+    </view>
+  </view>
+
+  <!-- ============================================================
+       模块2: 定场诗专区
+       ============================================================ -->
+  <view class="card poem-zone" bindtap="goToPoemEdit">
+    <view class="poem-deco-left">「</view>
+    <view class="poem-body" wx:if="{{signaturePoem}}">{{signaturePoem}}</view>
+    <view class="poem-body poem-placeholder" wx:else>点击此处铭刻你的定场诗...</view>
+    <view class="poem-deco-right">」</view>
+    <view class="poem-edit-hint">✎ 编辑</view>
+  </view>
+
+  <!-- ============================================================
+       模块3: 核心数据卡
+       ============================================================ -->
+  <view class="card stats-card" bindtap="goToCultivation">
+    <!-- 修为进度 -->
+    <view class="stats-cultivation">
+      <view class="stats-cv-top">
+        <view class="stats-cv-label">当前总修为</view>
+        <view class="stats-cv-value">{{totalCultivation}}</view>
+      </view>
+      <view class="stats-progress">
+        <view class="stats-progress-fill" style="width:{{realmProgress}}%"></view>
+      </view>
+      <view class="stats-cv-sub">距{{currentRealm.name}}第{{currentRealm.stage + 1 > 9 ? '圆满' : (currentRealm.stage + 1) + '阶'}}还需 {{realmRemaining}} 修为</view>
+    </view>
+
+    <!-- 四维统计 -->
+    <view class="stats-quad">
+      <view class="stats-quad-item">
+        <view class="stats-quad-num">{{streakDays}}</view>
+        <view class="stats-quad-label">连续修行</view>
+      </view>
+      <view class="stats-quad-item">
+        <view class="stats-quad-num">{{totalCheckins}}</view>
+        <view class="stats-quad-label">总打卡数</view>
+      </view>
+      <view class="stats-quad-item">
+        <view class="stats-quad-num">{{dailyMatch}}%</view>
+        <view class="stats-quad-label">模板匹配</view>
+      </view>
+      <view class="stats-quad-item">
+        <view class="stats-quad-num">{{equippedTitle ? equippedTitle.bonus : 0}}%</view>
+        <view class="stats-quad-label">道牒加成</view>
+      </view>
+    </view>
+
+    <!-- 境界进度小字 -->
+    <view class="stats-realm-detail" wx:if="{{currentRealm.perStage}}">
+      <text>{{currentRealm.name}}第{{currentRealm.stage}}阶 → 第{{Math.min(9, currentRealm.stage + 1)}}阶</text>
+      <text>{{realmProgress}}%</text>
+    </view>
+  </view>
+
+  <!-- ============================================================
+       模块4: 道牒成就墙
+       ============================================================ -->
+  <view class="card title-wall">
+    <view class="section-header" bindtap="goToTitle">
+      <view class="section-title">道牒成就</view>
+      <view class="section-more">查看全部 →</view>
+    </view>
+
+    <!-- 当前佩戴 -->
+    <view class="title-current" wx:if="{{equippedTitle}}" bindtap="goToTitle">
+      <view class="title-current-badge" style="border-color:{{equippedTitle.color}}; color:{{equippedTitle.color}}">
+        <text>{{equippedTitle.name}}</text>
+      </view>
+      <view class="title-current-bonus" style="color:{{equippedTitle.color}}">+{{equippedTitle.bonus}}% 修为加成</view>
+    </view>
+
+    <!-- 标题诗 -->
+    <view class="title-poem-mini" wx:if="{{titlePoem}}">{{titlePoem}}</view>
+
+    <!-- 横向滚动成就墙 -->
+    <scroll-view class="title-scroll" scroll-x wx:if="{{unlockedTitles.length > 0}}">
+      <view class="title-scroll-row">
+        <view 
+          class="title-chip {{equippedTitle && equippedTitle.id === item.id ? 'active' : ''}}" 
+          wx:for="{{unlockedTitles}}" 
+          wx:key="id"
+          style="border-color:{{item.color}}; color:{{item.color}}"
+          bindtap="goToTitle"
+        >
+          <text>{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="title-empty" wx:if="{{!equippedTitle && unlockedTitles.length === 0}}" bindtap="goToTitle">
+      暂无道牒，前往道牒殿解锁
+    </view>
+  </view>
+
+  <!-- ============================================================
+       模块5: 修行轨迹看板
+       ============================================================ -->
+  <view class="card trail-card">
+    <view class="section-header" bindtap="goToDetailBoard">
+      <view class="section-title">修行轨迹</view>
+      <view class="section-more">详情看板 →</view>
+    </view>
+
+    <!-- 五维度占比 -->
+    <view class="dim-rings" wx:if="{{dimStats.length > 0}}">
+      <view class="dim-item" wx:for="{{dimStats}}" wx:key="key" wx:for-item="dv">
+        <view class="dim-bar-wrap">
+          <view class="dim-bar-bg"></view>
+          <view class="dim-bar-fill" style="width:{{dv.pct}}%; background:{{dv.color}}"></view>
+        </view>
+        <view class="dim-label-row">
+          <text class="dim-icon">{{dv.icon}}</text>
+          <text class="dim-name">{{dv.label}}</text>
+          <text class="dim-pct">{{dv.pct}}%</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 近七日走势柱状图 -->
+    <view class="week-chart" wx:if="{{weekData.length > 0}}">
+      <view class="chart-title">近七日修行</view>
+      <view class="chart-row">
+        <view class="bar-col" wx:for="{{weekData}}" wx:key="date">
+          <view class="bar-emoji">{{item.emoji}}</view>
+          <view class="bar-val">{{item.score > 0 ? '+' : ''}}{{item.score}}</view>
+          <view class="bar-track">
+            <view class="bar-inner" style="height:{{item.height}}%; background:{{item.color}}"></view>
+          </view>
+          <view class="bar-date">{{item.label}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 分类统计 -->
+    <view class="cat-row">
+      <view class="cat-item" style="color:#f59e0b">
+        <text class="cat-num">{{sportCount}}</text>
+        <text class="cat-name">武·炼体</text>
+      </view>
+      <view class="cat-item" style="color:#10b981">
+        <text class="cat-num">{{dietCount}}</text>
+        <text class="cat-name">食·丹食</text>
+      </view>
+      <view class="cat-item" style="color:#8b5cf6">
+        <text class="cat-num">{{studyCount}}</text>
+        <text class="cat-name">悟·修心</text>
+      </view>
+      <view class="cat-item" style="color:#3b82f6">
+        <text class="cat-num">{{workCount}}</text>
+        <text class="cat-name">工·功业</text>
+      </view>
+      <view class="cat-item" style="color:#ef4444">
+        <text class="cat-num">{{debuffCount}}</text>
+        <text class="cat-name">煞·心魔</text>
+      </view>
+    </view>
+
+    <!-- 精/神概览 -->
+    <view class="spirit-mini" bindtap="goToBodyStatus" wx:if="{{energyValue !== '--' || moodEmoji !== '--'}}">
+      <view class="spirit-mini-item">
+        <text class="spirit-mini-label">精</text>
+        <text class="spirit-mini-val">{{energyValue}}</text>
+      </view>
+      <view class="spirit-mini-divider">|</view>
+      <view class="spirit-mini-item">
+        <text class="spirit-mini-label">神</text>
+        <text class="spirit-mini-val">{{moodEmoji}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-actions">
+    <view class="ba-item" bindtap="goToFavorites">
+      <view class="ba-icon">⭐</view>
+      <view class="ba-label">我的收藏</view>
+    </view>
+    <view class="ba-item" bindtap="goToCreatorCenter">
+      <view class="ba-icon">🏛</view>
+      <view class="ba-label">创作者中心</view>
+    </view>
+    <view class="ba-item" bindtap="goToConversations">
+      <view class="ba-icon">✉️</view>
+      <view class="ba-label">私信</view>
+    </view>
+    <view class="ba-item" bindtap="goToGrowthPath">
+      <view class="ba-icon">🌱</view>
+      <view class="ba-label">成长路径</view>
+    </view>
+    <view class="ba-item" bindtap="goToPrivacy">
+      <view class="ba-icon">🔒</view>
+      <view class="ba-label">隐私</view>
+    </view>
+  </view>
+
+  <view style="height:40rpx"></view>
+</view>

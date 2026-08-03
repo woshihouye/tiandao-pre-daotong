@@ -1,0 +1,8 @@
+.container { min-height: 100vh; padding: 24rpx; background: var(--page-bg); }
+.preview-name { font-size: 30rpx; font-weight: 700; color: var(--text-primary); }
+.preview-desc { margin-top: 8rpx; font-size: 24rpx; color: var(--text-secondary); line-height: 1.6; }
+.preview-meta { margin-top: 12rpx; font-size: 22rpx; color: var(--text-secondary); }
+.section-title { font-size: 28rpx; font-weight: 700; color: var(--text-primary); margin-bottom: 14rpx; }
+.option-group { display: flex; flex-direction: column; gap: 10rpx; }
+.option-item { padding: 18rpx 20rpx; border-radius: 14rpx; background: var(--surface-soft); border: 1rpx solid var(--border-color); font-size: 26rpx; color: var(--text-secondary); line-height: 1.5; }
+.option-item.selected { border-color: var(--primary); background: rgba(var(--primary-rgb), 0.08); color: var(--primary); font-weight: 600; }

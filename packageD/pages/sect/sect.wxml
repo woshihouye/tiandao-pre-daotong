@@ -1,0 +1,8 @@
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+  <view class="placeholder card">
+    <view class="title">敬请期待</view>
+    <view class="subtitle">宗门玩法正在打磨中，后续开放组队修行、宗门论道等功能</view>
+  </view>
+</view>

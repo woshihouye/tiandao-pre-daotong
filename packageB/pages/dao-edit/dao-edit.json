@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "我的道则",
+  "usingComponents": {
+    "dao-spirit": "/components/dao-spirit/dao-spirit"
+  }
+}

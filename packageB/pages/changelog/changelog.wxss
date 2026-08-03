@@ -1,0 +1,105 @@
+/* 更新日志页样式 - v2.0.0 */
+.container {
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+  background: var(--page-bg);
+}
+
+.version-card {
+  margin: 24rpx;
+}
+
+.version-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.version-tag {
+  padding: 8rpx 20rpx;
+  background: var(--primary);
+  color: #ffffff;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.version-tag.old {
+  background: var(--surface-soft);
+  color: var(--text-secondary);
+  border: 1rpx solid var(--border-color);
+}
+
+.version-date {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.version-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 24rpx;
+  line-height: 1.5;
+}
+
+/* ==================== 板块标签 ==================== */
+.section-label {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 16rpx;
+  padding-left: 0;
+  letter-spacing: 2rpx;
+}
+
+/* ==================== 分隔线 ==================== */
+.divider {
+  margin: 12rpx 24rpx;
+  height: 1rpx;
+  background: var(--border-color);
+  position: relative;
+}
+
+.update-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.update-item {
+  display: flex;
+  gap: 16rpx;
+  align-items: flex-start;
+}
+
+.update-icon {
+  min-width: 52rpx;
+  height: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+}
+
+.update-text {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.footer {
+  text-align: center;
+  padding: 40rpx 24rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+}

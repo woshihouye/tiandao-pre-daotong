@@ -1,0 +1,73 @@
+<!-- 自定义模板编辑 -->
+<import src="/templates/theme-deco.wxml"/>
+<view class="container theme-page {{themeClass}}">
+  <template is="theme-deco" data="{{themeClass}}"/>
+  <view class="card">
+    <view class="section-title">基础信息</view>
+    <view class="form-item">
+      <view class="label">模板名称</view>
+      <input class="input" value="{{form.name}}" bindinput="onInput" data-field="name" maxlength="20" />
+    </view>
+    <view class="form-item">
+      <view class="label">封面字</view>
+      <input class="input" value="{{form.cover}}" bindinput="onInput" data-field="cover" maxlength="2" />
+    </view>
+    <view class="form-item">
+      <view class="label">目标说明</view>
+      <input class="input" value="{{form.goal}}" bindinput="onInput" data-field="goal" maxlength="40" />
+    </view>
+    <view class="form-item">
+      <view class="label">简介</view>
+      <input class="input" value="{{form.description}}" bindinput="onInput" data-field="description" maxlength="80" />
+    </view>
+    <view class="form-item">
+      <view class="label">主题风格</view>
+      <picker mode="selector" range="{{themeOptions}}" range-key="label" value="{{themeIndex}}" bindchange="onThemeChange">
+        <view class="picker">{{themeOptions[themeIndex].label}}</view>
+      </picker>
+    </view>
+    <view class="form-item">
+      <view class="label">默认修炼体系</view>
+      <picker mode="selector" range="{{systemOptions}}" range-key="label" value="{{systemIndex}}" bindchange="onSystemChange">
+        <view class="picker">{{systemOptions[systemIndex].label}}</view>
+      </picker>
+    </view>
+    <view class="form-item">
+      <view class="label">单日上限（≤{{maxDailyCap}}）</view>
+      <input class="input" type="number" value="{{form.dailyCap}}" bindinput="onInput" data-field="dailyCap" />
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">专属四大境界</view>
+    <view class="form-item" wx:for="{{form.realmNames}}" wx:key="*this">
+      <view class="label">第{{index + 1}}境</view>
+      <input class="input" value="{{item}}" bindinput="onRealmInput" data-index="{{index}}" maxlength="8" />
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-head">
+      <view class="section-title">每日功课</view>
+      <view class="link" bindtap="addTask">添加</view>
+    </view>
+    <view class="hint">单任务奖励最高 {{maxTaskReward}} 修为</view>
+    <view class="task-editor" wx:for="{{form.tasks}}" wx:key="id">
+      <view class="form-item">
+        <view class="label">任务名</view>
+        <input class="input" value="{{item.name}}" bindinput="onTaskInput" data-index="{{index}}" data-field="name" />
+      </view>
+      <view class="form-item">
+        <view class="label">修为奖励</view>
+        <input class="input" type="number" value="{{item.reward}}" bindinput="onTaskInput" data-index="{{index}}" data-field="reward" />
+      </view>
+      <view class="remove" bindtap="removeTask" data-index="{{index}}">删除此任务</view>
+    </view>
+  </view>
+
+  <view class="bottom-actions">
+    <button class="btn btn-primary" bindtap="saveAndActivate">保存并启用</button>
+    <button class="btn ghost" bindtap="saveTemplate">仅保存</button>
+    <button class="btn ghost" bindtap="publishAndShare">发布到广场并分享</button>
+  </view>
+</view>

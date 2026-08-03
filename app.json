@@ -1,0 +1,136 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/record/record",
+    "pages/recordSports/recordSports",
+    "pages/templates/templates",
+    "pages/profile/profile"
+  ],
+  "subPackages": [
+    {
+      "root": "packageA",
+      "name": "cultivation",
+      "pages": [
+        "pages/cultivation/cultivation",
+        "pages/body-status/body-status",
+        "pages/foundation-technique/foundation-technique",
+        "pages/custom-metrics/custom-metrics",
+        "pages/detail-board/detail-board",
+        "pages/growth-path/growth-path",
+        "pages/elite-journey/elite-journey",
+        "pages/vision/vision",
+        "pages/breakthrough/breakthrough",
+        "pages/dao-foundation/dao-foundation",
+        "pages/cultivation-ladder/cultivation-ladder",
+        "pages/reset-cultivation/reset-cultivation",
+        "pages/pill-store/pill-store",
+        "pages/leaderboard/leaderboard"
+      ]
+    },
+    {
+      "root": "packageB",
+      "name": "settings",
+      "pages": [
+        "pages/settings/settings",
+        "pages/update-log/update-log",
+        "pages/changelog/changelog",
+        "pages/dao-edit/dao-edit",
+        "pages/title/title",
+        "pages/title-grade/title-grade"
+      ]
+    },
+    {
+      "root": "packageC",
+      "name": "templates",
+      "pages": [
+        "pages/template-detail/template-detail",
+        "pages/template-edit/template-edit",
+        "pages/template-share/template-share",
+        "pages/template-publish/template-publish",
+        "pages/my-templates/my-templates",
+        "pages/creator-center/creator-center",
+        "pages/template-comments/template-comments",
+        "pages/grand-dao/grand-dao",
+        "pages/activity-library/activity-library",
+        "pages/template-builder/template-builder"
+      ]
+    },
+    {
+      "root": "packageD",
+      "name": "social",
+      "pages": [
+        "pages/spirit/spirit",
+        "pages/spirit/energy/energy",
+        "pages/spirit/mood/mood",
+        "pages/sect/sect",
+        "pages/hedao/chat/chat",
+        "pages/conversations/conversations",
+        "pages/chat-detail/chat-detail",
+        "pages/user-home/user-home",
+        "pages/follow-list/follow-list",
+        "pages/poem-edit/poem-edit",
+        "pages/my-favorites/my-favorites",
+        "pages/privacy-settings/privacy-settings",
+        "pages/customer-svc/customer-svc"
+      ]
+    },
+    {
+      "root": "packageE",
+      "name": "butian",
+      "pages": [
+        "pages/bu-tian/bu-tian"
+      ]
+    }
+  ],
+  "preloadRule": {
+    "pages/index/index": {
+      "network": "all",
+      "packages": ["cultivation"]
+    },
+    "pages/templates/templates": {
+      "network": "all",
+      "packages": ["templates"]
+    }
+  },
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#F9FAFB",
+    "navigationBarTitleText": "天道修行",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#9CA3AF",
+    "selectedColor": "#10B981",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "修为"
+      },
+      {
+        "pagePath": "pages/record/record",
+        "text": "修行"
+      },
+      {
+        "pagePath": "pages/templates/templates",
+        "text": "模板"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "usingComponents": {
+    "dao-spirit": "/components/dao-spirit/dao-spirit",
+    "progress-ring": "/components/progress-ring/progress-ring",
+    "system-panel": "/components/system-panel/system-panel",
+    "particle-effect": "/components/particle-effect/particle-effect",
+    "layered-progress": "/components/layered-progress/layered-progress",
+    "radar-chart": "/components/radar-chart/radar-chart"
+  },
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

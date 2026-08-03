@@ -1,0 +1,29 @@
+<view class="page">
+  <block wx:if="{{ !success }}">
+    <view class="title">⚡ 散功重修</view>
+    <view class="warn">⚠️ 此操作将清空全部修为进度、境界等级、道基记录，修行完全重置！</view>
+    <view class="card" wx:if="{{ userData }}">
+      <view class="row"><text class="label">当前修为</text><text class="val">{{ userData.totalCultivation || 0 }}</text></view>
+      <view class="row"><text class="label">当前境界</text><text class="val">{{ userData.realmName || '炼气期' }}</text></view>
+      <view class="row"><text class="label">历史散功次数</text><text class="val">{{ userData.resetCount || 0 }}次</text></view>
+      <view class="row"><text class="label">本次保留比例</text><text class="val danger">{{ preserveRatio }}%</text></view>
+      <view class="row"><text class="label">预计保留修为</text><text class="val">{{ preservedScore }}</text></view>
+    </view>
+    <view class="btn-row">
+      <view class="btn-cancel" bindtap="onCancel">我再想想</view>
+      <view class="btn-confirm" bindtap="onConfirm">确认散功</view>
+    </view>
+  </block>
+  <block wx:else>
+    <view class="success">
+      <view class="success-icon">🔄</view>
+      <view class="success-title">散功完成</view>
+      <view class="success-detail">
+        <text>保留修为：{{ result.preservedScore }}分\n</text>
+        <text>保留比例：{{ result.ratio }}%\n</text>
+        <text>境界已重置，一切从头开始\n</text>
+      </view>
+      <view class="back-btn" bindtap="onBack">重回修行之路</view>
+    </view>
+  </block>
+</view>

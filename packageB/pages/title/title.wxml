@@ -1,0 +1,87 @@
+<!-- 道牒殿 - 称号展示与佩戴 v1.4.0 等级分类版 -->
+<view class="container theme-page {{themeClass}}">
+
+  <!-- 当前佩戴 -->
+  <view class="card equipped-card" wx:if="{{equippedId}}">
+    <view class="equipped-label">当前道牒</view>
+    <block wx:for="{{allTitles}}" wx:key="id" wx:for-item="t">
+      <view class="equipped-badge" wx:if="{{t.equipped}}" style="border-color:{{t.color}}; color:{{t.color}}">
+        <text class="equipped-badge-icon">牒</text>
+        <text class="equipped-badge-name">{{t.name}}</text>
+        <text class="equipped-badge-bonus">+{{t.bonus}}</text>
+      </view>
+    </block>
+    <view class="equipped-hint">佩戴中的称号加成自动计入积分计算</view>
+  </view>
+
+  <!-- 等级 Tab 栏 -->
+  <scroll-view scroll-x class="level-tabs" wx:if="{{!loading}}">
+    <view
+      wx:for="{{levelTabs}}"
+      wx:key="key"
+      class="level-tab {{activeLevel === item.key ? 'active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTapLevelTab"
+    >{{item.label}}</view>
+  </scroll-view>
+
+  <!-- 加载 -->
+  <view class="loading-card" wx:if="{{loading}}">
+    <text class="loading-text">道牒加载中...</text>
+  </view>
+
+  <!-- 称号列表 -->
+  <block wx:if="{{!loading}}">
+    <view class="title-grid">
+      <view
+        class="title-card {{t.unlocked ? 'unlocked' : 'locked'}} {{t.equipped ? 'equipped' : ''}}"
+        wx:for="{{displayTitles}}"
+        wx:key="id"
+        wx:for-item="t"
+        data-id="{{t.id}}"
+        bindtap="onTapTitle"
+      >
+        <!-- 等级标签（右上角） -->
+        <view class="level-badge level-{{t.level}}">{{t.levelLabel}}</view>
+
+        <view class="title-badge" style="{{t.unlocked ? 'background:' + t.color + ';color:#fff' : ''}}">
+          <text class="title-badge-text">{{t.unlocked ? t.name.slice(0, 2) : '?'}}</text>
+        </view>
+        <view class="title-name" style="{{t.unlocked ? 'color:' + t.color : ''}}">{{t.name}}</view>
+        <view class="title-bonus" wx:if="{{t.unlocked}}">+{{t.bonus}}</view>
+        <view class="title-condition" wx:else>{{t.conditionText}}</view>
+        <!-- 业务分类（底部小字） -->
+        <view class="title-category-tag">{{t.categoryLabel}}</view>
+        <!-- 佩戴中标签 -->
+        <view class="equipped-tag" wx:if="{{t.equipped}}">佩戴中</view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{displayTitles.length === 0}}">
+      <text>该等级暂无称号</text>
+    </view>
+  </block>
+
+  <view style="height: 60rpx;"></view>
+</view>
+
+<!-- 国风印章解锁提示 -->
+<view class="stamp-overlay" wx:if="{{showStamp}}" bindtap="onCloseStamp">
+  <view class="stamp-card">
+    <view class="stamp-seal" style="border-color:{{stampTitle.color}}; color:{{stampTitle.color}}">
+      <view class="stamp-ring"></view>
+      <view class="stamp-name">{{stampTitle.name}}</view>
+      <view class="stamp-label">道 牒 解 锁</view>
+    </view>
+  </view>
+</view>
+
+<!-- 定场诗展示面板 -->
+<view class="poem-overlay" wx:if="{{showPoemPanel}}" bindtap="onClosePoemPanel">
+  <view class="poem-panel" catchtap="">
+    <view class="poem-panel-title" style="color:{{poemTitle.color}}">{{poemTitle.name}}</view>
+    <view class="poem-panel-divider"></view>
+    <view class="poem-panel-text">{{poemTitle.poem}}</view>
+  </view>
+</view>

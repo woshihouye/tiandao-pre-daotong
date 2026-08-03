@@ -1,0 +1,70 @@
+<!-- 模板进度卡片 -->
+<view
+  class="template-card {{expanded ? 'expanded' : ''}} {{totalProgress >= 100 ? 'completed' : ''}}"
+  style="--card-color: {{categoryColor}}; background-color: {{totalProgress >= 100 ? categoryColor + '10' : '#FFFFFF'}}"
+>
+  <!-- 收起状态：模板头 + 模糊拖动区 -->
+  <view
+    class="card-header"
+    bindtouchstart="onCardTouchStart"
+    bindtouchmove="onCardTouchMove"
+    bindtouchend="onCardTouchEnd"
+  >
+    <view class="header-left">
+      <view class="template-cover" style="background-color: {{categoryColor}}15; color: {{categoryColor}}">
+        <text>{{coverText}}</text>
+      </view>
+      <view class="template-info">
+        <view class="template-name-row">
+          <text class="template-name">{{template.name}}</text>
+          <view class="template-tag-badge" wx:if="{{template.tag}}" style="background-color: {{categoryColor}}15; color: {{categoryColor}}">{{template.tag}}</view>
+        </view>
+        <text class="template-meta">{{template.activities.length}}个修行项<block wx:if="{{template.description}}"> · {{template.description}}</block></text>
+      </view>
+    </view>
+
+    <view class="header-right">
+      <view class="progress-indicator">
+        <text class="progress-value" style="color: {{totalProgress >= 100 ? categoryColor : '#374151'}}">{{totalProgress}}%</text>
+        <text class="progress-gong" style="color: {{categoryColor}}">预计修为 +{{estimatedGong}}</text>
+        <text class="progress-label">完成度</text>
+      </view>
+      <view class="expand-arrow {{expanded ? 'expanded' : ''}}" bindtap="onToggleExpand">
+        <text class="arrow-char">▶</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 进度条（收起时显示在卡片内部） -->
+  <view class="card-progress-bar" wx:if="{{!expanded}}">
+    <view class="progress-track">
+      <view
+        class="progress-fill"
+        style="width: {{totalProgress}}%; background: linear-gradient(90deg, {{categoryColor}}60, {{categoryColor}})"
+      ></view>
+    </view>
+  </view>
+
+  <!-- 展开状态：活动列表 -->
+  <view class="card-body" wx:if="{{expanded}}">
+    <view class="card-progress-bar">
+      <view class="progress-track">
+        <view
+          class="progress-fill"
+          style="width: {{totalProgress}}%; background: linear-gradient(90deg, {{categoryColor}}60, {{categoryColor}})"
+        ></view>
+      </view>
+    </view>
+
+    <view class="activity-list">
+      <activity-progress-item
+        wx:for="{{template.activities}}"
+        wx:key="id"
+        activity="{{item}}"
+        progress="{{activityProgress[item.id] || 0}}"
+        categoryColor="{{categoryColor}}"
+        bindchange="onActivityProgressChange"
+      />
+    </view>
+  </view>
+</view>

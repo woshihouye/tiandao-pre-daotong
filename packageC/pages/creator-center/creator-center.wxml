@@ -1,0 +1,29 @@
+<view class="container">
+  <view class="card stats-card">
+    <view class="stats-title">数据概览</view>
+    <view class="stats-row">
+      <view class="stat-item"><text class="stat-num">{{stats.totalLikes}}</text><text class="stat-label">总点赞</text></view>
+      <view class="stat-item"><text class="stat-num">{{stats.totalFavs}}</text><text class="stat-label">总收藏</text></view>
+      <view class="stat-item"><text class="stat-num">{{stats.totalImports}}</text><text class="stat-label">总导入</text></view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">我的发布 ({{publishedList.length}})</view>
+    <view class="publish-list">
+      <view class="publish-item" wx:for="{{publishedList}}" wx:key="id">
+        <view class="publish-name">{{item.name}}</view>
+        <view class="publish-meta">📥 {{item.importCount || 0}} 导入</view>
+        <view class="publish-actions">
+          <text class="publish-btn" data-id="{{item.id}}" catchtap="editTemplate">编辑</text>
+          <text class="publish-btn danger" data-id="{{item.id}}" catchtap="unpublishTemplate">下架</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">黑名单管理</view>
+    <button class="btn btn-ghost" bindtap="addToBlacklist">+ 添加黑名单用户</button>
+  </view>
+</view>
