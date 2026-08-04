@@ -1,0 +1,76 @@
+<!-- 编辑自定义活动 -->
+<view class="page {{themeClass}}">
+  <!-- 顶部导航 -->
+  <view class="nav-bar">
+    <view class="nav-back" bindtap="onCancel">
+      <text class="nav-back-icon">←</text>
+    </view>
+    <text class="nav-title">{{isNew ? '复制活动' : '编辑活动'}}</text>
+    <view class="nav-action" bindtap="onSave">
+      <text class="nav-save-text">{{saving ? '保存中...' : '保存'}}</text>
+    </view>
+  </view>
+
+  <!-- 提示 -->
+  <view class="tip-bar" wx:if="{{isNew && originActivityName}}">
+    <text class="tip-icon">💡</text>
+    <text class="tip-text">正在复制「{{originActivityName}}」，你可以修改以下内容</text>
+  </view>
+
+  <!-- 表单 -->
+  <view class="form">
+    <!-- 活动名称 -->
+    <view class="form-item">
+      <text class="form-label">活动名称</text>
+      <input class="form-input" placeholder="请输入活动名称（最多20字）" value="{{name}}" bindinput="onNameInput" maxlength="20" />
+    </view>
+
+    <!-- 分类 -->
+    <view class="form-item">
+      <text class="form-label">分类</text>
+      <picker mode="selector" range="{{categories}}" range-key="label" value="{{categoryIndex}}" bindchange="onCategoryChange">
+        <view class="form-picker">
+          <text>{{categories[categoryIndex].label}}</text>
+          <text class="picker-arrow">▾</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 单位 -->
+    <view class="form-item">
+      <text class="form-label">单位</text>
+      <picker mode="selector" range="{{units}}" value="{{unitIndex}}" bindchange="onUnitChange">
+        <view class="form-picker">
+          <text>{{units[unitIndex]}}</text>
+          <text class="picker-arrow">▾</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 每单位修为 -->
+    <view class="form-item">
+      <text class="form-label">每单位修为</text>
+      <input class="form-input" type="number" placeholder="输入数值（如 1、-5）" value="{{scorePerUnit}}" bindinput="onScoreInput" />
+      <text class="form-hint">正数为增益，负数为减益</text>
+    </view>
+
+    <!-- 描述 -->
+    <view class="form-item">
+      <text class="form-label">描述</text>
+      <textarea class="form-textarea" placeholder="输入活动描述（选填）" value="{{description}}" bindinput="onDescInput" maxlength="200" />
+    </view>
+
+    <!-- 图标 -->
+    <view class="form-item">
+      <text class="form-label">图标（emoji）</text>
+      <input class="form-input" placeholder="输入一个 emoji 作为图标（选填）" value="{{icon}}" bindinput="onIconInput" maxlength="2" />
+    </view>
+  </view>
+
+  <!-- 底部保存按钮 -->
+  <view class="bottom-bar">
+    <button class="btn-save" bindtap="onSave" loading="{{saving}}" disabled="{{saving}}">
+      {{isNew ? '复制并保存' : '保存修改'}}
+    </button>
+  </view>
+</view>

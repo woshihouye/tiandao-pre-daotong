@@ -11,7 +11,7 @@
 //   - 同类型取最高生效，不同类型加成可叠加
 // ============================================================
 
-var consts = require('./constants.js')
+var consts = require('../../utils/constants.js')
 var TITLE_TIER = consts.TITLE_TIER
 
 /**

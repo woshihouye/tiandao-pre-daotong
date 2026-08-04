@@ -102,13 +102,16 @@ async function getLibrary(params) {
     .limit(pageSize)
     .get()
   var countRes = await db.collection('activities').where(where).count()
+  // getLibrary - 返回结构与前端对齐: { ok, data: { list, total, ... } }
   return {
     ok: true,
-    list: (res.data || []).map(sanitizeActivity),
-    total: countRes.total,
-    page: page,
-    pageSize: pageSize,
-    source: 'cloud'
+    data: {
+      list: (res.data || []).map(sanitizeActivity),
+      total: countRes.total,
+      page: page,
+      pageSize: pageSize,
+      source: 'cloud'
+    }
   }
 }
 
@@ -149,12 +152,15 @@ async function getPublicCustom(params) {
     .limit(pageSize)
     .get()
   var countRes = await db.collection('user_activities').where(where).count()
+  // getPublicCustom - 返回结构与前端对齐: { ok, data: { list, total, ... } }
   return {
     ok: true,
-    list: (res.data || []).map(sanitizeActivity),
-    total: countRes.total,
-    page: page,
-    pageSize: pageSize
+    data: {
+      list: (res.data || []).map(sanitizeActivity),
+      total: countRes.total,
+      page: page,
+      pageSize: pageSize
+    }
   }
 }
 
@@ -169,17 +175,21 @@ async function getMine(openid, params) {
     .skip((page - 1) * pageSize)
     .limit(pageSize)
     .get()
+  // getMine - 返回结构与前端对齐: { ok, data: { list, total } }
   return {
     ok: true,
-    list: (res.data || []).map(sanitizeActivity),
-    total: res.data ? res.data.length : 0
+    data: {
+      list: (res.data || []).map(sanitizeActivity),
+      total: res.data ? res.data.length : 0
+    }
   }
 }
 
 /** 按 id 批量取活动（供记录页加载已选活动） */
 async function getByIds(params) {
   var ids = params.ids
-  if (!ids || !ids.length) return { ok: true, list: [] }
+  // getByIds - 返回结构与前端对齐: { ok, data: { list } }
+  if (!ids || !ids.length) return { ok: true, data: { list: [] } }
   var officialIds = []
   var customIds = []
   for (var i = 0; i < ids.length; i++) {
@@ -200,7 +210,7 @@ async function getByIds(params) {
       .where({ activityId: _.in(customIds.slice(0, 20)) }).limit(20).get()
     result = result.concat((cusRes.data || []).map(sanitizeActivity))
   }
-  return { ok: true, list: result }
+  return { ok: true, data: { list: result } }
 }
 
 // ==================== 写操作 ====================
@@ -320,7 +330,8 @@ async function cloneActivity(openid, params) {
 /** 搜索（官方+公开自定义合并） */
 async function searchActivities(params) {
   var kw = String(params.keyword || '').trim()
-  if (!kw) return { ok: true, list: [], total: 0 }
+  // searchActivities - 返回结构与前端对齐: { ok, data: { list, total } }
+  if (!kw) return { ok: true, data: { list: [], total: 0 } }
   var reg = db.RegExp({ regexp: kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), options: 'i' })
   var limit = Math.min(parseInt(params.pageSize) || 20, 50)
   var offRes = await db.collection('activities')
@@ -329,7 +340,8 @@ async function searchActivities(params) {
     .where({ status: 'active', visibility: 'public', name: reg }).limit(limit).get()
   var list = (offRes.data || []).map(sanitizeActivity)
     .concat((cusRes.data || []).map(sanitizeActivity))
-  return { ok: true, list: list.slice(0, limit), total: list.length }
+  // searchActivities 主返回 - 结构与前端对齐: { ok, data: { list, total } }
+  return { ok: true, data: { list: list.slice(0, limit), total: list.length } }
 }
 
 // ==================== 入口 ====================

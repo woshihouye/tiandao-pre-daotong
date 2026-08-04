@@ -3,7 +3,7 @@ const {
   calculateDietScore,
   resolveTrainingPath,
   getDebuffScore
-} = require('./score.js')
+} = require('../../utils/score.js')
 
 const CACHE_DAYS = 7
 
@@ -175,7 +175,9 @@ async function checkImageSecurity(base64) {
     }
     return { ok: true, reason: '' }
   } catch (e) {
-    return { ok: true, reason: '' }
+    console.error('[安全检测] imgSecCheck云函数调用失败:', e)
+    // 检测失败时不应放行，标记为需人工审核
+    return { ok: false, reason: '安全检测服务暂不可用，请稍后再试' }
   }
 }
 

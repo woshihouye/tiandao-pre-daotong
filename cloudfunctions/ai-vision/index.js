@@ -4,32 +4,62 @@ const axios = require('axios')
 cloud.init({ env: 'cloudbase-d9gymqfdb305568c7' })
 
 // ============================================================
-// 火山引擎方舟 API 常量
-// API Key 通过云函数环境变量注入，禁止硬编码
+// AI模型API配置
+// API Key通过云函数环境变量注入，禁止硬编码
 // ============================================================
 const ARK_API_URL = 'https://ark.cn-beijing.volces.com/api/v3/responses'
 const ARK_MODEL = 'doubao-seed-2-0-mini-260428'
 const REQUEST_TIMEOUT_MS = 20000
 
 // ============================================================
-// 识别结果缓存（基于 fileID，云函数热实例复用）
+// 频率限制（基于用户OPENID + 每日30次）
+// ============================================================
+const DAILY_LIMIT = 30
+const rateLimitMap = new Map()
+
+function checkRateLimit(openid) {
+  const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+  const key = openid + '_' + today
+  let entry = rateLimitMap.get(key)
+  
+  if (!entry) {
+    entry = { count: 0, date: today }
+    rateLimitMap.set(key, entry)
+    // 清理旧记录
+    for (const [k, v] of rateLimitMap) {
+      if (!k.endsWith('_' + today)) rateLimitMap.delete(k)
+    }
+  }
+  
+  entry.count++
+  return {
+    allowed: entry.count <= DAILY_LIMIT,
+    count: entry.count,
+    limit: DAILY_LIMIT
+  }
+}
+
+// ============================================================
+// 识别结果缓存（基于 openid + fileID，云函数热实例复用）
 // ============================================================
 const resultCache = new Map()
 const CACHE_TTL_MS = 30 * 60 * 1000  // 30分钟有效期
 
-function getCached(fileID) {
-  const entry = resultCache.get(fileID)
+function getCached(openid, fileID) {
+  const key = openid + '_' + fileID
+  const entry = resultCache.get(key)
   if (!entry) return null
   if (Date.now() - entry.ts > CACHE_TTL_MS) {
-    resultCache.delete(fileID)
+    resultCache.delete(key)
     return null
   }
-  console.log('[cache] 命中缓存，fileID=', fileID, '已缓存', ((Date.now() - entry.ts) / 1000).toFixed(0), 's')
+  console.log('[cache] 命中缓存，key=', key, '已缓存', ((Date.now() - entry.ts) / 1000).toFixed(0), 's')
   return entry.data
 }
 
-function setCached(fileID, data) {
-  resultCache.set(fileID, { data, ts: Date.now() })
+function setCached(openid, fileID, data) {
+  const key = openid + '_' + fileID
+  resultCache.set(key, { data, ts: Date.now() })
 }
 
 // ============================================================
@@ -63,7 +93,7 @@ function buildDataUri(buffer) {
 }
 
 // ============================================================
-// 调用火山引擎方舟视觉模型
+// 调用AI视觉模型
 // ============================================================
 async function callArkVisionAPI(dataUri, apiKey) {
   const requestBody = {
@@ -181,7 +211,7 @@ async function callArkVisionAPI(dataUri, apiKey) {
     thinking: { type: 'disabled' }
   }
 
-  console.log('[ark] 发起请求，model=', ARK_MODEL, 'imageUri长度=', dataUri.length)
+  // console.log('[debug] AI请求发起')  // 调试日志，移除敏感参数
   const startTime = Date.now()
 
   const response = await axios.post(ARK_API_URL, requestBody, {
@@ -193,7 +223,7 @@ async function callArkVisionAPI(dataUri, apiKey) {
   })
 
   const elapsed = Date.now() - startTime
-  console.log('[ark] 请求完成，耗时=', elapsed, 'ms', '状态码=', response.status)
+  // console.log('[debug] AI请求完成, 耗时=' + elapsed + 'ms, 状态码=' + response.status)  // 调试日志
 
   return response.data
 }
@@ -267,20 +297,20 @@ function normalizeVisionResult(json) {
 }
 
 // ============================================================
-// 解析火山引擎返回结果（三级 JSON 提取容错）
+// 解析AI返回结果（三级 JSON 提取容错）
 // ============================================================
 function parseArkResponse(responseData) {
   // /v3/responses 标准格式：output[].content[].text
   const text = responseData?.output?.[0]?.content?.[0]?.text
   if (text) {
-    console.log('[ark] AI原始返回：', text.slice(0, 300))
+    console.log('[ark] 获取到AI返回文本，长度=', text.length)
 
     // 第1级：直接 JSON.parse
     const json = extractJsonFromText(text)
     if (json) {
-      console.log('[ark] JSON解析成功，type=', json.type)
+      // console.log('[debug] JSON解析成功, type=' + json.type)  // 调试日志
       const result = normalizeVisionResult(json)
-      console.log('[ark] 标准化结果：', JSON.stringify(result))
+      // console.log('[debug] 标准化结果完成')  // 调试日志，移除敏感内容
       return { ok: true, data: result }
     }
 
@@ -299,7 +329,7 @@ function parseArkResponse(responseData) {
     return { ok: false, error: 'AI返回格式异常，请稍后重试或手动录入' }
   }
 
-  console.error('[ark] 无法解析返回体:', JSON.stringify(responseData).slice(0, 500))
+  console.error('[ark] 无法解析返回体')
   return { ok: false, error: 'AI返回格式异常，无法解析识别结果' }
 }
 
@@ -316,14 +346,14 @@ function normalizeError(e) {
     console.error('[ark] 网络连接失败:', e.code, e.message)
     return { ok: false, status: 502, error: 'AI服务网络连接失败' }
   }
-  // 火山引擎返回的业务错误
+  // API返回的业务错误
   if (e.response?.data?.error) {
     const err = e.response.data.error
     console.error('[ark] 业务错误:', err.code, err.message)
     return {
       ok: false,
       status: e.response.status || 400,
-      error: err.message || 'AI服务返回错误'
+      error: 'AI识别服务暂时不可用，请稍后重试'
     }
   }
   // HTTP 状态码错误
@@ -337,7 +367,7 @@ function normalizeError(e) {
   }
   // 未知错误
   console.error('[ark] 未知错误:', e.message, e.stack)
-  return { ok: false, status: -1, error: e.message || '未知错误' }
+  return { ok: false, status: -1, error: 'AI识别服务暂时不可用，请稍后重试' }
 }
 
 // ============================================================
@@ -353,15 +383,27 @@ exports.main = async (event) => {
     return { ok: false, error: '参数错误：缺少有效的 cloud:// 文件ID' }
   }
 
+  // --- 获取真实 OPENID ---
+  const openid = cloud.getWXContext().OPENID
+
   // --- API Key 校验（从环境变量读取） ---
   const apiKey = process.env.DOUBAO_API_KEY
   if (!apiKey) {
-    console.error('[ai-vision] 未配置 DOUBAO_API_KEY 环境变量')
-    return { ok: false, error: '服务未配置：请在云开发控制台设置 DOUBAO_API_KEY 环境变量' }
+    console.error('[ai-vision] 未配置 API_KEY 环境变量')
+    return { ok: false, error: '服务未配置：请在云开发控制台设置 API_KEY 环境变量' }
+  }
+
+  // --- 频率限制 ---
+  if (openid) {
+    const rateLimit = checkRateLimit(openid)
+    if (!rateLimit.allowed) {
+      return { ok: false, error: '今日调用次数已达上限（' + DAILY_LIMIT + '次），请明日再来。' }
+    }
+    console.log('[ai-vision] 限流:', openid, rateLimit.count + '/' + DAILY_LIMIT)
   }
 
   // --- 缓存检查 ---
-  const cached = getCached(fileID)
+  const cached = getCached(openid, fileID)
   if (cached) {
     console.log('[ai-vision] 命中缓存，直接返回')
     return { ok: true, data: cached, fromCache: true }
@@ -381,13 +423,13 @@ exports.main = async (event) => {
     const { mimeType, dataUri } = buildDataUri(downloadRes.fileContent)
     console.log('[ai-vision] Base64 编码完成，MIME=', mimeType, '长度=', dataUri.length)
 
-    // --- Step 3: 调用火山引擎视觉模型 ---
+    // --- Step 3: 调用AI视觉模型 ---
     const arkResponse = await callArkVisionAPI(dataUri, apiKey)
 
     // --- Step 4: 解析结果并缓存 ---
     const result = parseArkResponse(arkResponse)
     if (result.ok && result.data) {
-      setCached(fileID, result.data)
+      setCached(openid, fileID, result.data)
     }
     return result
 

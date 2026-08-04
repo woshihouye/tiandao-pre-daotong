@@ -14,7 +14,7 @@ const {
   buildTrainingAdvice,
   getStageConfig,
   formatDate
-} = require('../../../utils/foundation-technique.js')
+} = require('../../utils/foundation-technique.js')
 
 function defaultBodyProfile() {
   return {

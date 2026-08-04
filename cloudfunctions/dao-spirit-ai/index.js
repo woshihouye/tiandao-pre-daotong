@@ -1,4 +1,4 @@
-// 道童AI云函数 v3 — 火山引擎方舟多模态对话 + 活动自动记录
+// 道童AI云函数 v3 — AI多模态对话 + 活动自动记录
 // 支持五种模式：chat（对话+自动记录）、recognize_record、query_data、recognize_media、get_daily_record
 
 const cloud = require('wx-server-sdk')
@@ -156,7 +156,7 @@ const RECORD_ACTIVITY_TOOL = {
 // ==================== API 调用函数 ====================
 
 /**
- * 调用火山引擎方舟 Chat Completions API（支持 tools）
+ * 调用 AI Chat Completions API（支持 tools）
  * 协议：OpenAI Chat Completions 兼容格式
  */
 async function callArkAPI(params) {
@@ -210,8 +210,7 @@ async function callArkAPI(params) {
     var status = axiosErr.response && axiosErr.response.status
     var errData = axiosErr.response && axiosErr.response.data
     console.error('[ark-dao] 请求失败，status=', status, 'message=', axiosErr.message)
-    try { console.error('[ark-dao] 请求体片段:', JSON.stringify(requestBody).slice(0, 1000)) } catch (_) { console.error('[ark-dao] 请求体序列化失败') }
-    try { console.error('[ark-dao] 响应体:', JSON.stringify(errData || {}).slice(0, 500)) } catch (_) {}
+    console.error('[ark-dao] 响应体:', JSON.stringify(errData || {}).slice(0, 500))
     console.error('[ark-dao] 错误堆栈:', axiosErr.stack || '无堆栈')
     throw new Error('ARK_API_' + (status || 'NETWORK') + ': ' + ((errData && errData.error && errData.error.message) || axiosErr.message))
   }
@@ -261,8 +260,7 @@ async function callArkVisionAPI(params) {
     var status = axiosErr.response && axiosErr.response.status
     var errData = axiosErr.response && axiosErr.response.data
     console.error('[ark-dao-vision] 请求失败，status=', status, 'message=', axiosErr.message)
-    try { console.error('[ark-dao-vision] 请求体片段:', JSON.stringify(requestBody).slice(0, 500)) } catch (_) { console.error('[ark-dao-vision] 请求体序列化失败') }
-    try { console.error('[ark-dao-vision] 响应体:', JSON.stringify(errData || {}).slice(0, 300)) } catch (_) {}
+    console.error('[ark-dao-vision] 响应体:', JSON.stringify(errData || {}).slice(0, 300))
     console.error('[ark-dao-vision] 错误堆栈:', axiosErr.stack || '无堆栈')
     throw new Error('ARK_VISION_' + (status || 'NETWORK') + ': ' + ((errData && errData.error && errData.error.message) || axiosErr.message))
   }
@@ -427,7 +425,7 @@ async function executeRecordActivity(userId, recordData, rawMessage) {
     }
   } catch (e) {
     console.error('[record] 数据库写入失败:', e.message)
-    return { ok: false, error: e.message || '数据库写入异常' }
+    return { ok: false, error: '活动记录失败，请稍后重试' }
   }
 }
 
@@ -705,8 +703,8 @@ async function handleGetDailyRecord(params) {
     }
     return { ok: true, record: null }
   } catch (e) {
-    console.error('get_daily_record error:', e.message)
-    return { ok: false, error: e.message || '查询失败' }
+    console.error('[dao-spirit-ai] get_daily_record error:', e.message)
+    return { ok: false, error: '修行记录查询失败，请稍后重试' }
   }
 }
 
@@ -763,7 +761,7 @@ async function handleRecognizeRecord(params) {
           dimension: item.dimension,
           content: String(item.content || '').substring(0, 50),
           detail: { type: item.detail.type, unit: Number(item.detail.unit) },
-          suggestedScore: typeof item.suggestedScore === 'number' ? Number(item.suggestedScore) : 0
+          suggestedScore: typeof item.suggestedScore === 'number' ? Math.min(Math.max(Number(item.suggestedScore), 0), 50) : 0
         }
       })
 
@@ -789,6 +787,9 @@ async function handleQueryData(params) {
 
   if (!question || !apiKey) { return { ok: false, error: '参数不完整：需要 question, apiKey' } }
 
+  // Prompt注入防护：过滤危险关键词，限制问题长度
+  var sanitizedQuestion = question.replace(/```/g, '').replace(/系统指令|system prompt|忽略|ignore|角色扮演|role.?play/gi, '[已过滤]').substring(0, 200)
+
   var dataContext = ''
   if (todaySummary) { dataContext += '\n【今日修行数据】\n' + JSON.stringify(todaySummary, null, 2) }
   if (weeklySummary) { dataContext += '\n【本周修行数据】\n' + JSON.stringify(weeklySummary, null, 2) }
@@ -797,7 +798,7 @@ async function handleQueryData(params) {
   try {
     var arkResponse = await callArkAPI({
       instructions: QUERY_DATA_PROMPT,
-      messages: [{ role: 'user', content: '以下是用户「' + (userId || '道友') + '」的修行数据：' + dataContext + '\n\n用户的问题：' + question + '\n\n请根据以上数据回答用户的问题。' }],
+      messages: [{ role: 'user', content: '以下是用户「' + (userId || '道友') + '」的修行数据：' + dataContext + '\n\n用户的问题：' + sanitizedQuestion + '\n\n请根据以上数据回答用户的问题。' }],
       temperature: 0.5,
       max_tokens: 300,
       apiKey: apiKey
@@ -859,22 +860,26 @@ async function handleRecognizeMedia(params) {
       }
     }
   } catch (e) {
-    console.error('recognize_media error:', e.message)
-    return { ok: false, error: e.message || '媒体识别失败' }
+    console.error('[dao-spirit-ai] recognize_media error:', e.message)
+    return { ok: false, error: '媒体识别失败，请稍后重试' }
   }
 }
 
 // ==================== 主入口 ====================
 
 exports.main = async function(event) {
-  var action = event.action; var userId = event.userId
+  var action = event.action
+  // 安全：强制使用微信云开发真实OPENID，不信任前端传入的userId
+  var wxContext = cloud.getWXContext()
+  var userId = wxContext.OPENID
+  event.userId = userId
 
   if (!action) { return { ok: false, error: '参数不完整：需要 action' } }
 
   var apiKey = process.env.DOUBAO_API_KEY
   if (!apiKey) {
-    console.error('[dao-spirit-ai] 未配置 DOUBAO_API_KEY 环境变量')
-    return { ok: false, error: '服务未配置：请在云开发控制台设置 DOUBAO_API_KEY 环境变量' }
+    console.error('[dao-spirit-ai] 未配置 API_KEY 环境变量')
+    return { ok: false, error: '服务未配置：请在云开发控制台设置 API_KEY 环境变量' }
   }
 
   // 频率限制（get_daily_record 不消耗额度）
@@ -884,7 +889,7 @@ exports.main = async function(event) {
       if (!rateLimit.allowed) {
         return { ok: false, error: '今日调用次数已达上限（' + RATE_LIMIT_MAX + '次），请明日再来。', rateLimited: true, count: rateLimit.count }
       }
-    } catch (e) { console.error('频率检查失败:', e.message) }
+    } catch (e) { console.error('[dao-spirit-ai] 频率检查失败:', e.message) }
   }
 
   event.apiKey = apiKey
@@ -899,7 +904,7 @@ exports.main = async function(event) {
       default:                   return { ok: false, error: '未知的 action: ' + action }
     }
   } catch (e) {
-    console.error('action ' + action + ' 执行异常:', e.message)
-    return { ok: false, error: e.message || '云函数执行异常' }
+    console.error('[dao-spirit-ai] action ' + action + ' 执行异常:', e.message)
+    return { ok: false, error: '道心波动，请稍后再试' }
   }
 }

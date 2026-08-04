@@ -51,7 +51,8 @@ exports.main = async (event) => {
     return { ok: true, verified: true, checks }
 
   } catch (e) {
-    return { ok: false, error: e.message }
+    console.error('[anti-cheat-check] error:', e.message)
+    return { ok: false, error: '反作弊验证失败，请稍后重试' }
   }
 }
 

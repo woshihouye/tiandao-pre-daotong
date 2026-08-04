@@ -16,6 +16,15 @@ var CATEGORY_TABS = [
   { key: 'debuff', id: 'sha', name: '煞·心魔', icon: '煞', color: '#6B7280' }
 ]
 
+// 默认时段配置（用于公开模板活动分配）
+var DEFAULT_SLOTS = [
+  { id: 'dawn',    name: '晨起',   startTime: '05:00', endTime: '08:00' },
+  { id: 'morning', name: '上午',   startTime: '08:00', endTime: '12:00' },
+  { id: 'noon',    name: '中午',   startTime: '12:00', endTime: '14:00' },
+  { id: 'afternoon', name: '下午', startTime: '14:00', endTime: '18:00' },
+  { id: 'night',   name: '晚上',   startTime: '18:00', endTime: '22:00' }
+]
+
 // preset 骨骼分类 → tab 分类的映射
 // custom-preset.js 的 presets 用了一套骨骼分类体系，这里映射到我们的 tab
 var PRESET_BONE_CATEGORY_MAP = {
@@ -45,14 +54,12 @@ Page({
     // 当前模板的进度
     activityProgress: {},
 
-    // 展开状态
-    expandedCards: {},
-
     // 计算结果
     result: {},
 
     // 提交状态
-    submitting: false
+    submitting: false,
+    mode: 'fuzzy'
   },
 
   onLoad: function () {
@@ -60,6 +67,7 @@ Page({
     if (!hasInitial) {
       this.loadTemplates('wu')
     }
+    this._loadCustomActivities()
   },
 
   onShow: function () {
@@ -94,8 +102,7 @@ Page({
       activeTab: tab.id,
       activeCategory: tab.key,
       activeColor: tab.color,
-      tabIcon: tab.icon,
-      expandedCards: {}
+      tabIcon: tab.icon
     })
     this.loadTemplates(tab.id)
     return true
@@ -115,6 +122,10 @@ Page({
           for (var cp = 0; cp < catPresets.length; cp++) {
             var preset = catPresets[cp]
             var presetActivity = activityLib.getActivityById(preset.id)
+            // 如果官方活动库找不到，尝试从已加载的自定义活动中找
+            if (!presetActivity && self._customActivityMap && self._customActivityMap[preset.id]) {
+              presetActivity = self._customActivityMap[preset.id]
+            }
             var activity = presetActivity || {
               id: preset.id, name: preset.name || preset.id,
               unit: '分钟', scorePerUnit: preset.baseScore || 1,
@@ -132,7 +143,14 @@ Page({
                 scorePerUnit: activity.scorePerUnit || 1,
                 icon: activity.icon, isNegative: activity.isNegative || false,
                 _preset: preset
-              }]
+              }],
+              schedule: [
+                { id: 'all', name: '修行活动', startTime: '', endTime: '', activities: [{
+                  id: activity.id, name: activity.name, unit: activity.unit || '分钟',
+                  scorePerUnit: activity.scorePerUnit || 1, icon: activity.icon,
+                  isNegative: activity.isNegative || false
+                }]}
+              ]
             })
           }
         }
@@ -150,6 +168,10 @@ Page({
       for (var ai = 0; ai < pubTpl.activities.length; ai++) {
         var actId = pubTpl.activities[ai]
         var act = activityLib.getActivityById(actId)
+        // 如果官方活动库找不到，尝试从已加载的自定义活动中找
+        if (!act && self._customActivityMap && self._customActivityMap[actId]) {
+          act = self._customActivityMap[actId]
+        }
         if (act) {
           activities.push({
             id: act.id, name: act.name,
@@ -160,6 +182,22 @@ Page({
         }
       }
       if (activities.length > 0) {
+        // 构建时段分配
+        var schedule = []
+        var totalActs = activities.length
+        var slotsToUse = Math.min(totalActs, 5)
+        var actsPerSlot = Math.ceil(totalActs / slotsToUse)
+        for (var si = 0; si < slotsToUse; si++) {
+          var slot = DEFAULT_SLOTS[si]
+          var slotActivities = activities.slice(si * actsPerSlot, Math.min((si + 1) * actsPerSlot, totalActs))
+          schedule.push({
+            id: slot.id,
+            name: slot.name,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            activities: slotActivities
+          })
+        }
         publicTemplateCards.push({
           id: 'public_' + pubTpl.id,
           name: pubTpl.name,
@@ -167,7 +205,8 @@ Page({
           themeClass: categoryId,
           tag: pubTpl.tag || '官方',
           description: pubTpl.description || '',
-          activities: activities
+          activities: activities,
+          schedule: schedule
         })
       }
     }
@@ -200,6 +239,9 @@ Page({
       activityProgress: activityProgress
     })
 
+    // 计算每个模板的总进度百分比和预计修为
+    this._updateTemplateProgresses()
+
     this.recalcResult()
   },
 
@@ -213,16 +255,19 @@ Page({
       activeTab: tab.id,
       activeCategory: tab.key,
       activeColor: tab.color,
-      tabIcon: tab.icon,
-      expandedCards: {}
+      tabIcon: tab.icon
     })
 
     this.loadTemplates(tab.id)
   },
 
-  // ========== 模板选择 ==========
-  onTemplateSelect: function (e) {
-    var index = e.currentTarget.dataset.index
+  // ========== Swiper 切换 ==========
+
+  /**
+   * 轮播切换：更新当前模板和进度
+   */
+  onSwiperChange: function(e) {
+    var index = e.detail.current
     if (index === this.data.currentTemplateIndex) return
 
     var template = this.data.templates[index]
@@ -239,38 +284,334 @@ Page({
     this.recalcResult()
   },
 
-  // ========== 进度变化 ==========
-  onProgressChange: function (e) {
-    var detail = e.detail
-    var allProgress = Object.assign({}, this.data.allProgress)
-    allProgress[detail.templateId] = detail.activityProgress
+  /**
+   * 点击卡片进入精准记录模式
+   */
+  onCardTap: function(e) {
+    var idx = e.currentTarget.dataset.index
+    var template = this.data.templates[idx]
+    if (!template) return
 
-    var updateData = {}
-    if (detail.templateId === this.data.currentTemplate.id) {
-      updateData.activityProgress = detail.activityProgress
-      if (this._recalcTimer) clearTimeout(this._recalcTimer)
-      this._recalcTimer = setTimeout(this.recalcResult.bind(this), 200)
+    // 确保精准模式有最新的 activityProgress
+    var activityProgress = this.data.allProgress[template.id] || {}
+
+    this.setData({
+      currentTemplateIndex: idx,
+      currentTemplate: template,
+      activityProgress: activityProgress,
+      mode: 'precise'
+    })
+  },
+
+  /**
+   * 精准模式返回模糊模式，重新计算总进度
+   */
+  onPreciseBack: function() {
+    var template = this.data.currentTemplate
+    if (!template || !template.activities) {
+      this.setData({ mode: 'fuzzy' })
+      return
     }
 
-    // activityProgress 立即更新保证 UI 实时响应
-    if (Object.keys(updateData).length > 0) {
-      this.setData(updateData)
+    var progMap = this.data.activityProgress
+    var totalProgress = 0
+    var estimatedScore = 0
+    var count = template.activities.length
+
+    for (var i = 0; i < count; i++) {
+      var act = template.activities[i]
+      var p = progMap[act.id] || 0
+      totalProgress += p
+      estimatedScore += (act.scorePerUnit || 0) * (p / 100)
     }
 
-    // allProgress 用 debounce 批量写入，避免高频全量 setData
-    if (this._progressTimer) clearTimeout(this._progressTimer)
+    totalProgress = Math.round(totalProgress / count)
+    template.totalProgress = totalProgress
+    template.estimatedScore = estimatedScore >= 0
+      ? '+' + Math.round(estimatedScore * 10) / 10
+      : '-' + Math.round(Math.abs(estimatedScore) * 10) / 10
+
+    var templates = this.data.templates.slice()
+    var tplIdx = this.data.currentTemplateIndex
+    if (tplIdx >= 0 && tplIdx < templates.length) {
+      templates[tplIdx] = template
+    }
+
+    this.setData({
+      templates: templates,
+      mode: 'fuzzy'
+    })
+
+    this.recalcResult()
+  },
+
+  // ========== 精准模式：活动行水平滑动 ==========
+
+  /**
+   * 活动行触摸开始
+   */
+  onActivityTouchStart: function(e) {
+    var actId = e.currentTarget.dataset.actId
+    if (!actId) return
+
+    var progMap = this.data.activityProgress
+    var currentProgress = progMap[actId] || 0
+
+    this._actTouchData = {
+      actId: actId,
+      startX: e.touches[0].clientX,
+      startProgress: currentProgress,
+      lastVibrateProgress: currentProgress,
+      moving: false
+    }
+  },
+
+  /**
+   * 活动行触摸移动：水平滑动调整进度
+   */
+  onActivityTouchMove: function(e) {
+    if (!this._actTouchData) return
+
+    var td = this._actTouchData
+    var deltaX = e.touches[0].clientX - td.startX  // 右滑为正（增加进度）
+
+    // 行宽 ≈ 250px，映射到 0-100 进度
+    var rowWidth = 250
+    var progressChange = (deltaX / rowWidth) * 100
+    var newProgress = Math.max(0, Math.min(100, Math.round(td.startProgress + progressChange)))
+
+    td.moving = true
+    td._currentProgress = newProgress
+
+    // 每跨过 10% 边界震动
+    var crossed = Math.floor(newProgress / 10) - Math.floor(td.lastVibrateProgress / 10)
+    if (crossed !== 0) {
+      try { wx.vibrateShort({ type: 'light' }) } catch (err) {}
+      td.lastVibrateProgress = newProgress
+    }
+
+    this._applyActivityProgress(td.actId, newProgress)
+  },
+
+  /**
+   * 活动行触摸结束：吸附到 5%
+   */
+  onActivityTouchEnd: function(e) {
+    if (!this._actTouchData) return
+
+    var td = this._actTouchData
+    if (!td.moving) {
+      this._actTouchData = null
+      return
+    }
+
+    var currentProgress = td._currentProgress !== undefined ? td._currentProgress : td.startProgress
+    var snapped = Math.round(currentProgress / 5) * 5
+    snapped = Math.max(0, Math.min(100, snapped))
+
+    this._applyActivityProgress(td.actId, snapped)
+    this._actTouchData = null
+
+    // 重算结果
+    if (this._recalcTimer) clearTimeout(this._recalcTimer)
     var self = this
-    this._progressTimer = setTimeout(function () {
-      self.setData({ allProgress: allProgress })
+    this._recalcTimer = setTimeout(function() {
+      self.recalcResult()
     }, 100)
   },
 
-  // ========== 展开/收起 ==========
-  onToggleExpand: function (e) {
-    var templateId = e.detail.templateId
-    var expandedCards = Object.assign({}, this.data.expandedCards)
-    expandedCards[templateId] = !expandedCards[templateId]
-    this.setData({ expandedCards: expandedCards })
+  /**
+   * 应用单个活动的进度变化
+   */
+  _applyActivityProgress: function(actId, progress) {
+    var template = this.data.currentTemplate
+    if (!template) return
+
+    var allProgress = Object.assign({}, this.data.allProgress)
+    var progMap = allProgress[template.id] || {}
+    progMap[actId] = progress
+    allProgress[template.id] = progMap
+
+    var activityProgress = Object.assign({}, this.data.activityProgress)
+    activityProgress[actId] = progress
+
+    this.setData({
+      allProgress: allProgress,
+      activityProgress: activityProgress
+    })
+  },
+
+  // ========== 触摸进度调节 ==========
+
+  /**
+   * 触摸开始：记录起始位置和初始进度
+   */
+  onCardTouchStart: function(e) {
+    var idx = e.currentTarget.dataset.index
+    if (idx === undefined) return
+
+    var template = this.data.templates[idx]
+    if (!template) return
+
+    this._touchData = {
+      index: idx,
+      startY: e.touches[0].clientY,
+      startProgress: template.totalProgress || 0,
+      lastVibrateProgress: template.totalProgress || 0,
+      moving: false
+    }
+  },
+
+  /**
+   * 触摸移动：计算 delta 映射到进度变化
+   */
+  onCardTouchMove: function(e) {
+    if (!this._touchData) return
+
+    var td = this._touchData
+    var deltaY = td.startY - e.touches[0].clientY  // 上滑为正
+
+    // 卡片高度 ≈ 屏幕高度的 55%，映射到 0-100 进度
+    // 像素 → 进度映射比例
+    var cardHeight = 300  // 大致像素高度
+    var progressChange = (deltaY / cardHeight) * 100
+    var newProgress = Math.max(0, Math.min(100, Math.round(td.startProgress + progressChange)))
+
+    td.moving = true
+    td._currentProgress = newProgress
+
+    // 每跨过 10% 边界时震动
+    var crossed = Math.floor(newProgress / 10) - Math.floor(td.lastVibrateProgress / 10)
+    if (crossed !== 0) {
+      try { wx.vibrateShort({ type: 'light' }) } catch (err) {}
+      td.lastVibrateProgress = newProgress
+    }
+
+    // 更新模板进度（按比例分配各活动）
+    this._applyTotalProgress(td.index, newProgress)
+  },
+
+  /**
+   * 触摸结束：吸附到 5% 整数倍
+   */
+  onCardTouchEnd: function(e) {
+    if (!this._touchData) return
+
+    var td = this._touchData
+    if (!td.moving) {
+      this._touchData = null
+      return
+    }
+
+    var currentProgress = td._currentProgress !== undefined ? td._currentProgress : td.startProgress
+
+    // 吸附到最近的 5% 整数倍
+    var snapped = Math.round(currentProgress / 5) * 5
+    snapped = Math.max(0, Math.min(100, snapped))
+
+    this._applyTotalProgress(td.index, snapped)
+
+    // 如果吸附后有跨 10% 边界，再震一次
+    var crossed = Math.floor(snapped / 10) - Math.floor(td.lastVibrateProgress / 10)
+    if (crossed !== 0 && snapped !== td.lastVibrateProgress) {
+      try { wx.vibrateShort({ type: 'light' }) } catch (err) {}
+    }
+
+    this._touchData = null
+
+    // 延迟触发重算结果
+    if (this._recalcTimer) clearTimeout(this._recalcTimer)
+    var self = this
+    this._recalcTimer = setTimeout(function() {
+      self.recalcResult()
+    }, 100)
+  },
+
+  /**
+   * 将总进度百分比按比例分配到模板的各个活动
+   */
+  _applyTotalProgress: function(templateIndex, totalPercent) {
+    var template = this.data.templates[templateIndex]
+    if (!template || !template.activities) return
+
+    var allProgress = Object.assign({}, this.data.allProgress)
+    var progMap = allProgress[template.id] || {}
+
+    // 按比例分配：所有活动都设为相同的进度百分比
+    for (var i = 0; i < template.activities.length; i++) {
+      var act = template.activities[i]
+      progMap[act.id] = Math.round(totalPercent)
+    }
+
+    allProgress[template.id] = progMap
+
+    // 更新当前活动进度
+    var activityProgress = {}
+    if (template.id === this.data.currentTemplate.id) {
+      activityProgress = progMap
+    }
+
+    // 更新 totalProgress 和 estimatedScore
+    var actCount = template.activities.length
+    var estimatedScore = 0
+    for (var j = 0; j < actCount; j++) {
+      var a = template.activities[j]
+      estimatedScore += (a.scorePerUnit || 0) * (totalPercent / 100)
+    }
+
+    template.totalProgress = Math.round(totalPercent)
+    template.estimatedScore = estimatedScore >= 0 ? '+' + Math.round(estimatedScore * 10) / 10 : '-' + Math.round(Math.abs(estimatedScore) * 10) / 10
+
+    var templates = this.data.templates.slice()
+    templates[templateIndex] = template
+
+    this.setData({
+      templates: templates,
+      allProgress: allProgress,
+      activityProgress: activityProgress
+    })
+  },
+
+  // ========== 模板进度计算 ==========
+
+  /**
+   * 计算所有模板的总进度百分比和预计修为
+   * 总进度 = 各活动进度的平均值
+   * 预计修为 = 各活动 scorePerUnit × progress（累加）
+   */
+  _updateTemplateProgresses: function() {
+    var templates = this.data.templates
+    var allProgress = this.data.allProgress
+    var currentTpl = this.data.currentTemplate
+
+    for (var i = 0; i < templates.length; i++) {
+      var tpl = templates[i]
+      var progMap = allProgress[tpl.id] || {}
+      var totalProgress = 0
+      var estimatedScore = 0
+      var actCount = tpl.activities ? tpl.activities.length : 0
+
+      if (actCount > 0) {
+        for (var j = 0; j < tpl.activities.length; j++) {
+          var act = tpl.activities[j]
+          var progress = progMap[act.id] || 0
+          totalProgress += progress
+          estimatedScore += (act.scorePerUnit || 0) * (progress / 100)
+        }
+        totalProgress = Math.round(totalProgress / actCount)
+      }
+
+      tpl.totalProgress = totalProgress
+      tpl.estimatedScore = estimatedScore >= 0 ? '+' + Math.round(estimatedScore * 10) / 10 : '-' + Math.round(Math.abs(estimatedScore) * 10) / 10
+    }
+
+    var updateData = { templates: templates }
+    if (currentTpl) {
+      var cp = allProgress[currentTpl.id] || {}
+      updateData.activityProgress = cp
+    }
+
+    this.setData(updateData)
   },
 
   // ========== 结果预估计算 ==========
@@ -339,6 +680,10 @@ Page({
 
         var factor = progress / 100
         var act = activityLib.getActivityById(actId)
+        // 如果官方活动库找不到，尝试从已加载的自定义活动中找
+        if (!act && self._customActivityMap && self._customActivityMap[actId]) {
+          act = self._customActivityMap[actId]
+        }
         if (!act) continue
 
         // 根据活动的 tabKey 确定 score.js 的 type 参数
@@ -477,6 +822,48 @@ Page({
       self.setData({ submitting: false })
       wx.switchTab({ url: '/pages/index/index' })
     }, 1500)
+  },
+
+  // ========== 自定义活动 ==========
+
+  /**
+   * 加载用户自定义活动列表（供 activityLib 找不到时回退使用）
+   * 在 onLoad / onShow 时调用
+   */
+  _loadCustomActivities: function(callback) {
+    var self = this
+    wx.cloud.callFunction({
+      name: 'user-activity',
+      data: { action: 'list' },
+      success: function(res) {
+        if (res.result && res.result.ok && res.result.data && res.result.data.list) {
+          var map = {}
+          var list = res.result.data.list
+          for (var i = 0; i < list.length; i++) {
+            var item = list[i]
+            map[item.activityId] = {
+              id: item.activityId,
+              name: item.name,
+              unit: item.unit || '次',
+              scorePerUnit: item.scorePerUnit,
+              icon: item.icon || '',
+              isNegative: item.scorePerUnit < 0,
+              isCustom: true,
+              tabKey: item.category,
+              originActivityId: item.originActivityId || ''
+            }
+          }
+          self._customActivityMap = map
+        } else {
+          self._customActivityMap = {}
+        }
+        if (callback) callback()
+      },
+      fail: function() {
+        self._customActivityMap = {}
+        if (callback) callback()
+      }
+    })
   },
 
   // ========== 辅助 ==========

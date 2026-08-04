@@ -1,4 +1,4 @@
-var daoF = require('../../../utils/dao-foundation.js')
+var daoF = require('../../utils/dao-foundation.js')
 Page({
   data: { records: [] },
   onShow() {

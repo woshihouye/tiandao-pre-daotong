@@ -6,6 +6,15 @@ var _ = db.command
 exports.main = async function(event, context) {
   var action = event.action
   var params = event.params || {}
+  // 安全：强制覆盖当前用户身份为真实OPENID
+  var wxContext = cloud.getWXContext()
+  var OPENID = wxContext.OPENID
+  // 覆盖params中的当前用户标识，下游函数统一从params读取
+  if (params.fromUserId !== undefined || params.userId !== undefined) {
+    params.fromUserId = OPENID
+    params.userId = OPENID
+  }
+  event.params = params
 
   try {
     switch (action) {
@@ -24,7 +33,8 @@ exports.main = async function(event, context) {
       default: return { ok: false, error: 'unknown action: ' + action }
     }
   } catch (e) {
-    return { ok: false, error: e.message || 'unknown error' }
+    console.error('[message-center] 未知错误:', e.message)
+    return { ok: false, error: '消息服务暂不可用，请稍后重试' }
   }
 }
 
@@ -83,8 +93,8 @@ async function sendMessage(params) {
 // ==================== 获取会话列表 ====================
 async function getConversations(params) {
   var userId = params.userId
-  var page = params.page || 1
-  var pageSize = params.pageSize || 20
+  var page = Math.min(Math.max(1, parseInt(params.page) || 1), 100)
+  var pageSize = Math.min(Math.max(1, parseInt(params.pageSize) || 20), 50)
   var strangerFilter = params.strangerFilter || 'all'  // 'all' | 'normal' | 'stranger'
 
   if (!userId) return { ok: false, error: '缺少userId' }
@@ -174,8 +184,8 @@ async function getConversations(params) {
 async function getMessages(params) {
   var conversationId = params.conversationId
   var userId = params.userId
-  var page = params.page || 1
-  var pageSize = params.pageSize || 30
+  var page = Math.min(Math.max(1, parseInt(params.page) || 1), 100)
+  var pageSize = Math.min(Math.max(1, parseInt(params.pageSize) || 30), 50)
 
   if (!conversationId) return { ok: false, error: '缺少conversationId' }
 
@@ -474,7 +484,8 @@ async function getOnlineStatus(params) {
     }
     return { ok: true, userId: userId, lastOnlineAt: 0, isOnline: false }
   } catch (e) {
-    return { ok: false, error: e.message }
+    console.error('[message-center] getOnlineStatus error:', e.message)
+    return { ok: false, error: '状态更新失败，请稍后重试' }
   }
 }
 

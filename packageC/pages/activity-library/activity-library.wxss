@@ -133,6 +133,18 @@ page { height: 100%; }
   padding: 2rpx 10rpx; border-radius: 6rpx; line-height: 1.4;
 }
 
+.card-public-tag {
+  position: absolute; right: 6rpx; top: 6rpx; z-index: 2;
+  font-size: 18rpx; color: #fff; background: #3B82F6;
+  padding: 2rpx 10rpx; border-radius: 6rpx; line-height: 1.4;
+}
+
+.card-owner-name {
+  font-size: 18rpx; color: var(--text-tertiary, #9CA3AF);
+  text-align: center; margin-top: 2rpx; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+
 /* ========== 弹窗遮罩 ========== */
 .modal-overlay {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -364,4 +376,97 @@ page { height: 100%; }
 }
 .study-result-score {
   font-size: 48rpx; font-weight: 700; color: #10B981;
+}
+
+/* ========== 我的自定义筛选开关 ========== */
+.filter-my-custom {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 30rpx;
+  background: #fff;
+  margin: 10rpx 0;
+}
+.filter-my-custom-check {
+  width: 36rpx;
+  height: 36rpx;
+  border: 2rpx solid #ccc;
+  border-radius: 6rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12rpx;
+  font-size: 24rpx;
+  color: #fff;
+}
+.filter-my-custom-check.checked {
+  background: #3B82F6;
+  border-color: #3B82F6;
+}
+.filter-my-custom-label {
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* ========== 卡片标签 ========== */
+.card-tags {
+  display: flex;
+  gap: 8rpx;
+  margin-top: 6rpx;
+  position: absolute;
+  left: 6rpx;
+  top: 6rpx;
+  z-index: 2;
+  flex-wrap: wrap;
+}
+.card-tag {
+  font-size: 20rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
+}
+.card-tag.official {
+  background: #EBF5FF;
+  color: #3B82F6;
+  border: 1rpx solid #BFDBFE;
+}
+.card-tag.custom {
+  background: #FEF3C7;
+  color: #D97706;
+  border: 1rpx solid #FDE68A;
+}
+.card-tag.public {
+  background: #F3E8FF;
+  color: #7E22CE;
+  border: 1rpx solid #E9D5FF;
+}
+
+/* ========== 卡片操作按钮 ========== */
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12rpx;
+  padding: 10rpx 20rpx 14rpx;
+  border-top: 1rpx solid #f0f0f0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.card-btn {
+  font-size: 22rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid;
+}
+.card-btn.copy {
+  color: #3B82F6;
+  border-color: #3B82F6;
+  background: #EBF5FF;
+}
+.card-btn.edit {
+  color: #059669;
+  border-color: #059669;
+  background: #ECFDF5;
+}
+.card-btn.delete {
+  color: #EF4444;
+  border-color: #EF4444;
+  background: #FEF2F2;
 }

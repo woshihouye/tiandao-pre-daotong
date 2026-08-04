@@ -135,6 +135,9 @@ Page({
     // 管理员标识
     isAdmin: false,
 
+    // "只看我的自定义" 筛选
+    showMyCustomOnly: false,
+
     // --- 自定义活动弹窗 ---
     showAddModal: false,
     formData: {
@@ -220,6 +223,7 @@ Page({
     this._loadFavorites()
     this._initFilters()
     this._reloadActivities()
+    this._migrateLegacyCustomActivities()
   },
 
   onShow: function() {
@@ -382,10 +386,9 @@ Page({
     var kw = this.data.searchKeyword
     var sideF = this.data.currentSideFilter
 
-    var list = []
-
     // 食·丹食 使用独立食物知识库
     if (cat === 'diet') {
+      var list = []
       if (kw && kw.trim()) {
         // 搜索模式
         var kwLower = kw.trim().toLowerCase()
@@ -434,56 +437,282 @@ Page({
         }
         list = customFoodFiltered.concat(list)
       }
-    } else {
-      // 其他分类：使用原有 Alib 逻辑
-      if (kw && kw.trim()) {
-        list = Alib.searchActivities(kw, cat)
-        var customAll = this._loadCustomActivities()
-        var kwLower = kw.trim().toLowerCase()
-        for (var i2 = 0; i2 < customAll.length; i2++) {
-          var ci = customAll[i2]
-          if (ci.category === cat) {
-            if (ci.name.toLowerCase().indexOf(kwLower) !== -1 ||
-                (ci.description && ci.description.toLowerCase().indexOf(kwLower) !== -1)) {
-              list.unshift(ci)
-            }
-          }
-        }
-      } else {
-        list = Alib.filterActivities(cat, 'all', sideF)
-        var customAll2 = this._loadCustomActivities()
-        var customFiltered = []
-        for (var j2 = 0; j2 < customAll2.length; j2++) {
-          var cj = customAll2[j2]
-          if (cj.category === cat) {
-            if (sideF === 'all' || cj.sideFilter === sideF) {
-              customFiltered.push(cj)
-            }
-          }
-        }
-        list = customFiltered.concat(list)
-      }
+      this._finalizeList(list, cat, sideF)
+      return
+    }
 
-      // 应用编辑覆写（系统活动 + 自定义活动的全局调整，不适用于食物）
-      var edits = this._loadEdits()
-      for (var k = 0; k < list.length; k++) {
-        var edit = edits[list[k].id]
-        if (edit) {
-          if (edit.scorePerUnit !== undefined) {
-            list[k].scorePerUnit = edit.scorePerUnit
-            list[k].isNegative = edit.scorePerUnit < 0
-          }
-          if (edit.unit !== undefined) list[k].unit = edit.unit
-          if (edit.defaultGroup !== undefined) list[k].defaultGroup = edit.defaultGroup
-          if (edit.category !== undefined) {
-            list[k].category = edit.category
-            list[k].tabKey = edit.category
+    // 其他分类：云端加载，失败回退本地
+    this._loadFromCloud(cat, kw, sideF)
+  },
+
+  /**
+   * 分页拉取全量数据（循环直到凑够 total）
+   * @param {string} action - 云函数 action
+   * @param {object} baseParams - 基础参数（不含 page）
+   * @param {number} pageSize - 每页条数（默认取云函数上限）
+   * @returns {Promise<Array|null>} 活动数组；失败返回 null
+   */
+  _fetchAllPages: function(action, baseParams, pageSize) {
+    pageSize = pageSize || 50
+    var all = []
+    var page = 1
+    var MAX_PAGES = 100  // 安全上限，防死循环
+
+    var self = this
+    return new Promise(function(resolve) {
+      function loadPage() {
+        wx.cloud.callFunction({
+          name: 'activity-api',
+          data: {
+            action: action,
+            params: Object.assign({}, baseParams, { page: page, pageSize: pageSize })
+          },
+          success: function(res) {
+            var result = res.result
+            if (!result || !result.ok) { resolve(null); return }
+            var list = result.data.list || []
+            var total = result.data.total || 0
+            all = all.concat(list)
+
+            if (all.length >= total || page >= MAX_PAGES) {
+              resolve(all)
+            } else {
+              page++
+              loadPage()
+            }
+          },
+          fail: function() { resolve(null) }
+        })
+      }
+      loadPage()
+    })
+  },
+
+  /**
+   * 云端加载活动数据（官方 + 我的自定义 + 全服公开自定义）
+   * 失败时自动降级到本地数据
+   */
+  _loadFromCloud: function(cat, kw, sideF) {
+    var self = this
+
+    // 并行调用三个云函数
+    var promises = [
+      // 1. 官方活动（分页拉全量，服务端 pageSize 上限 100）
+      new Promise(function(resolve) {
+        self._fetchAllPages('getLibrary', { category: cat, topFilter: 'all', sideFilter: sideF, keyword: kw || undefined }, 100).then(function(list) {
+          resolve({ ok: list ? true : false, data: { list: list || [], total: (list || []).length } })
+        })
+      }),
+      // 2. 我的自定义
+      new Promise(function(resolve) {
+        wx.cloud.callFunction({
+          name: 'activity-api',
+          data: { action: 'getMine' },
+          success: function(res) { resolve(res.result) },
+          fail: function() { resolve(null) }
+        })
+      }),
+      // 3. 全服公开自定义（仅在非搜索时加载，分页拉全量）
+      new Promise(function(resolve) {
+        if (kw && kw.trim()) {
+          resolve(null)
+          return
+        }
+        self._fetchAllPages('getPublicCustom', { category: cat }, 50).then(function(list) {
+          resolve({ ok: true, data: { list: list || [], total: (list || []).length } })
+        })
+      })
+    ]
+
+    Promise.all(promises).then(function(results) {
+      var officialRes = results[0]
+      var mineRes = results[1]
+      var publicRes = results[2]
+
+      // 判断云端是否可用（getLibrary 是否成功）
+      var cloudOk = officialRes && officialRes.ok
+
+      if (cloudOk) {
+        var list = []
+
+        // 1. 官方活动：映射字段
+        var officialList = (officialRes.data && officialRes.data.list) || []
+        for (var i = 0; i < officialList.length; i++) {
+          var item = officialList[i]
+          list.push({
+            id: item.activityId,
+            name: item.name,
+            scorePerUnit: item.scorePerUnit,
+            unit: item.unit,
+            category: item.category,
+            tabKey: item.category,
+            topFilter: item.topFilter,
+            sideFilter: item.sideFilter,
+            description: item.description,
+            presetAction: item.presetAction,
+            isOfficial: true,
+            isCustom: false
+          })
+        }
+
+        // 2. 我的自定义：分类筛选 + 合并
+        var mineList = (mineRes && mineRes.ok && mineRes.data && mineRes.data.list) || []
+        for (var j = 0; j < mineList.length; j++) {
+          var mc = mineList[j]
+          if (mc.category === cat) {
+            // 根据 sideFilter 筛选
+            if (sideF === 'all' || mc.sideFilter === sideF) {
+              // 如果是搜索模式，按关键词过滤
+              if (kw && kw.trim()) {
+                var kwLower = kw.trim().toLowerCase()
+                if (mc.name.toLowerCase().indexOf(kwLower) === -1 &&
+                    (!mc.description || mc.description.toLowerCase().indexOf(kwLower) === -1)) {
+                  continue
+                }
+              }
+              list.unshift({
+                id: mc.activityId || mc._id || mc.id,
+                name: mc.name,
+                scorePerUnit: mc.scorePerUnit,
+                unit: mc.unit,
+                category: mc.category,
+                tabKey: mc.category,
+                topFilter: mc.topFilter || '',
+                sideFilter: mc.sideFilter || '',
+                description: mc.description || '',
+                isOfficial: false,
+                isCustom: true,
+                presetAction: ''
+              })
+            }
           }
         }
+
+        // 3. 全服公开自定义：分类筛选 + 合并
+        if (publicRes && publicRes.ok) {
+          var pubList = (publicRes.data && publicRes.data.list) || []
+          for (var k = 0; k < pubList.length; k++) {
+            var pc = pubList[k]
+            if (pc.category === cat && (sideF === 'all' || pc.sideFilter === sideF)) {
+              list.push({
+                id: pc.activityId || pc._id || pc.id,
+                name: pc.name,
+                scorePerUnit: pc.scorePerUnit,
+                unit: pc.unit,
+                category: pc.category,
+                tabKey: pc.category,
+                topFilter: pc.topFilter || '',
+                sideFilter: pc.sideFilter || '',
+                description: pc.description || '',
+                isOfficial: false,
+                isCustom: true,
+                isPublic: true,
+                ownerName: pc.ownerName || '',
+                presetAction: ''
+              })
+            }
+          }
+        }
+
+        // 应用编辑覆写（本地覆写仍然生效）
+        var edits = self._loadEdits()
+        for (var ei = 0; ei < list.length; ei++) {
+          var edit = edits[list[ei].id]
+          if (edit) {
+            if (edit.scorePerUnit !== undefined) { list[ei].scorePerUnit = edit.scorePerUnit; list[ei].isNegative = edit.scorePerUnit < 0 }
+            if (edit.unit !== undefined) list[ei].unit = edit.unit
+            if (edit.defaultGroup !== undefined) list[ei].defaultGroup = edit.defaultGroup
+            if (edit.category !== undefined) { list[ei].category = edit.category; list[ei].tabKey = edit.category }
+          }
+        }
+
+        self._finalizeList(list, cat, sideF)
+      } else {
+        // 云端不可用，回退本地
+        self._loadFromLocal(cat, kw, sideF)
+      }
+    }).catch(function() {
+      // 网络异常等，回退本地
+      self._loadFromLocal(cat, kw, sideF)
+    })
+  },
+
+  /**
+   * 本地数据加载（降级策略）
+   * 使用 Alib + 本地 storage 自定义活动
+   */
+  _loadFromLocal: function(cat, kw, sideF) {
+    var list = []
+
+    if (kw && kw.trim()) {
+      list = Alib.searchActivities(kw, cat)
+      var customAll = this._loadCustomActivities()
+      var kwLower = kw.trim().toLowerCase()
+      for (var i = 0; i < customAll.length; i++) {
+        var ci = customAll[i]
+        if (ci.category === cat) {
+          if (ci.name.toLowerCase().indexOf(kwLower) !== -1 ||
+              (ci.description && ci.description.toLowerCase().indexOf(kwLower) !== -1)) {
+            list.unshift(ci)
+          }
+        }
+      }
+    } else {
+      list = Alib.filterActivities(cat, 'all', sideF)
+      var customAll2 = this._loadCustomActivities()
+      var customFiltered = []
+      for (var j = 0; j < customAll2.length; j++) {
+        var cj = customAll2[j]
+        if (cj.category === cat) {
+          if (sideF === 'all' || cj.sideFilter === sideF) {
+            customFiltered.push(cj)
+          }
+        }
+      }
+      list = customFiltered.concat(list)
+    }
+
+    // 给本地 Alib 官方活动打标签
+    for (var t = 0; t < list.length; t++) {
+      if (!list[t].isCustom) {
+        list[t].isOfficial = true
+        list[t].isCustom = false
+      } else {
+        list[t].isOfficial = false
       }
     }
 
-    // 悟·修心 / 工·功业 / 煞·心魔 分类：标记为换算模式（克隆对象确保属性正确序列化）
+    // 应用编辑覆写
+    var edits = this._loadEdits()
+    for (var k = 0; k < list.length; k++) {
+      var edit = edits[list[k].id]
+      if (edit) {
+        if (edit.scorePerUnit !== undefined) { list[k].scorePerUnit = edit.scorePerUnit; list[k].isNegative = edit.scorePerUnit < 0 }
+        if (edit.unit !== undefined) list[k].unit = edit.unit
+        if (edit.defaultGroup !== undefined) list[k].defaultGroup = edit.defaultGroup
+        if (edit.category !== undefined) { list[k].category = edit.category; list[k].tabKey = edit.category }
+      }
+    }
+
+    this._finalizeList(list, cat, sideF)
+  },
+
+  /**
+   * 列表最终处理：标记修心模式、设置卡模式、空白置顶、排序展示
+   */
+  _finalizeList: function(list, cat, sideF) {
+    // 筛选：只看我的自定义
+    if (this.data.showMyCustomOnly) {
+      var filtered = []
+      for (var fi = 0; fi < list.length; fi++) {
+        if (list[fi].isCustom && !list[fi].isPublic) {
+          filtered.push(list[fi])
+        }
+      }
+      list = filtered
+    }
+
+    // 悟·修心 / 工·功业 / 煞·心魔 分类：标记为换算模式
     if (cat === 'study' || cat === 'work' || cat === 'debuff') {
       for (var s = 0; s < list.length; s++) {
         var item = list[s]
@@ -502,7 +731,7 @@ Page({
     if (cat === 'study' || cat === 'work' || cat === 'debuff') cardMode = 'study'
     else if (cat === 'diet') cardMode = 'food'
 
-    // 全部视图下，空白活动固定置顶（在所有合并/编辑之后）
+    // 全部视图下，空白活动固定置顶
     if (sideF === 'all') {
       var blankId = cat === 'diet' ? 'blank_diet' : ('blank_' + cat)
       for (var ri = 0; ri < list.length; ri++) {
@@ -514,7 +743,24 @@ Page({
       }
     }
 
-    this.setData({ activities: list, cardMode: cardMode })
+    this.setData({ activities: this._sortByUsage(list), cardMode: cardMode })
+  },
+
+  /** 按使用次数排序（使用次数高的在前），暂无数据时保持原序 */
+  _sortByUsage: function(list) {
+    // 尝试从本地读取使用统计
+    try {
+      var usageKey = 'tiandao_act_usage_' + this._getUid()
+      var usage = wx.getStorageSync(usageKey) || {}
+      if (Object.keys(usage).length > 0) {
+        return list.slice().sort(function(a, b) {
+          var ua = usage[a.id] || 0
+          var ub = usage[b.id] || 0
+          return ub - ua
+        })
+      }
+    } catch (e) {}
+    return list
   },
 
   // ==================== 跳转 ====================
@@ -672,31 +918,52 @@ Page({
       if (topFilters[i].key !== 'all') { topF = topFilters[i].key; break }
     }
 
-    var newActivity = {
-      id: 'custom_' + Date.now(),
-      name: name,
-      description: fd.description || '',
-      category: catKey,
-      topFilter: topF,
-      sideFilter: sideKey,
-      unit: unit,
-      scorePerUnit: scoreVal,
-      isNegative: scoreVal < 0,
-      isCustom: true,
-      tabKey: catKey,
-      presetAction: ''
-    }
-
-    // 保存到本地存储
-    var customList = this._loadCustomActivities()
-    customList.unshift(newActivity)
-    this._saveCustomActivities(customList)
-
-    // 关闭弹窗并刷新列表
+    var desc = fd.description || ''
+    var self = this
     this.setData({ showAddModal: false })
-    this._reloadActivities()
 
-    wx.showToast({ title: '添加成功', icon: 'success' })
+    // 云端优先
+    wx.cloud.callFunction({
+      name: 'activity-api',
+      data: {
+        action: 'createCustom',
+        params: {
+          name: name,
+          category: catKey,
+          scorePerUnit: scoreVal,
+          unit: unit,
+          description: desc,
+          topFilter: topF,
+          sideFilter: sideKey
+        }
+      },
+      success: function() {
+        self._reloadActivities()
+        wx.showToast({ title: '添加成功', icon: 'success' })
+      },
+      fail: function() {
+        // 降级：写入本地 storage
+        var newActivity = {
+          id: 'custom_' + Date.now(),
+          name: name,
+          description: desc,
+          category: catKey,
+          topFilter: topF,
+          sideFilter: sideKey,
+          unit: unit,
+          scorePerUnit: scoreVal,
+          isNegative: scoreVal < 0,
+          isCustom: true,
+          tabKey: catKey,
+          presetAction: ''
+        }
+        var customList = self._loadCustomActivities()
+        customList.unshift(newActivity)
+        self._saveCustomActivities(customList)
+        self._reloadActivities()
+        wx.showToast({ title: '已本地保存', icon: 'success' })
+      }
+    })
   },
 
   // ==================== 活动编辑存储 ====================
@@ -737,7 +1004,123 @@ Page({
       return
     }
 
+    // 他人的公开自定义活动 → 提示克隆
+    if (activity.isPublic) {
+      this._promptCloneActivity(activity)
+      return
+    }
+
     this.openEditPanel(activity)
+  },
+
+  /** 克隆公开活动：提示确认后调用云端 cloneActivity */
+  _promptCloneActivity: function(activity) {
+    var self = this
+    var msg = '确定要将「' + activity.name + '」克隆为我的自定义活动吗？'
+    if (activity.ownerName) {
+      msg = '确定要将 ' + activity.ownerName + ' 分享的「' + activity.name + '」克隆为我的自定义活动吗？'
+    }
+    wx.showModal({
+      title: '克隆活动',
+      content: msg,
+      success: function(res) {
+        if (res.confirm) {
+          wx.cloud.callFunction({
+            name: 'activity-api',
+            data: {
+              action: 'cloneActivity',
+              params: { activityId: activity.id }
+            },
+            success: function() {
+              self._reloadActivities()
+              wx.showToast({ title: '克隆成功', icon: 'success' })
+            },
+            fail: function() {
+              wx.showToast({ title: '克隆失败，请重试', icon: 'none' })
+            }
+          })
+        }
+      }
+    })
+  },
+
+  /** 复制官方活动 */
+  onCopyActivity: function(e) {
+    var activity = e.currentTarget.dataset.activity
+    if (!activity) return
+
+    // 跳转到编辑页（新建模式，传入原活动数据）
+    var data = encodeURIComponent(JSON.stringify({
+      id: activity.id,
+      name: activity.name,
+      category: activity.category,
+      unit: activity.unit,
+      scorePerUnit: activity.scorePerUnit,
+      description: activity.description || '',
+      icon: activity.presetAction || ''
+    }))
+
+    wx.navigateTo({
+      url: '/packageC/pages/activity-edit/activity-edit?isNew=true&data=' + data + '&originActivityName=' + encodeURIComponent(activity.name)
+    })
+  },
+
+  /** 编辑自定义活动 */
+  onEditCustomActivity: function(e) {
+    var activity = e.currentTarget.dataset.activity
+    if (!activity) return
+
+    var data = encodeURIComponent(JSON.stringify({
+      id: activity.id,
+      name: activity.name,
+      category: activity.category,
+      unit: activity.unit,
+      scorePerUnit: activity.scorePerUnit,
+      description: activity.description || '',
+      icon: activity.icon || ''
+    }))
+
+    wx.navigateTo({
+      url: '/packageC/pages/activity-edit/activity-edit?isNew=false&data=' + data
+    })
+  },
+
+  /** 删除自定义活动 */
+  onDeleteCustomActivity: function(e) {
+    var activity = e.currentTarget.dataset.activity
+    if (!activity) return
+
+    var self = this
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除「' + activity.name + '」吗？此操作不可恢复。',
+      confirmColor: '#EF4444',
+      success: function(res) {
+        if (res.confirm) {
+          wx.cloud.callFunction({
+            name: 'user-activity',
+            data: {
+              action: 'delete',
+              params: { activityId: activity.id }
+            },
+            success: function() {
+              self._reloadActivities()
+              wx.showToast({ title: '已删除', icon: 'success' })
+            },
+            fail: function() {
+              wx.showToast({ title: '删除失败，请稍后重试', icon: 'none' })
+            }
+          })
+        }
+      }
+    })
+  },
+
+  /** 切换"只看我的自定义" */
+  onToggleMyCustom: function() {
+    var current = this.data.showMyCustomOnly
+    this.setData({ showMyCustomOnly: !current })
+    this._reloadActivities()
   },
 
   openEditPanel: function(activity) {
@@ -846,22 +1229,49 @@ Page({
     var catKey = this.data.editCategoryOptions[ed.categoryIndex].key
     var groupVal = parseInt(ed.defaultGroup) || 1
 
+    var self = this
     if (ed.isCustom) {
-      // 更新自定义活动存储
-      var customList = this._loadCustomActivities()
-      for (var i = 0; i < customList.length; i++) {
-        if (customList[i].id === ed.id) {
-          customList[i].name = name
-          customList[i].scorePerUnit = scoreVal
-          customList[i].unit = unit
-          customList[i].category = catKey
-          customList[i].tabKey = catKey
-          customList[i].isNegative = scoreVal < 0
-          customList[i].defaultGroup = unit === '次' ? groupVal : undefined
-          break
+      // 云端更新自定义活动
+      this.setData({ showEditModal: false })
+      wx.cloud.callFunction({
+        name: 'activity-api',
+        data: {
+          action: 'updateCustom',
+          params: {
+            activityId: ed.id,
+            name: name,
+            scorePerUnit: scoreVal,
+            unit: unit,
+            category: catKey,
+            description: ''
+          }
+        },
+        success: function() {
+          self._syncToTemplates(ed.id, name, scoreVal)
+          self._reloadActivities()
+          wx.showToast({ title: '保存成功', icon: 'success' })
+        },
+        fail: function() {
+          // 降级：更新本地 storage
+          var customList = self._loadCustomActivities()
+          for (var i = 0; i < customList.length; i++) {
+            if (customList[i].id === ed.id) {
+              customList[i].name = name
+              customList[i].scorePerUnit = scoreVal
+              customList[i].unit = unit
+              customList[i].category = catKey
+              customList[i].tabKey = catKey
+              customList[i].isNegative = scoreVal < 0
+              customList[i].defaultGroup = unit === '次' ? groupVal : undefined
+              break
+            }
+          }
+          self._saveCustomActivities(customList)
+          self._syncToTemplates(ed.id, name, scoreVal)
+          self._reloadActivities()
+          wx.showToast({ title: '已本地保存', icon: 'success' })
         }
-      }
-      this._saveCustomActivities(customList)
+      })
     } else {
       // 系统活动：保存覆写配置
       var edits = this._loadEdits()
@@ -872,14 +1282,14 @@ Page({
       }
       if (unit === '次') edits[ed.id].defaultGroup = groupVal
       this._saveEdits(edits)
+
+      // 联动更新模板
+      this._syncToTemplates(ed.id, name, scoreVal)
+
+      this.setData({ showEditModal: false })
+      this._reloadActivities()
+      wx.showToast({ title: '保存成功', icon: 'success' })
     }
-
-    // 联动更新模板
-    this._syncToTemplates(ed.id, name, scoreVal)
-
-    this.setData({ showEditModal: false })
-    this._reloadActivities()
-    wx.showToast({ title: '保存成功', icon: 'success' })
   },
 
   deleteCustomActivity: function() {
@@ -901,27 +1311,95 @@ Page({
   },
 
   _doDeleteCustomActivity: function(actId) {
-    // 从自定义活动存储移除
-    var customList = this._loadCustomActivities()
-    var newList = []
-    for (var i = 0; i < customList.length; i++) {
-      if (customList[i].id !== actId) newList.push(customList[i])
+    var self = this
+    // 云端删除
+    wx.cloud.callFunction({
+      name: 'activity-api',
+      data: {
+        action: 'deleteCustom',
+        params: { activityId: actId }
+      },
+      success: function() {
+        self._removeFromTemplates(actId)
+        // 清理覆写记录
+        var edits = self._loadEdits()
+        if (edits[actId]) {
+          delete edits[actId]
+          self._saveEdits(edits)
+        }
+        self.setData({ showEditModal: false })
+        self._reloadActivities()
+        wx.showToast({ title: '已删除', icon: 'success' })
+      },
+      fail: function() {
+        // 降级：从本地 storage 移除
+        var customList = self._loadCustomActivities()
+        var newList = []
+        for (var i = 0; i < customList.length; i++) {
+          if (customList[i].id !== actId) newList.push(customList[i])
+        }
+        self._saveCustomActivities(newList)
+        self._removeFromTemplates(actId)
+        var edits = self._loadEdits()
+        if (edits[actId]) {
+          delete edits[actId]
+          self._saveEdits(edits)
+        }
+        self.setData({ showEditModal: false })
+        self._reloadActivities()
+        wx.showToast({ title: '已本地删除', icon: 'success' })
+      }
+    })
+  },
+
+  /**
+   * 旧自定义活动数据迁移：首次启动时将本地 storage 的旧自定义活动上传到云端
+   */
+  _migrateLegacyCustomActivities: function() {
+    var migrated = wx.getStorageSync('tiandao_migrated_custom_acts')
+    if (migrated) return
+
+    var oldCustom = this._loadCustomActivities()
+    if (oldCustom.length === 0) {
+      wx.setStorageSync('tiandao_migrated_custom_acts', true)
+      return
     }
-    this._saveCustomActivities(newList)
 
-    // 从模板中移除
-    this._removeFromTemplates(actId)
+    var self = this
+    var uploaded = 0
+    var total = oldCustom.length
 
-    // 清理覆写记录
-    var edits = this._loadEdits()
-    if (edits[actId]) {
-      delete edits[actId]
-      this._saveEdits(edits)
+    function uploadNext(idx) {
+      if (idx >= total) {
+        wx.setStorageSync('tiandao_migrated_custom_acts', true)
+        if (uploaded > 0) {
+          self._saveCustomActivities([])
+          self._reloadActivities()
+        }
+        return
+      }
+
+      var act = oldCustom[idx]
+      wx.cloud.callFunction({
+        name: 'activity-api',
+        data: {
+          action: 'createCustom',
+          params: {
+            name: act.name,
+            category: act.category,
+            scorePerUnit: act.scorePerUnit,
+            unit: act.unit,
+            description: act.description || '',
+            topFilter: act.topFilter || '',
+            sideFilter: act.sideFilter || ''
+          }
+        },
+        success: function() { uploaded++; uploadNext(idx + 1) },
+        fail: function() { uploadNext(idx + 1) }
+      })
     }
 
-    this.setData({ showEditModal: false })
-    this._reloadActivities()
-    wx.showToast({ title: '已删除', icon: 'success' })
+    uploadNext(0)
   },
 
   // ==================== 模板数据联动 ====================

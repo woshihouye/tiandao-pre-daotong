@@ -1,4 +1,4 @@
-var titleGrade = require('../../../utils/title-grade.js')
+var titleGrade = require('../../utils/title-grade.js')
 Page({
   data: {
     grade: null,

@@ -52,6 +52,7 @@
         "pages/template-comments/template-comments",
         "pages/grand-dao/grand-dao",
         "pages/activity-library/activity-library",
+        "pages/activity-edit/activity-edit",
         "pages/template-builder/template-builder"
       ]
     },
@@ -131,6 +132,5 @@
     "layered-progress": "/components/layered-progress/layered-progress",
     "radar-chart": "/components/radar-chart/radar-chart"
   },
-  "sitemapLocation": "sitemap.json",
-  "lazyCodeLoading": "requiredComponents"
+  "sitemapLocation": "sitemap.json"
 }

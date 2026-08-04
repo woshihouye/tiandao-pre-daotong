@@ -1,7 +1,7 @@
 {
   "name": "ai-vision",
   "version": "1.0.0",
-  "description": "火山引擎 Doubao Seed 2.0 mini 视觉识别云函数",
+  "description": "AI视觉识别云函数",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "~2.6.0",

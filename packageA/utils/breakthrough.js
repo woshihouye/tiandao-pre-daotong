@@ -5,7 +5,7 @@
 //   突破预警(90%) → 主动触发 → 差异化动画 → 结算面板
 // ============================================================
 
-var realmRights = require('./realm-rights.js')
+var realmRights = require('../../utils/realm-rights.js')
 
 // 突破预警阈值
 var BREAKTHROUGH_WARNING_THRESHOLD = 0.9

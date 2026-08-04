@@ -1,6 +1,6 @@
 // 悟道童儿 - AI精灵聊天页
 // 支持文字/语音/图片输入，AI分析后展示确认卡片，确认后修为入账
-// 对接 dao-spirit-ai 云函数，集成火山引擎方舟多模态能力（与灵鉴识物共享 API）
+// 对接 dao-spirit-ai 云函数，集成AI多模态能力
 
 const app = getApp()
 
@@ -186,7 +186,7 @@ Page({
     wx.showLoading({ title: '上传中...' })
     try {
       const uploadRes = await wx.cloud.uploadFile({
-        cloudPath: `voice/${app.globalData.userId}_${Date.now()}.mp3`,
+        cloudPath: `voice/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.mp3`,
         filePath: tempFilePath
       })
       wx.hideLoading()
@@ -295,7 +295,7 @@ Page({
       try {
         const ext = mediaList[i].type === 'video' ? 'mp4' : 'jpg'
         const uploadRes = await wx.cloud.uploadFile({
-          cloudPath: `dao-chat/${app.globalData.userId}_${Date.now()}_${i}.${ext}`,
+          cloudPath: `dao-chat/${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${i}.${ext}`,
           filePath: mediaList[i].tempFilePath
         })
         mediaList[i].fileId = uploadRes.fileID

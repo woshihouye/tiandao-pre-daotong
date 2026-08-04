@@ -506,9 +506,189 @@ Page({
       return
     }
 
+    // 其他分类：优先云端，失败回退本地
+    this._loadLibFromCloud(cat, kw, side)
+  },
+
+  /** 从 storage 读取活动编辑覆写 */
+  _loadEdits: function() {
+    var edits = {}
+    try { edits = wx.getStorageSync('tiandao_act_edits_' + this._getUid()) || {} } catch(e) {}
+    return edits
+  },
+
+  /** 按使用频次排序活动列表，空白始终置顶 */
+  _sortLibByUsage: function(list) {
+    var self = this
+    var usage = {}
+    try { usage = wx.getStorageSync('tiandao_act_usage_' + self._getUid()) || {} } catch(e) {}
+    list.sort(function(a, b) {
+      // 空白始终在最前
+      if (a.sideFilter === 'blank' && b.sideFilter !== 'blank') return -1
+      if (a.sideFilter !== 'blank' && b.sideFilter === 'blank') return 1
+      // 自定义活动排在官方前面
+      if (a.isCustom && !b.isCustom) return -1
+      if (!a.isCustom && b.isCustom) return 1
+      // 按使用次数降序
+      var ua = usage[a.id] || 0
+      var ub = usage[b.id] || 0
+      return ub - ua
+    })
+    return list
+  },
+
+  /**
+   * 分页拉取全量数据（循环直到凑够 total）
+   */
+  _fetchAllPages: function(action, baseParams, pageSize) {
+    pageSize = pageSize || 50
+    var all = []
+    var page = 1
+    var MAX_PAGES = 100
+
+    var self = this
+    return new Promise(function(resolve) {
+      function loadPage() {
+        wx.cloud.callFunction({
+          name: 'activity-api',
+          data: {
+            action: action,
+            params: Object.assign({}, baseParams, { page: page, pageSize: pageSize })
+          },
+          success: function(res) {
+            var result = res.result
+            if (!result || !result.ok) { resolve(null); return }
+            var list = result.data.list || []
+            var total = result.data.total || 0
+            all = all.concat(list)
+            if (all.length >= total || page >= MAX_PAGES) {
+              resolve(all)
+            } else {
+              page++
+              loadPage()
+            }
+          },
+          fail: function() { resolve(null) }
+        })
+      }
+      loadPage()
+    })
+  },
+
+  /** 从云端 activity-api 加载活动库，失败回退本地 */
+  _loadLibFromCloud: function(cat, kw, side) {
+    var self = this
+    // 并行请求官方库（分页拉全量） + 我的自定义
+    Promise.all([
+      new Promise(function(resolve) {
+        if (!wx.cloud || !wx.cloud.callFunction) { resolve(null); return }
+        self._fetchAllPages('getLibrary', { category: cat, topFilter: 'all', sideFilter: side, keyword: kw || undefined }, 100).then(function(list) {
+          resolve({ ok: list ? true : false, data: { list: list || [], total: (list || []).length } })
+        })
+      }),
+      new Promise(function(resolve) {
+        if (!wx.cloud || !wx.cloud.callFunction) { resolve(null); return }
+        wx.cloud.callFunction({
+          name: 'activity-api',
+          data: { action: 'getMine' },
+          success: function(r) { resolve(r.result) },
+          fail: function() { resolve(null) }
+        })
+      })
+    ]).then(function(results) {
+      var officialRes = results[0]
+      var mineRes = results[1]
+
+      // 云端不可用，回退本地
+      if (!officialRes || !officialRes.ok) {
+        self._loadLibFromLocal(cat, kw, side)
+        return
+      }
+
+      var list = []
+
+      // 官方活动
+      var officialList = (officialRes.data && officialRes.data.list) || []
+      for (var a = 0; a < officialList.length; a++) {
+        var item = officialList[a]
+        list.push({
+          id: item.activityId || item.id,
+          actId: item.activityId || item.id,
+          activityName: item.name,
+          name: item.name,
+          scorePerUnit: item.scorePerUnit,
+          unit: item.unit,
+          category: item.category,
+          tabKey: item.category,
+          topFilter: item.topFilter,
+          sideFilter: item.sideFilter,
+          description: item.description,
+          presetAction: item.presetAction || '',
+          isOfficial: true,
+          isCustom: false
+        })
+      }
+
+      // 我的自定义活动
+      if (mineRes && mineRes.ok) {
+        var mineList = (mineRes.data && mineRes.data.list) || []
+        for (var b = 0; b < mineList.length; b++) {
+          var mc = mineList[b]
+          if (mc.category !== cat) continue
+          if (side !== 'all' && mc.sideFilter !== side) continue
+          if (kw && kw.trim()) {
+            var kwLower = kw.trim().toLowerCase()
+            if (mc.name.toLowerCase().indexOf(kwLower) === -1 &&
+                (!mc.description || mc.description.toLowerCase().indexOf(kwLower) === -1)) {
+              continue
+            }
+          }
+          list.unshift({
+            id: mc.activityId || mc._id || mc.id,
+            actId: mc.activityId || mc._id || mc.id,
+            activityName: mc.name,
+            name: mc.name,
+            scorePerUnit: mc.scorePerUnit,
+            unit: mc.unit,
+            category: mc.category,
+            tabKey: mc.category,
+            topFilter: mc.topFilter || '',
+            sideFilter: mc.sideFilter || '',
+            description: mc.description || '',
+            isOfficial: false,
+            isCustom: true
+          })
+        }
+      }
+
+      // 应用编辑覆写
+      var edits = self._loadEdits()
+      for (var c = 0; c < list.length; c++) {
+        var edit = edits[list[c].id]
+        if (edit) {
+          if (edit.scorePerUnit !== undefined) list[c].scorePerUnit = edit.scorePerUnit
+          if (edit.unit !== undefined) list[c].unit = edit.unit
+          if (edit.defaultGroup !== undefined) list[c].defaultGroup = edit.defaultGroup
+        }
+      }
+
+      self.setData({ libActivities: self._sortLibByUsage(list) })
+    }).catch(function() {
+      // 云端异常，回退本地
+      self._loadLibFromLocal(cat, kw, side)
+    })
+  },
+
+  /** 本地加载活动库（云端不可用时的回退方案） */
+  _loadLibFromLocal: function(cat, kw, side) {
+    var list = []
     if (kw && kw.trim()) {
       list = Alib.searchActivities(kw, cat)
-      // 同时搜索自定义活动
+      // 标记 Alib 来源为官方
+      for (var ai = 0; ai < list.length; ai++) {
+        list[ai].isOfficial = true
+        list[ai].isCustom = false
+      }
       var customAll = []
       try { customAll = wx.getStorageSync('tiandao_custom_act_' + this._getUid()) || [] } catch(e) {}
       var kwLower = kw.trim().toLowerCase()
@@ -517,13 +697,19 @@ Page({
         if (ci.category === cat) {
           if (ci.name.toLowerCase().indexOf(kwLower) !== -1 ||
               (ci.description && ci.description.toLowerCase().indexOf(kwLower) !== -1)) {
+            ci.isOfficial = false
+            ci.isCustom = true
             list.unshift(ci)
           }
         }
       }
     } else {
       list = Alib.filterActivities(cat, 'all', side)
-      // 合并自定义活动
+      // 标记 Alib 来源为官方
+      for (var aj = 0; aj < list.length; aj++) {
+        list[aj].isOfficial = true
+        list[aj].isCustom = false
+      }
       var customAll2 = []
       try { customAll2 = wx.getStorageSync('tiandao_custom_act_' + this._getUid()) || [] } catch(e) {}
       var customFiltered = []
@@ -531,6 +717,8 @@ Page({
         var cj = customAll2[j]
         if (cj.category === cat) {
           if (side === 'all' || cj.sideFilter === side) {
+            cj.isOfficial = false
+            cj.isCustom = true
             customFiltered.push(cj)
           }
         }
@@ -538,7 +726,7 @@ Page({
       list = customFiltered.concat(list)
     }
 
-    // 全部视图下，空白活动固定置顶（自定义活动可能已排到前面）
+    // 全部视图下，空白活动固定置顶
     if (side === 'all') {
       for (var bi = 0; bi < list.length; bi++) {
         if (list[bi].sideFilter === 'blank') {
@@ -550,8 +738,7 @@ Page({
     }
 
     // 应用编辑覆写（含 defaultGroup）
-    var edits = {}
-    try { edits = wx.getStorageSync('tiandao_act_edits_' + this._getUid()) || {} } catch(e) {}
+    var edits = this._loadEdits()
     for (var k = 0; k < list.length; k++) {
       var edit = edits[list[k].id]
       if (edit) {
@@ -561,7 +748,7 @@ Page({
       }
     }
 
-    this.setData({ libActivities: list })
+    this.setData({ libActivities: this._sortLibByUsage(list) })
   },
 
   // ==================== 添加活动到当前时段 ====================

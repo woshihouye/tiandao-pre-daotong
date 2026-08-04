@@ -112,7 +112,8 @@ async function initOfficialEliteTemplates() {
 
     return { success: true, message: '官方精英模板初始化完成', count: officialTemplates.length }
   } catch (e) {
-    return { success: false, error: e.message }
+    console.error('[elite-manager] initOfficial error:', e.message)
+    return { success: false, error: '初始化失败，请稍后重试' }
   }
 }
 
@@ -160,7 +161,8 @@ async function getEliteTemplates(params) {
       hasMore: page * pageSize < count.total
     }
   } catch (e) {
-    return { success: false, error: e.message }
+    console.error('[elite-manager] getTemplates error:', e.message)
+    return { success: false, error: '查询失败，请稍后重试' }
   }
 }
 
@@ -180,7 +182,8 @@ async function getEliteTemplateDetail(templateId) {
 
     return { success: true, data: result.data[0] }
   } catch (e) {
-    return { success: false, error: e.message }
+    console.error('[elite-manager] getTemplateDetail error:', e.message)
+    return { success: false, error: '查询失败，请稍后重试' }
   }
 }
 
@@ -228,7 +231,8 @@ async function saveJourney(openid, journeyData) {
 
     return { success: true }
   } catch (e) {
-    return { success: false, error: e.message }
+    console.error('[elite-manager] saveJourney error:', e.message)
+    return { success: false, error: '保存失败，请稍后重试' }
   }
 }
 
@@ -250,7 +254,8 @@ async function getJourney(openid, templateId) {
       data: templateId ? (result.data[0] || null) : result.data
     }
   } catch (e) {
-    return { success: false, error: e.message }
+    console.error('[elite-manager] getJourney error:', e.message)
+    return { success: false, error: '查询失败，请稍后重试' }
   }
 }
 
@@ -267,7 +272,8 @@ async function getFollowerRanking(templateId, limit = 10) {
 
     return { success: true, data: result.data }
   } catch (e) {
-    return { success: false, error: e.message }
+    console.error('[elite-manager] getFollowerRanking error:', e.message)
+    return { success: false, error: '查询失败，请稍后重试' }
   }
 }
 

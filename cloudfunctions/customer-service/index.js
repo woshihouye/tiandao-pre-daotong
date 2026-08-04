@@ -16,7 +16,8 @@ exports.main = async (event) => {
       default: return { ok: false, error: '未知操作' }
     }
   } catch (e) {
-    return { ok: false, error: e.message }
+    console.error('[customer-service] error:', e.message)
+    return { ok: false, error: '操作失败，请稍后重试' }
   }
 }
 

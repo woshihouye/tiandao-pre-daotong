@@ -8,7 +8,7 @@
 //   - 道基品质影响后续修行的加成率
 // ============================================================
 
-var consts = require('./constants.js')
+var consts = require('../../utils/constants.js')
 var DAO_FOUNDATION_GRADE = consts.DAO_FOUNDATION_GRADE
 
 /**

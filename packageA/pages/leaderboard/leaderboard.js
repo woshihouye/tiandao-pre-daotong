@@ -1,4 +1,4 @@
-var board = require('../../../utils/leaderboard.js')
+var board = require('../../utils/leaderboard.js')
 Page({
   data: {
     activeBoard: 'power',

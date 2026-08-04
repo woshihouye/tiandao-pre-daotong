@@ -1,6 +1,6 @@
 // 境界突破仪式页
 var app = getApp()
-var breakthroughEngine = require('../../../utils/breakthrough.js')
+var breakthroughEngine = require('../../utils/breakthrough.js')
 var realmRights = require('../../../utils/realm-rights.js')
 
 Page({

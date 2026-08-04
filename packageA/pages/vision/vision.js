@@ -14,7 +14,7 @@ const {
   buildDietScoreByMacros,
   buildSportScore,
   callDeepSeekVision
-} = require('../../../utils/vision.js')
+} = require('../../utils/vision.js')
 const {
   calculateTrainingScore,
   resolveTrainingPath,
@@ -178,6 +178,25 @@ Page({
       return
     }
 
+    // 检查AI隐私同意
+    const aiAgreed = wx.getStorageSync('tiandao_ai_privacy_agreed')
+    if (!aiAgreed) {
+      const that = this
+      wx.showModal({
+        title: 'AI识别隐私说明',
+        content: '您的饮食/运动图片将被发送至AI服务进行分析识别，图片数据仅用于本次分析，不会存储或用于其他用途。是否同意？',
+        confirmText: '同意',
+        cancelText: '暂不使用',
+        success: function(res) {
+          if (res.confirm) {
+            wx.setStorageSync('tiandao_ai_privacy_agreed', true)
+            that.startRecognize()
+          }
+        }
+      })
+      return
+    }
+
     // >>> 上传/识别始终使用原始全尺寸路径，不用压缩图
     const uploadPath = this.data.rawImagePath || this.data.imagePath
 
@@ -203,7 +222,7 @@ Page({
       let cloudFileId = ''
       try {
         const uploadRes = await wx.cloud.uploadFile({
-          cloudPath: `vision/${userId}_${Date.now()}.jpg`,
+          cloudPath: `vision/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`,
           filePath: uploadPath
         })
         cloudFileId = uploadRes.fileID || ''
@@ -230,7 +249,7 @@ Page({
         // >>> 用户可见的 AI 调用状态提示
         wx.showLoading({ title: '正在调用AI识别...', mask: true })
 
-        console.log('点击识别，上传的fileID=', cloudFileId, 'expectType=', expectType)
+        // console.log('[debug] 点击识别')  // 调试日志，移除敏感参数
 
         const deepResult = await callDeepSeekVision(
           userId, cloudFileId, expectType, this.data.digest
@@ -344,6 +363,25 @@ Page({
    * 启动批量上传：选择最多9张当天图片
    */
   async startBatchUpload() {
+    // 检查AI隐私同意
+    const aiAgreed = wx.getStorageSync('tiandao_ai_privacy_agreed')
+    if (!aiAgreed) {
+      const that = this
+      wx.showModal({
+        title: 'AI识别隐私说明',
+        content: '您的饮食/运动图片将被发送至AI服务进行分析识别，图片数据仅用于本次分析，不会存储或用于其他用途。是否同意？',
+        confirmText: '同意',
+        cancelText: '暂不使用',
+        success: function(res) {
+          if (res.confirm) {
+            wx.setStorageSync('tiandao_ai_privacy_agreed', true)
+            that.startBatchUpload()
+          }
+        }
+      })
+      return
+    }
+
     try {
       const res = await new Promise((resolve, reject) => {
         wx.chooseImage({
@@ -512,7 +550,7 @@ Page({
       this.setData({ batchImages: images })
 
       const uploadRes = await wx.cloud.uploadFile({
-        cloudPath: `vision/batch_${userId}_${Date.now()}_${index}.jpg`,
+        cloudPath: `vision/batch_${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${index}.jpg`,
         filePath: img.tempPath
       })
       const cloudFileId = uploadRes.fileID || ''
@@ -1373,7 +1411,7 @@ Page({
       return 'AI服务密钥配置错误，请检查云函数环境变量'
     }
     if (code === 402 || msg.includes('insufficient') || msg.includes('balance') || msg.includes('quota') || msg.includes('余额')) {
-      return 'AI服务余额不足，请前往火山引擎平台充值'
+      return 'AI服务余额不足，请前往AI服务平台充值'
     }
     if (code === 408 || msg.includes('timeout') || msg.includes('超时') || msg.includes('timed out')) {
       return '网络超时，请检查网络后重试'

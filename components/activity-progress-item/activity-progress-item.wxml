@@ -8,6 +8,7 @@
   bindtap="onTapItem"
 >
   <view class="item-left">
+    <text class="act-custom-tag" wx:if="{{activity.isCustom}}">自</text>
     <text class="item-name">{{activity.name}}</text>
     <text class="item-unit">{{activity.unit || '次'}}</text>
   </view>

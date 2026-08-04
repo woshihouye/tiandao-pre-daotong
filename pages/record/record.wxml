@@ -1,5 +1,7 @@
-<!-- pages/record/record.wxml — v2 模板驱动+双模式拖动 -->
-<view class="page-container">
+<!-- pages/record/record.wxml — 模糊+精准双模式 -->
+
+<!-- ==================== 模糊记录模式 ==================== -->
+<view class="page-container" wx:if="{{mode === 'fuzzy'}}">
   <!-- 顶部 Tab 栏 -->
   <view class="tab-bar">
     <view
@@ -14,52 +16,138 @@
     </view>
   </view>
 
-  <!-- 模板选择栏 -->
-  <scroll-view class="template-scroll" scroll-x enhanced show-scrollbar="{{false}}">
-    <view class="template-list">
+  <!-- 全屏卡片轮播区 -->
+  <swiper
+    class="card-swiper"
+    current="{{currentTemplateIndex}}"
+    previous-margin="15%"
+    next-margin="15%"
+    duration="280"
+    easing-function="easeOutCubic"
+    bindchange="onSwiperChange"
+  >
+    <swiper-item wx:for="{{templates}}" wx:key="id" wx:for-index="idx">
       <view
-        wx:for="{{templates}}"
-        wx:key="id"
-        class="template-chip {{currentTemplateIndex === index ? 'selected' : ''}}"
-        style="border-color: {{currentTemplateIndex === index ? activeColor : '#E5E7EB'}}; background-color: {{currentTemplateIndex === index ? activeColor + '10' : '#FFFFFF'}}"
-        data-index="{{index}}"
-        bindtap="onTemplateSelect"
+        class="template-card {{item.bgClass || ''}}"
+        style="--card-bg: {{item.bgStyle || ''}}; --fill-height: {{item.totalProgress || 0}}%;"
+        data-index="{{idx}}"
+        bindtouchstart="onCardTouchStart"
+        bindtouchmove="onCardTouchMove"
+        bindtouchend="onCardTouchEnd"
+        bindtap="onCardTap"
       >
-        <text class="template-chip-cover" style="color: {{currentTemplateIndex === index ? activeColor : '#9CA3AF'}}">{{item.cover || item.name[0]}}</text>
-        <text class="template-chip-name" style="color: {{currentTemplateIndex === index ? activeColor : '#6B7280'}}">{{item.name}}</text>
-        <view class="template-chip-tag" wx:if="{{item.tag}}" style="background-color: {{activeColor}}15; color: {{activeColor}}">{{item.tag}}</view>
+        <!-- 背景填充层 -->
+        <view class="card-fill" style="height: {{item.totalProgress || 0}}%; background: linear-gradient(to top, {{activeColor}}, {{activeColor}}88);"></view>
+        <!-- 发光环 -->
+        <view class="card-glow" wx:if="{{item.totalProgress >= 100}}"></view>
+        <!-- 卡片内容 -->
+        <view class="card-content">
+          <text class="card-name {{item.totalProgress > 60 ? 'light-text' : ''}}">{{item.name}}</text>
+          <text class="card-progress {{item.totalProgress > 40 ? 'light-text' : ''}}">{{item.totalProgress || 0}}%</text>
+          <text class="card-score {{item.totalProgress > 60 ? 'light-text' : ''}}">预计修为 {{item.estimatedScore || '+0'}}</text>
+          <text class="card-hint {{item.totalProgress > 60 ? 'light-text' : ''}}">点击进入精准记录</text>
+        </view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{templates.length === 0}}">
+    <text class="empty-icon">{{tabIcon}}</text>
+    <text class="empty-text">暂无可用的修行模板</text>
+    <text class="empty-sub">请先在活动库中选择活动组成模板</text>
+  </view>
+
+  <!-- 结果面板 -->
+  <view class="result-section">
+    <daily-result-panel activeCategory="{{activeTab}}" result="{{result}}" />
+  </view>
+
+  <!-- 底部提交按钮 -->
+  <view class="submit-bar">
+    <view class="submit-btn" style="background-color: {{activeColor}}" bindtap="onSubmit">
+      <text class="submit-text">{{submitting ? '提交中...' : '确认今日修行'}}</text>
+    </view>
+  </view>
+</view>
+
+<!-- ==================== 精准记录模式 ==================== -->
+<view class="page-container precise-mode" wx:if="{{mode === 'precise'}}">
+  <!-- 顶部导航栏 -->
+  <view class="precise-header">
+    <view class="precise-back" bindtap="onPreciseBack">
+      <text class="precise-back-icon">←</text>
+      <text class="precise-back-text">返回</text>
+    </view>
+    <text class="precise-title">{{currentTemplate.name}}</text>
+    <view class="precise-placeholder"></view>
+  </view>
+
+  <!-- 活动列表（按时段分组） -->
+  <scroll-view class="precise-scroll" scroll-y>
+    <view wx:if="{{currentTemplate && currentTemplate.schedule && currentTemplate.schedule.length > 0}}">
+      <view wx:for="{{currentTemplate.schedule}}" wx:key="id" class="slot-group">
+        <!-- 时段标题 -->
+        <view class="slot-header">
+          <view class="slot-header-bar" style="background-color: {{activeColor}}"></view>
+          <text class="slot-header-name">{{item.name}}</text>
+          <text class="slot-header-time" wx:if="{{item.startTime}}">{{item.startTime}} - {{item.endTime}}</text>
+        </view>
+        <!-- 该时段下的活动 -->
+        <view wx:for="{{item.activities}}" wx:for-item="act" wx:key="id" class="activity-row"
+          bindtouchstart="onActivityTouchStart"
+          bindtouchmove="onActivityTouchMove"
+          bindtouchend="onActivityTouchEnd"
+          data-act-id="{{act.id}}">
+          <!-- 进度填充背景 -->
+          <view class="act-row-fill" style="width: {{activityProgress[act.id] || 0}}%; background: linear-gradient(to right, {{activeColor}}44, {{activeColor}}88);"></view>
+          <!-- 活动信息 -->
+          <view class="act-row-content">
+            <view class="act-row-left">
+              <text class="act-row-name">{{act.name}}</text>
+              <text class="act-row-unit">{{act.scorePerUnit >= 0 ? '+' : ''}}{{act.scorePerUnit}}/{{act.unit}}</text>
+            </view>
+            <view class="act-row-right">
+              <text class="act-row-progress">{{activityProgress[act.id] || 0}}%</text>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
-  </scroll-view>
 
-  <!-- 模板进度区 -->
-  <scroll-view class="content-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-    <view class="card-list" wx:if="{{currentTemplate}}">
-      <template-progress-card
-        template="{{currentTemplate}}"
-        category="{{activeTab}}"
-        activityProgress="{{activityProgress}}"
-        categoryColor="{{activeColor}}"
-        expanded="{{expandedCards[currentTemplate.id] || false}}"
-        bindtoggle-expand="onToggleExpand"
-        bindprogress-change="onProgressChange"
-      />
+    <!-- 无时段数据时的降级显示 -->
+    <view class="slot-group" wx:if="{{currentTemplate && (!currentTemplate.schedule || currentTemplate.schedule.length === 0) && currentTemplate.activities && currentTemplate.activities.length > 0}}">
+      <view class="slot-header">
+        <view class="slot-header-bar" style="background-color: {{activeColor}}"></view>
+        <text class="slot-header-name">全部活动</text>
+      </view>
+      <view wx:for="{{currentTemplate.activities}}" wx:for-item="act" wx:key="id" class="activity-row"
+        bindtouchstart="onActivityTouchStart"
+        bindtouchmove="onActivityTouchMove"
+        bindtouchend="onActivityTouchEnd"
+        data-act-id="{{act.id}}">
+        <view class="act-row-fill" style="width: {{activityProgress[act.id] || 0}}%; background: linear-gradient(to right, {{activeColor}}44, {{activeColor}}88);"></view>
+        <view class="act-row-content">
+          <view class="act-row-left">
+            <text class="act-row-name">{{act.name}}</text>
+            <text class="act-row-unit">{{act.scorePerUnit >= 0 ? '+' : ''}}{{act.scorePerUnit}}/{{act.unit}}</text>
+          </view>
+          <view class="act-row-right">
+            <text class="act-row-progress">{{activityProgress[act.id] || 0}}%</text>
+          </view>
+        </view>
+      </view>
     </view>
 
-    <!-- 无模板时显示提示 -->
-    <view class="empty-tip" wx:if="{{!currentTemplate}}">
-      <text class="empty-icon">{{tabIcon}}</text>
-      <text class="empty-text">暂无可用的修行模板</text>
-      <text class="empty-sub">请先在活动库中选择活动组成模板</text>
+    <!-- 空活动提示 -->
+    <view class="empty-state" wx:if="{{!currentTemplate || !currentTemplate.activities || currentTemplate.activities.length === 0}}">
+      <text class="empty-text">该模板暂无活动</text>
     </view>
   </scroll-view>
 
   <!-- 结果面板 -->
   <view class="result-section">
-    <daily-result-panel
-      activeCategory="{{activeTab}}"
-      result="{{result}}"
-    />
+    <daily-result-panel activeCategory="{{activeTab}}" result="{{result}}" />
   </view>
 
   <!-- 底部提交按钮 -->

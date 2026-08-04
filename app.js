@@ -1,9 +1,22 @@
 // 小程序入口文件
 
 // ============================================================
-// >>> AI 配置（通过云函数环境变量 DOUBAO_API_KEY 注入，与灵鉴识物共享）
+// >>> AI 配置（通过云函数环境变量注入API Key）
+// >>> ENABLE_AI 可通过管理设置页关闭（存储key: tiandao_enable_ai）
 // ============================================================
 const ENABLE_AI = true
+
+/**
+ * 运行时读取AI开关状态
+ * 默认开启，可通过管理设置页关闭
+ */
+function getEnableAI() {
+  try {
+    const stored = wx.getStorageSync('tiandao_enable_ai')
+    if (stored !== '' && stored !== undefined && stored !== null) return stored === 'true' || stored === true
+  } catch (e) {}
+  return true
+}
 
 // 本地缓存键统一收口，避免各页面散落硬编码。
 const STORAGE_KEYS = {
@@ -34,7 +47,9 @@ const STORAGE_KEYS = {
   lastRealmIndex: 'tiandao_last_realm_index',
   systemAnnouncement: 'tiandao_system_announcement',
   lastDaoSpiritMsg: 'tiandao_last_dao_spirit_msg',
-  unreadBadge: 'tiandao_unread_badge'
+  unreadBadge: 'tiandao_unread_badge',
+  // >>> 安全身份标识（基于openid）
+  safeUserId: 'tiandao_safe_user_id'
 }
 
 /**
@@ -257,6 +272,22 @@ App({
       traceUser: true
     })
 
+    // 获取真实openid并持久化（异步，不阻塞启动流程）
+    var that = this
+    wx.cloud.callFunction({
+      name: 'getOpenId',
+      success: function(res) {
+        if (res.result && res.result.openid) {
+          var safeId = res.result.openid
+          wx.setStorageSync(STORAGE_KEYS.safeUserId, safeId)
+          that.globalData.userId = safeId
+        }
+      },
+      fail: function(e) {
+        console.warn('获取openid失败，使用本地ID', e)
+      }
+    })
+
     // 启动时验证 ai-vision 云函数连通性
     wx.cloud.callFunction({
       name: 'ai-vision',
@@ -463,11 +494,17 @@ App({
   },
 
   getLocalUserId() {
-    let userId = wx.getStorageSync(STORAGE_KEYS.userId)
-    if (!userId) {
-      userId = `dao-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-      wx.setStorageSync(STORAGE_KEYS.userId, userId)
-    }
+    // 优先使用云函数返回的真实openid
+    let userId = wx.getStorageSync(STORAGE_KEYS.safeUserId)
+    if (userId) return userId
+
+    // 兼容旧版本地ID
+    userId = wx.getStorageSync(STORAGE_KEYS.userId)
+    if (userId) return userId
+
+    // 生成临时ID（后续会被openid覆盖）
+    userId = `dao-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    wx.setStorageSync(STORAGE_KEYS.userId, userId)
     return userId
   },
 
@@ -3060,18 +3097,18 @@ App({
   },
 
   // ============================================================
-  // >>> 道童 AI 能力（火山引擎方舟多模态，与灵鉴识物共享）
+  // >>> 道童 AI 能力（通过云函数调用多模态AI模型）
   // ============================================================
 
   /**
    * 检查 AI 功能是否已启用
    */
   isAIEnabled() {
-    return !!ENABLE_AI
+    return getEnableAI()
   },
 
   /**
-   * 调用道童 AI 云函数（API Key 由云函数环境变量注入，与灵鉴识物共享）
+   * 调用道童 AI 云函数（API Key 由云函数环境变量注入）
    * @param {string} action - chat | recognize_record | query_data | recognize_media | get_daily_record
    * @param {object} params - 对应 action 所需参数
    * @returns {Promise<object>}
@@ -3079,7 +3116,7 @@ App({
   async callDaoSpiritAI(action, params = {}) {
     if (!this.isAIEnabled()) {
       this.showSystemToast('AI 功能尚未启用', 'none')
-      return { ok: false, error: 'AI 功能未启用，请将 ENABLE_AI 设为 true 并在云开发控制台配置 DOUBAO_API_KEY 环境变量' }
+      return { ok: false, error: 'AI 功能未启用，请在设置中开启 AI 功能并在云开发控制台配置 API Key 环境变量' }
     }
 
     try {

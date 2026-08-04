@@ -137,7 +137,7 @@ Page({
       var res = await wx.chooseImage({ count: Math.min(9 - images.length, 9), sizeType: ['compressed'], sourceType: ['album', 'camera'] })
       wx.showLoading({ title: '上传中...' })
       for (var i = 0; i < res.tempFilePaths.length; i++) {
-        var uploadRes = await wx.cloud.uploadFile({ cloudPath: 'template_images/' + Date.now() + '_' + i + '.jpg', filePath: res.tempFilePaths[i] })
+        var uploadRes = await wx.cloud.uploadFile({ cloudPath: 'template_images/' + Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '_' + i + '.jpg', filePath: res.tempFilePaths[i] })
         if (uploadRes.fileID) images.push(uploadRes.fileID)
       }
       wx.hideLoading()
