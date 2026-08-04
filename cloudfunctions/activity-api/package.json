@@ -1,0 +1,9 @@
+{
+  "name": "activity-api",
+  "version": "1.0.0",
+  "description": "活动库云函数：官方活动读取 + 用户自定义活动管理（公开分享）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

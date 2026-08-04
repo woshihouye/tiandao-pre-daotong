@@ -1,0 +1,360 @@
+// 活动库云函数 — 统一入口（v1.0）
+// 集合：activities（官方活动，只读）/ user_activities（用户自定义，公开分享）
+// 说明：官方活动由开发者在云开发控制台直接管理；本函数不含管理员逻辑
+var cloud = require('wx-server-sdk')
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
+var db = cloud.database()
+var _ = db.command
+
+// ==================== 工具 ====================
+
+/** 取当前用户 OPENID（无则返回 null） */
+function getOpenId() {
+  try {
+    return cloud.getWXContext().OPENID || null
+  } catch (e) {
+    return null
+  }
+}
+
+/** 过滤返回字段，去掉内部字段 */
+function sanitizeActivity(doc) {
+  if (!doc) return null
+  return {
+    activityId: doc.activityId || doc._id,
+    name: doc.name || '',
+    category: doc.category || '',
+    topFilter: doc.topFilter || '',
+    sideFilter: doc.sideFilter || '',
+    description: doc.description || '',
+    unit: doc.unit || '',
+    scorePerUnit: doc.scorePerUnit != null ? doc.scorePerUnit : 0,
+    presetAction: doc.presetAction || '',
+    defaultGroup: doc.defaultGroup != null ? doc.defaultGroup : 1,
+    isSystem: !!doc.isSystem,
+    isStudyMode: !!doc.isStudyMode,
+    ownerId: doc.ownerId || '',
+    ownerName: doc.ownerName || '',
+    visibility: doc.visibility || 'public',
+    useCount: doc.useCount || 0,
+    likeCount: doc.likeCount || 0,
+    createdAt: doc.createdAt || ''
+  }
+}
+
+/** 生成用户活动 id：u_<openid前8>_<时间戳>_<随机3位> */
+function genUserActivityId(openid) {
+  var short = (openid || 'anon').replace(/[^a-zA-Z0-9]/g, '').slice(-8)
+  return 'u_' + short + '_' + Date.now() + '_' + Math.floor(Math.random() * 900 + 100)
+}
+
+/** 校验用户活动字段合法性 */
+function validateActivityInput(d) {
+  if (!d || !d.name) return { ok: false, error: '缺少活动名称' }
+  var name = String(d.name).trim()
+  if (!name) return { ok: false, error: '活动名称不能为空' }
+  if (name.length > 10) return { ok: false, error: '活动名称最多10个字符' }
+  var score = Number(d.scorePerUnit)
+  if (isNaN(score)) return { ok: false, error: '修为值不合法' }
+  if (score < -100 || score > 100) return { ok: false, error: '修为值超出范围(-100~100)' }
+  var cats = ['sport', 'diet', 'study', 'work', 'debuff']
+  if (cats.indexOf(d.category) === -1) return { ok: false, error: '分类不合法' }
+  return {
+    ok: true,
+    data: {
+      name: name,
+      category: d.category,
+      topFilter: d.topFilter || 'custom',
+      sideFilter: d.sideFilter || 'custom',
+      description: d.description ? String(d.description).trim() : '',
+      unit: d.unit || '次',
+      scorePerUnit: score,
+      presetAction: d.presetAction || '',
+      defaultGroup: score >= 0 ? (Number(d.defaultGroup) || 1) : undefined,
+      isStudyMode: !!d.isStudyMode
+    }
+  }
+}
+
+// ==================== 读操作 ====================
+
+/** 官方活动列表（按分类+筛选，分页） */
+async function getLibrary(params) {
+  var where = { status: 'active', isSystem: true }
+  if (params.category) where.category = params.category
+  if (params.topFilter && params.topFilter !== 'all') where.topFilter = params.topFilter
+  if (params.sideFilter && params.sideFilter !== 'all') where.sideFilter = params.sideFilter
+  if (params.keyword) {
+    var kw = String(params.keyword).trim()
+    if (kw) {
+      // 名称/描述模糊匹配
+      var reg = db.RegExp({ regexp: kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), options: 'i' })
+      where.name = reg
+    }
+  }
+  var page = parseInt(params.page) || 1
+  var pageSize = Math.min(parseInt(params.pageSize) || 50, 100)
+  var res = await db.collection('activities')
+    .where(where)
+    .orderBy('category', 'asc')
+    .orderBy('sortOrder', 'asc')
+    .skip((page - 1) * pageSize)
+    .limit(pageSize)
+    .get()
+  var countRes = await db.collection('activities').where(where).count()
+  return {
+    ok: true,
+    list: (res.data || []).map(sanitizeActivity),
+    total: countRes.total,
+    page: page,
+    pageSize: pageSize,
+    source: 'cloud'
+  }
+}
+
+/** 全部分类+筛选配置（静态，与本地 activity-library.js 保持一致） */
+function getFilterConfigs() {
+  return {
+    categories: [
+      { key: 'sport', name: '武·炼体', icon: '武' },
+      { key: 'diet', name: '食·丹食', icon: '食' },
+      { key: 'study', name: '悟·修心', icon: '悟' },
+      { key: 'work', name: '工·功业', icon: '工' },
+      { key: 'debuff', name: '煞·心魔', icon: '煞' }
+    ],
+    filters: {
+      sport: {
+        top: ['all', 'bodyweight', 'dumbbell', 'barbell', 'band', 'cable', 'cardio'],
+        side: ['all', 'push', 'pull', 'squat', 'core', 'cardio', 'unknown']
+      },
+      diet: { top: ['all'], side: ['all'] },
+      study: { top: ['all'], side: ['all'] },
+      work: { top: ['all'], side: ['all'] },
+      debuff: { top: ['all'], side: ['all'] }
+    }
+  }
+}
+
+/** 公开自定义活动列表（全服，按热度/时间） */
+async function getPublicCustom(params) {
+  var where = { status: 'active', visibility: 'public' }
+  if (params.category) where.category = params.category
+  var sortBy = params.sortBy === 'hot' ? 'useCount' : 'createdAt'
+  var page = parseInt(params.page) || 1
+  var pageSize = Math.min(parseInt(params.pageSize) || 20, 50)
+  var res = await db.collection('user_activities')
+    .where(where)
+    .orderBy(sortBy, 'desc')
+    .skip((page - 1) * pageSize)
+    .limit(pageSize)
+    .get()
+  var countRes = await db.collection('user_activities').where(where).count()
+  return {
+    ok: true,
+    list: (res.data || []).map(sanitizeActivity),
+    total: countRes.total,
+    page: page,
+    pageSize: pageSize
+  }
+}
+
+/** 我的自定义活动 */
+async function getMine(openid, params) {
+  if (!openid) return { ok: false, error: '未登录' }
+  var page = parseInt(params.page) || 1
+  var pageSize = Math.min(parseInt(params.pageSize) || 50, 100)
+  var res = await db.collection('user_activities')
+    .where({ ownerId: openid })
+    .orderBy('createdAt', 'desc')
+    .skip((page - 1) * pageSize)
+    .limit(pageSize)
+    .get()
+  return {
+    ok: true,
+    list: (res.data || []).map(sanitizeActivity),
+    total: res.data ? res.data.length : 0
+  }
+}
+
+/** 按 id 批量取活动（供记录页加载已选活动） */
+async function getByIds(params) {
+  var ids = params.ids
+  if (!ids || !ids.length) return { ok: true, list: [] }
+  var officialIds = []
+  var customIds = []
+  for (var i = 0; i < ids.length; i++) {
+    var id = String(ids[i])
+    if (id.indexOf('u_') === 0) customIds.push(id)
+    else officialIds.push(id)
+  }
+  var result = []
+  // 官方（用 activityId 查询，最多拆两批）
+  if (officialIds.length) {
+    var offWhere = { activityId: _.in(officialIds.slice(0, 20)) }
+    var offRes = await db.collection('activities').where(offWhere).limit(20).get()
+    result = result.concat((offRes.data || []).map(sanitizeActivity))
+  }
+  // 用户自定义（按 activityId）
+  if (customIds.length) {
+    var cusRes = await db.collection('user_activities')
+      .where({ activityId: _.in(customIds.slice(0, 20)) }).limit(20).get()
+    result = result.concat((cusRes.data || []).map(sanitizeActivity))
+  }
+  return { ok: true, list: result }
+}
+
+// ==================== 写操作 ====================
+
+/** 新建自定义活动 */
+async function createCustom(openid, params) {
+  if (!openid) return { ok: false, error: '未登录' }
+  var v = validateActivityInput(params)
+  if (!v.ok) return v
+  var doc = v.data
+  doc.activityId = genUserActivityId(openid)
+  doc.isSystem = false
+  doc.ownerId = openid
+  doc.ownerName = params.ownerName || ''
+  doc.visibility = 'public' // 公开分享
+  doc.useCount = 0
+  doc.likeCount = 0
+  doc.status = 'active'
+  doc.createdAt = new Date().toISOString()
+  doc.updatedAt = doc.createdAt
+  var res = await db.collection('user_activities').add({ data: doc })
+  return { ok: true, activityId: doc.activityId, _id: res._id }
+}
+
+/** 更新自己的自定义活动 */
+async function updateCustom(openid, params) {
+  if (!openid) return { ok: false, error: '未登录' }
+  var activityId = params.activityId
+  if (!activityId) return { ok: false, error: '缺少 activityId' }
+  var v = validateActivityInput(params)
+  if (!v.ok) return v
+  // 校验归属
+  var existRes = await db.collection('user_activities')
+    .where({ activityId: activityId, ownerId: openid }).limit(1).get()
+  if (!existRes.data || existRes.data.length === 0) {
+    return { ok: false, error: '无权修改或活动不存在' }
+  }
+  var doc = v.data
+  doc.updatedAt = new Date().toISOString()
+  await db.collection('user_activities')
+    .where({ activityId: activityId, ownerId: openid })
+    .update({ data: doc })
+  return { ok: true }
+}
+
+/** 删除自己的自定义活动 */
+async function deleteCustom(openid, params) {
+  if (!openid) return { ok: false, error: '未登录' }
+  var activityId = params.activityId
+  if (!activityId) return { ok: false, error: '缺少 activityId' }
+  var res = await db.collection('user_activities')
+    .where({ activityId: activityId, ownerId: openid })
+    .remove()
+  return { ok: true, removed: res.stats ? res.stats.removed : 0 }
+}
+
+/** 克隆公开活动为自己的副本 */
+async function cloneActivity(openid, params) {
+  if (!openid) return { ok: false, error: '未登录' }
+  var srcId = params.activityId
+  if (!srcId) return { ok: false, error: '缺少 activityId' }
+  // 源活动：官方或公开自定义
+  var src = null
+  if (String(srcId).indexOf('u_') === 0) {
+    var cusRes = await db.collection('user_activities')
+      .where({ activityId: srcId, status: 'active', visibility: 'public' }).limit(1).get()
+    if (cusRes.data && cusRes.data.length) src = cusRes.data[0]
+  } else {
+    var offRes = await db.collection('activities')
+      .where({ activityId: srcId, status: 'active' }).limit(1).get()
+    if (offRes.data && offRes.data.length) src = offRes.data[0]
+  }
+  if (!src) return { ok: false, error: '源活动不存在或不可见' }
+  // 防止重复克隆同源（同一用户同一源只允许一份）
+  var dupRes = await db.collection('user_activities')
+    .where({ ownerId: openid, sourceActivityId: srcId }).limit(1).get()
+  if (dupRes.data && dupRes.data.length) {
+    return { ok: false, error: '已克隆过该活动', activityId: dupRes.data[0].activityId }
+  }
+  var doc = {
+    activityId: genUserActivityId(openid),
+    name: src.name,
+    category: src.category,
+    topFilter: src.topFilter || 'custom',
+    sideFilter: src.sideFilter || 'custom',
+    description: src.description || '',
+    unit: src.unit || '次',
+    scorePerUnit: src.scorePerUnit != null ? src.scorePerUnit : 0,
+    presetAction: src.presetAction || '',
+    defaultGroup: src.defaultGroup != null ? src.defaultGroup : 1,
+    isSystem: false,
+    isStudyMode: !!src.isStudyMode,
+    ownerId: openid,
+    ownerName: params.ownerName || '',
+    visibility: 'public',
+    sourceActivityId: srcId,   // 溯源
+    useCount: 0,
+    likeCount: 0,
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+  var addRes = await db.collection('user_activities').add({ data: doc })
+  // 源使用计数 +1（官方/自定义都加）
+  try {
+    if (String(srcId).indexOf('u_') === 0) {
+      await db.collection('user_activities').where({ activityId: srcId })
+        .update({ data: { useCount: _.inc(1) } })
+    } else {
+      await db.collection('activities').where({ activityId: srcId })
+        .update({ data: { useCount: _.inc(1) } })
+    }
+  } catch (e) { /* 计数失败不影响克隆 */ }
+  return { ok: true, activityId: doc.activityId, _id: addRes._id }
+}
+
+/** 搜索（官方+公开自定义合并） */
+async function searchActivities(params) {
+  var kw = String(params.keyword || '').trim()
+  if (!kw) return { ok: true, list: [], total: 0 }
+  var reg = db.RegExp({ regexp: kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), options: 'i' })
+  var limit = Math.min(parseInt(params.pageSize) || 20, 50)
+  var offRes = await db.collection('activities')
+    .where({ status: 'active', name: reg }).limit(limit).get()
+  var cusRes = await db.collection('user_activities')
+    .where({ status: 'active', visibility: 'public', name: reg }).limit(limit).get()
+  var list = (offRes.data || []).map(sanitizeActivity)
+    .concat((cusRes.data || []).map(sanitizeActivity))
+  return { ok: true, list: list.slice(0, limit), total: list.length }
+}
+
+// ==================== 入口 ====================
+
+exports.main = async function(event, context) {
+  var action = event.action
+  var params = event.params || {}
+  var openid = getOpenId()
+
+  try {
+    switch (action) {
+      case 'getLibrary':      return await getLibrary(params)
+      case 'getFilterConfigs': return getFilterConfigs()
+      case 'getPublicCustom': return await getPublicCustom(params)
+      case 'getMine':         return await getMine(openid, params)
+      case 'getByIds':        return await getByIds(params)
+      case 'search':          return await searchActivities(params)
+      case 'createCustom':    return await createCustom(openid, params)
+      case 'updateCustom':    return await updateCustom(openid, params)
+      case 'deleteCustom':    return await deleteCustom(openid, params)
+      case 'cloneActivity':   return await cloneActivity(openid, params)
+      default: return { ok: false, error: 'unknown action: ' + action }
+    }
+  } catch (e) {
+    console.error('[activity-api]', action, '异常:', e)
+    return { ok: false, error: e.message || 'unknown error' }
+  }
+}
