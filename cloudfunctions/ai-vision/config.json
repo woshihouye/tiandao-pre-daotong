@@ -5,6 +5,6 @@
   "timeout": 25,
   "memorySize": 256,
   "envVariables": {
-    "DOUBAO_API_KEY": "REDACTED"
+    "DOUBAO_API_KEY": ""
   }
 }
