@@ -666,8 +666,27 @@ Page({
 
   // ==================== 数据加载 ====================
 
+  /**
+   * 新增活动维度规范（作用域安全版）
+   *
+   * 1. 每个函数内部自行声明 var self = this，禁止跨函数共享
+   * 2. 有本地元卡的维度（sport / diet / 后续新增）：
+   *    - 必须同步调用 _finalizeListWithMetaCards
+   *    - 再异步追加自定义数据
+   * 3. 纯云端维度（study / work / debuff）：
+   *    - 保持 _loadFromCloud 不变
+   *    - 禁止强行同步渲染
+   * 4. 竞态防护（requestId）：
+   *    - 在 _reloadActivities 内生成 this._activityRequestId（实例属性，非 data）
+   *    - 在 _loadFromCloud 内部自行捕获 requestId
+   *    - sport/diet 的守卫加在异步回调内（闭包访问 currentRequestId）
+   *    - 禁止在 finalize 函数体内访问 requestId
+   *    - _loadCustomFromCloud 是纯数据获取器，无需任何守卫
+   */
   _reloadActivities: function() {
     var self = this
+    this._activityRequestId = (this._activityRequestId || 0) + 1
+    var currentRequestId = this._activityRequestId
     var cat = this.data.currentCategory
     var kw = this.data.searchKeyword
     var sideF = this.data.currentSideFilter
@@ -695,8 +714,8 @@ Page({
       // 先同步显示元卡（立即渲染），再异步追加自定义活动
       this._finalizeListWithMetaCards(metaActs, cat)
       // 异步加载云端自定义活动并追加
-      var self = this
       this._loadCustomFromCloud(cat, kw, sideF, function(customList) {
+        if (currentRequestId !== self._activityRequestId) return
         if (customList.length === 0) return
         var merged = metaActs.concat(customList)
         if (self.data.showMyCustomOnly) {
@@ -724,6 +743,7 @@ Page({
 
       // 加载自定义 diet 活动（与 sport 分支同款函数）
       self._loadCustomFromCloud(cat, kw, sideF, function(customList) {
+        if (currentRequestId !== self._activityRequestId) return
         var merged = dietMetaActs.concat(customList)
         if (self.data.showMyCustomOnly) {
           merged = self._groupMyCustom(customList)
@@ -808,6 +828,7 @@ Page({
    */
   _loadFromCloud: function(cat, kw, sideF) {
     var self = this
+    var requestId = this._activityRequestId || 0
 
     // 并行调用三个云函数
     var promises = [
@@ -953,6 +974,7 @@ Page({
         // 全量聚合标签（在过滤前，标签行不缩水）
         self._aggregateTags(list)
 
+        if (requestId !== self._activityRequestId) return
         self._finalizeList(list, cat, sideF)
       } else {
         // 云端不可用，回退本地
