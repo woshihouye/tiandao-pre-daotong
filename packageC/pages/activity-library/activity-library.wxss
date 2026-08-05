@@ -122,6 +122,22 @@ page { height: 100%; }
 .score-positive { color: var(--primary-color, #10B981); }
 .score-negative { color: var(--danger-text, #ef4444); }
 
+/* 元卡描述 */
+.card-meta-desc {
+  font-size: 22rpx; color: var(--text-secondary, #6b7280);
+  text-align: center; width: 100%; line-height: 1.4;
+  overflow: hidden; text-overflow: ellipsis;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  margin-bottom: 4rpx;
+}
+.card-meta-muscles {
+  font-size: 20rpx; color: #6b7280;
+  text-align: center; width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  background: #f0fdf4; border-radius: 6rpx;
+  padding: 4rpx 10rpx; margin-bottom: 6rpx;
+}
+
 /* ext 属性行 */
 .card-ext-row {
   display: flex; flex-wrap: wrap; gap: 4rpx;
@@ -501,6 +517,11 @@ page { height: 100%; }
   border-color: #059669;
   background: #ECFDF5;
 }
+.card-btn.use {
+  color: #10B981;
+  border-color: #10B981;
+  background: #ECFDF5;
+}
 .card-btn.delete {
   color: #EF4444;
   border-color: #EF4444;
@@ -612,44 +633,27 @@ page { height: 100%; }
 .reclassify-meta-sub { font-size: 20rpx; color: #999; display: block; margin-top: 4rpx; }
 .reclassify-footer { display: flex; gap: 16rpx; margin-top: 24rpx; }
 
-/* ========== 元卡浏览（sport 维度）========== */
-.meta-card-browse { background: #fff; padding: 20rpx 0; }
-
-/* 子集筛选 */
-.subcategory-bar { white-space: nowrap; padding: 0 20rpx 20rpx; }
-.subcat-chip {
-  display: inline-block; padding: 10rpx 28rpx; margin-right: 16rpx;
-  background: #f3f4f6; color: #666; border-radius: 24rpx; font-size: 26rpx;
+/* ========== 元卡筛选 pill 栏（sport 维度）========== */
+.meta-filter-bar { background: #fff; padding: 0 0 12rpx;
+  border-bottom: 1rpx solid var(--border-color, #f0f0f0); }
+.meta-pill-scroll { white-space: nowrap; padding: 0 20rpx; }
+.meta-pill-sub { padding-top: 8rpx; }
+.meta-pill {
+  display: inline-block; padding: 8rpx 22rpx; margin-right: 12rpx;
+  background: var(--bg-secondary, #f3f4f6); color: var(--text-secondary, #666);
+  border-radius: 20rpx; font-size: 24rpx;
 }
-.subcat-chip.active { background: #3B82F6; color: #fff; }
-
-/* 元卡网格 */
-.meta-card-grid { display: flex; flex-wrap: wrap; padding: 0 20rpx; }
-.meta-card-item {
-  width: calc(50% - 12rpx); margin: 0 24rpx 24rpx 0;
-  padding: 28rpx 20rpx; background: #fff; border-radius: 16rpx;
-  border: 2rpx solid #f0f0f0; box-sizing: border-box;
-}
-.meta-card-item:nth-child(2n) { margin-right: 0; }
-.meta-card-icon { font-size: 48rpx; text-align: center; margin-bottom: 12rpx; }
-.meta-card-name {
-  font-size: 30rpx; font-weight: bold; color: #333;
-  text-align: center; display: block; margin-bottom: 8rpx;
-}
-.meta-card-desc {
-  font-size: 22rpx; color: #999; text-align: center;
-  display: block; line-height: 1.4;
-}
+.meta-pill.active { background: #3B82F6; color: #fff; }
 
 /* 模板搜索结果 */
-.search-template-results { padding: 0 20rpx; margin-bottom: 24rpx; }
-.search-template-title { font-size: 24rpx; color: #999; padding: 12rpx 0; display: block; }
+.search-template-results { padding: 0 20rpx; margin-bottom: 12rpx; }
+.search-template-title { font-size: 24rpx; color: #999; padding: 8rpx 0; display: block; }
 .template-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 20rpx 24rpx; background: #f9fafb; border-radius: 12rpx; margin-bottom: 12rpx;
+  padding: 16rpx 20rpx; background: #f9fafb; border-radius: 12rpx; margin-bottom: 8rpx;
 }
-.template-name { font-size: 28rpx; color: #333; }
+.template-name { font-size: 26rpx; color: #333; }
 .template-meta {
   font-size: 22rpx; color: #3B82F6; background: #EBF5FF;
-  padding: 4rpx 16rpx; border-radius: 12rpx;
+  padding: 4rpx 14rpx; border-radius: 10rpx;
 }

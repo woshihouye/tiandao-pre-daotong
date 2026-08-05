@@ -127,10 +127,8 @@ Page({
     cardMode: 'default',  // 'study' | 'food' | 'default'
 
     // 元卡浏览（sport 维度）
-    showMetaCards: false,      // 是否显示元卡浏览
-    metaCards: [],             // 从 META_CARDS 转换的显示列表
     currentSubcategory: 'all', // 当前子集筛选
-    metaCardsFiltered: [],     // 按子集筛选后的元卡列表
+    currentMetaCard: '',       // 当前元卡筛选（空=全部）
     metaCardSearchKeyword: '', // 动作搜索关键词
     metaCardSearchResults: [], // 动作搜索匹配结果
 
@@ -366,6 +364,20 @@ Page({
         sideFilters: FOOD_SIDE_FILTERS,
         currentSideFilter: 'all'
       })
+    } else if (cat === 'sport') {
+      // 元卡改造：sport 使用子集侧栏筛选
+      this.setData({
+        sideFilters: [
+          { key: 'all', name: '全部分类' },
+          { key: 'anaerobic', name: '无氧力量' },
+          { key: 'core', name: '核心训练' },
+          { key: 'cardio', name: '有氧心肺' },
+          { key: 'unknown', name: '不知道' }
+        ],
+        currentSideFilter: 'all',
+        currentSubcategory: 'all',
+        currentMetaCard: ''
+      })
     } else {
       var config = Alib.FILTER_CONFIGS[cat] || { top: [], side: [] }
       var sideFilters = config.side || []
@@ -395,7 +407,11 @@ Page({
 
   tapSideFilter: function(e) {
     var key = e.currentTarget.dataset.key
-    this.setData({ currentSideFilter: key })
+    if (this.data.currentCategory === 'sport') {
+      this.setData({ currentSideFilter: key, currentSubcategory: key })
+    } else {
+      this.setData({ currentSideFilter: key })
+    }
     this._reloadActivities()
   },
 
@@ -437,57 +453,74 @@ Page({
     this._reloadActivities()
   },
 
-  // ==================== 元卡浏览（sport 维度）====================
+  // ==================== 元卡：虚拟活动注入（sport 维度）====================
 
-  /** 将 META_CARDS 对象转为显示数组 */
-  _initMetaCards: function() {
+  /**
+   * 构建 8 张元卡为普通活动对象，混入 activities 列表统一渲染
+   * @returns {Array} 8 个虚拟活动对象
+   */
+  _buildMetaCardActivities: function() {
     var cards = MetaCards.META_CARDS
+    var sub = this.data.currentSubcategory
+    var mc = this.data.currentMetaCard
     var arr = []
+    var sideMap = { push: 'push', pull: 'pull', squat: 'squat', hold: 'core', curl: 'core', steady_cardio: 'cardio', interval_cardio: 'cardio', unknown: 'unknown' }
+
     for (var key in cards) {
-      if (Object.prototype.hasOwnProperty.call(cards, key)) {
-        var card = cards[key]
-        arr.push({
-          id: card.id,
-          name: card.name,
-          subcategory: card.subcategory,
-          description: card.description
-        })
+      if (!Object.prototype.hasOwnProperty.call(cards, key)) continue
+      var card = cards[key]
+
+      // 子集筛选
+      if (sub !== 'all' && card.subcategory !== sub) continue
+      // 元卡筛选
+      if (mc && card.id !== mc) continue
+
+      // 构建肌群摘要
+      var muscleNames = []
+      var pool = card.musclePool || card.paramPool
+      if (pool && pool.primary) {
+        for (var i = 0; i < pool.primary.length; i++) {
+          muscleNames.push(pool.primary[i].name)
+        }
       }
+      var muscleSummary = muscleNames.length > 0 ? muscleNames.slice(0, 3).join('·') : ''
+
+      arr.push({
+        id: 'meta_' + card.id,
+        name: card.name,
+        category: 'sport',
+        tabKey: 'sport',
+        metaCardId: card.id,
+        description: card.description,
+        unit: '次',
+        scorePerUnit: 1,
+        presetAction: '',
+        isOfficial: false,
+        isCustom: false,
+        isPublic: false,
+        sideFilter: sideMap[card.id] || card.subcategory,
+        _isMetaCard: true,
+        _muscleSummary: muscleSummary,
+        ext: {},
+        tags: [],
+        __keys: []
+      })
     }
-    this.setData({
-      metaCards: arr,
-      currentSubcategory: 'all',
-      metaCardsFiltered: arr
-    })
+    return arr
   },
 
   /** 元卡子集筛选 */
   onSubcategoryTap: function(e) {
     var key = e.currentTarget.dataset.key
-    var filtered = []
-    var all = this.data.metaCards
-    if (key === 'all') {
-      filtered = all
-    } else {
-      for (var i = 0; i < all.length; i++) {
-        if (all[i].subcategory === key) {
-          filtered.push(all[i])
-        }
-      }
-    }
-    this.setData({
-      currentSubcategory: key,
-      metaCardsFiltered: filtered
-    })
+    this.setData({ currentSubcategory: key })
+    this._reloadActivities()
   },
 
-  /** 点击元卡 → 跳转元卡编辑页 */
-  onMetaCardTap: function(e) {
-    var metaCardId = e.currentTarget.dataset.id
-    if (!metaCardId) return
-    wx.navigateTo({
-      url: '../activity-edit/activity-edit?metaCard=' + metaCardId
-    })
+  /** 元卡筛选 */
+  onMetaCardFilterTap: function(e) {
+    var key = e.currentTarget.dataset.key
+    this.setData({ currentMetaCard: key })
+    this._reloadActivities()
   },
 
   /** 点击模板搜索结果 → 跳转编辑页并预填模板参数 */
@@ -507,14 +540,39 @@ Page({
     var kw = this.data.searchKeyword
     var sideF = this.data.currentSideFilter
 
-    // sport 维度：显示元卡浏览，其他维度隐藏
+    // sport 维度：元卡模式
     if (cat === 'sport') {
-      if (!this.data.showMetaCards) {
-        this._initMetaCards()
+      var metaActs = []
+      // 非"我的自定义"模式：注入元卡虚拟活动
+      if (!this.data.showMyCustomOnly) {
+        metaActs = this._buildMetaCardActivities()
+        // 搜索：也搜元卡名字描述
+        if (kw && kw.trim()) {
+          var kwLower = kw.trim().toLowerCase()
+          var filtered = []
+          for (var mi = 0; mi < metaActs.length; mi++) {
+            var ma = metaActs[mi]
+            if (ma.name.toLowerCase().indexOf(kwLower) !== -1 ||
+                (ma.description && ma.description.toLowerCase().indexOf(kwLower) !== -1)) {
+              filtered.push(ma)
+            }
+          }
+          metaActs = filtered
+        }
       }
-      this.setData({ showMetaCards: true })
-    } else {
-      this.setData({ showMetaCards: false, metaCardSearchKeyword: '', metaCardSearchResults: [] })
+      // 先同步显示元卡（立即渲染），再异步追加自定义活动
+      this._finalizeListWithMetaCards(metaActs, cat)
+      // 异步加载云端自定义活动并追加
+      var self = this
+      this._loadCustomFromCloud(cat, kw, sideF, function(customList) {
+        if (customList.length === 0) return
+        var merged = metaActs.concat(customList)
+        if (self.data.showMyCustomOnly) {
+          merged = self._groupMyCustom(customList)
+        }
+        self._finalizeListWithMetaCards(merged, cat)
+      })
+      return
     }
 
     // 食·丹食 使用独立食物知识库
@@ -1003,6 +1061,68 @@ Page({
     this.setData({ activities: this._sortByUsage(list), cardMode: cardMode })
   },
 
+  /** 为 sport 元卡模式加载云端自定义活动（简化版：只拉用户自定义） */
+  _loadCustomFromCloud: function(cat, kw, sideF, callback) {
+    var self = this
+    // 查询自己的自定义活动
+    wx.cloud.callFunction({
+      name: 'user-activity',
+      data: { action: 'list' },
+      success: function(res) {
+        var list = []
+        if (res.result && res.result.ok && res.result.data && res.result.data.list) {
+          for (var i = 0; i < res.result.data.list.length; i++) {
+            var mc = res.result.data.list[i]
+            if (mc.category === cat) {
+              list.push({
+                id: mc.activityId || mc._id || mc.id,
+                name: mc.name,
+                scorePerUnit: mc.scorePerUnit,
+                unit: mc.unit,
+                category: mc.category,
+                tabKey: mc.category,
+                sideFilter: mc.sideFilter || '',
+                description: mc.description || '',
+                isOfficial: false,
+                isCustom: true,
+                presetAction: '',
+                categoryName: mc.categoryName || '',
+                ext: mc.ext || {},
+                tags: mc.tags || [],
+                icon: mc.icon || '',
+                customMeta: mc.customMeta || null
+              })
+            }
+          }
+        }
+        callback(list)
+      },
+      fail: function() { callback([]) }
+    })
+  },
+
+  /** sport 元卡模式专用 finalize：不按 sideFilter 过滤（已由 pill 栏处理） */
+  _finalizeListWithMetaCards: function(list, cat) {
+    // 标签聚合
+    this._aggregateTags(list)
+
+    // ext 预处理
+    for (var ei = 0; ei < list.length; ei++) {
+      var it = list[ei]
+      if (it._isGroup) continue
+      var ext = it.ext || {}
+      var keys = Object.keys(ext)
+      var kArr = []
+      for (var ki = 0; ki < keys.length && ki < 4; ki++) {
+        kArr.push(keys[ki])
+      }
+      it.__keys = kArr
+      it.__ext = ext
+    }
+
+    this.setData({ activities: this._sortByUsage(list), cardMode: 'default' })
+  },
+
   /** 按使用次数排序（使用次数高的在前），暂无数据时保持原序 */
   _sortByUsage: function(list) {
     // 尝试从本地读取使用统计
@@ -1248,6 +1368,14 @@ Page({
   onCardTap: function(e) {
     var activity = e.currentTarget.dataset.activity
     if (!activity) return
+
+    // 元卡点击 → 跳转元卡编辑页
+    if (activity._isMetaCard) {
+      wx.navigateTo({
+        url: '../activity-edit/activity-edit?metaCard=' + activity.metaCardId
+      })
+      return
+    }
 
     // 食物卡片 → 打开食物详情面板
     if (activity.isFood) {

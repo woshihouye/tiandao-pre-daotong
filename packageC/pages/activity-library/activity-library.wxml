@@ -42,40 +42,14 @@
     <text class="filter-my-custom-label">只看我的自定义</text>
   </view>
 
-  <!-- 元卡浏览（sport 维度） -->
-  <view class="meta-card-browse" wx:if="{{showMetaCards && !showMyCustomOnly}}">
-    <!-- 子集筛选 -->
-    <scroll-view class="subcategory-bar" scroll-x>
-      <view class="subcat-chip {{currentSubcategory === 'all' ? 'active' : ''}}" 
-        data-key="all" bindtap="onSubcategoryTap">全部</view>
-      <view class="subcat-chip {{currentSubcategory === 'anaerobic' ? 'active' : ''}}" 
-        data-key="anaerobic" bindtap="onSubcategoryTap">无氧力量</view>
-      <view class="subcat-chip {{currentSubcategory === 'core' ? 'active' : ''}}" 
-        data-key="core" bindtap="onSubcategoryTap">核心训练</view>
-      <view class="subcat-chip {{currentSubcategory === 'cardio' ? 'active' : ''}}" 
-        data-key="cardio" bindtap="onSubcategoryTap">有氧心肺</view>
-      <view class="subcat-chip {{currentSubcategory === 'unknown' ? 'active' : ''}}" 
-        data-key="unknown" bindtap="onSubcategoryTap">不知道</view>
-    </scroll-view>
 
-    <!-- 模板搜索结果 -->
-    <view class="search-template-results" wx:if="{{metaCardSearchResults.length > 0}}">
-      <text class="search-template-title">动作模板匹配</text>
-      <view class="template-item" wx:for="{{metaCardSearchResults}}" wx:key="name" 
-        data-index="{{index}}" bindtap="onMetaCardSearchResultTap">
-        <text class="template-name">{{item.name}}</text>
-        <text class="template-meta">{{item.metaCardName || item.metaCard}}</text>
-      </view>
-    </view>
-
-    <!-- 元卡网格 -->
-    <view class="meta-card-grid">
-      <view class="meta-card-item" wx:for="{{metaCardsFiltered}}" wx:key="id" 
-        data-id="{{item.id}}" bindtap="onMetaCardTap">
-        <view class="meta-card-icon">{{item.subcategory === 'anaerobic' ? '💪' : item.subcategory === 'core' ? '🎯' : item.subcategory === 'cardio' ? '🏃' : '❓'}}</view>
-        <text class="meta-card-name">{{item.name}}</text>
-        <text class="meta-card-desc">{{item.description}}</text>
-      </view>
+  <!-- 模板搜索结果 -->
+  <view class="search-template-results" wx:if="{{metaCardSearchResults.length > 0}}">
+    <text class="search-template-title">动作模板匹配</text>
+    <view class="template-item" wx:for="{{metaCardSearchResults}}" wx:key="name" 
+      data-index="{{index}}" bindtap="onMetaCardSearchResultTap">
+      <text class="template-name">{{item.name}}</text>
+      <text class="template-meta">{{item.metaCardName || item.metaCard}}</text>
     </view>
   </view>
 
@@ -159,12 +133,13 @@
               <view class="card-star {{favorites[act.id] ? 'starred' : ''}}" data-id="{{act.id}}" catchtap="toggleFavorite">
                 <text>{{favorites[act.id] ? '★' : '☆'}}</text>
               </view>
-              <view class="card-icon-wrap">
-                <text class="card-icon">{{act.name.charAt(0)}}</text>
-              </view>
               <view class="card-name">{{act.name}}</view>
               <view wx:if="{{act.ownerName}}" class="card-owner-name">{{act.ownerName}}</view>
-              <view class="card-score {{act.scorePerUnit > 0 ? 'score-positive' : 'score-negative'}}">
+              <!-- 元卡：描述 + 肌群 -->
+              <view wx:if="{{act._isMetaCard && act.description}}" class="card-meta-desc">{{act.description}}</view>
+              <view wx:if="{{act._isMetaCard && act._muscleSummary}}" class="card-meta-muscles">{{act._muscleSummary}}</view>
+              <!-- 非元卡：修为值 -->
+              <view wx:if="{{!act._isMetaCard}}" class="card-score {{act.scorePerUnit > 0 ? 'score-positive' : 'score-negative'}}">
                 {{act.scorePerUnit > 0 ? '+' : ''}}{{act.scorePerUnit}}修为/{{act.unit}}
               </view>
               <!-- ext 属性 -->
@@ -173,7 +148,11 @@
               </view>
               <!-- 操作按钮 -->
               <view class="card-actions" wx:if="{{!act.isPublic}}">
-                <view class="card-btn copy" wx:if="{{act.isOfficial}}" catchtap="onCopyActivity" data-activity="{{act}}">
+                <!-- 元卡：使用按钮 -->
+                <view class="card-btn use" wx:if="{{act._isMetaCard}}" catchtap="onCardTap" data-activity="{{act}}">
+                  <text>使用</text>
+                </view>
+                <view class="card-btn copy" wx:elif="{{act.isOfficial}}" catchtap="onCopyActivity" data-activity="{{act}}">
                   <text>复制</text>
                 </view>
                 <view class="card-btn edit" wx:if="{{act.isCustom}}" catchtap="onEditCustomActivity" data-activity="{{act}}">
