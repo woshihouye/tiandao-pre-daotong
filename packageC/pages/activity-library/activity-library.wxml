@@ -59,10 +59,25 @@
         >{{item.name}}</view>
       </scroll-view>
 
+      <!-- 标签筛选行 -->
+      <scroll-view scroll-x class="tag-filter-row" wx:if="{{allTags.length > 0}}">
+        <view class="tag-filter-item {{selectedTag === '' ? 'active' : ''}}" data-tag="" bindtap="onTagTap">全部</view>
+        <view class="tag-filter-item {{selectedTag === item.name ? 'active' : ''}}"
+          wx:for="{{allTags}}" wx:key="name" data-tag="{{item.name}}" bindtap="onTagTap">
+          {{item.name}}<text class="tag-count">{{item.count}}</text>
+        </view>
+        <view class="tag-filter-item {{showAllTagsOff ? 'active' : ''}}" bindtap="toggleAllTagsOff">未标签</view>
+      </scroll-view>
+
       <!-- 右侧 2 列宫格 -->
       <view class="grid-area">
         <view class="grid-container">
           <block wx:for="{{activities}}" wx:for-item="act" wx:key="id">
+            <!-- 分组头 -->
+            <view wx:if="{{act._isGroup}}" class="group-header" style="width: 100%">
+              <text class="group-name">{{act._groupName}}</text>
+              <text class="group-count">{{act._groupCount}}项</text>
+            </view>
             <view wx:if="{{cardMode === 'study'}}" class="grid-card study-card {{act.isNegative ? 'is-negative' : ''}}" data-activity="{{act}}" bindtap="onCardTap">
               <view class="card-tags">
                 <text class="card-tag official" wx:if="{{act.isOfficial}}">官方</text>
@@ -114,6 +129,10 @@
               <view wx:if="{{act.ownerName}}" class="card-owner-name">{{act.ownerName}}</view>
               <view class="card-score {{act.scorePerUnit > 0 ? 'score-positive' : 'score-negative'}}">
                 {{act.scorePerUnit > 0 ? '+' : ''}}{{act.scorePerUnit}}修为/{{act.unit}}
+              </view>
+              <!-- ext 属性 -->
+              <view wx:if="{{act.ext && act.__keys && act.__keys.length}}" class="card-ext-row">
+                <text wx:for="{{act.__keys}}" wx:key="*this" wx:for-item="k" class="card-ext-item">{{k}}:{{act.__ext[k]}}</text>
               </view>
               <!-- 操作按钮 -->
               <view class="card-actions" wx:if="{{!act.isPublic}}">

@@ -124,6 +124,9 @@ async function getLibrary(params) {
       where.name = reg
     }
   }
+  if (params.tag) {
+    where.tags = params.tag  // 云数据库数组字段直接匹配
+  }
   var page = parseInt(params.page) || 1
   var pageSize = Math.min(parseInt(params.pageSize) || 50, 100)
   var res = await db.collection('activities')
@@ -174,6 +177,7 @@ function getFilterConfigs() {
 async function getPublicCustom(params) {
   var where = { status: 'active', visibility: 'public' }
   if (params.category) where.category = params.category
+  if (params.tag) where.tags = params.tag
   var sortBy = params.sortBy === 'hot' ? 'useCount' : 'createdAt'
   var page = parseInt(params.page) || 1
   var pageSize = Math.min(parseInt(params.pageSize) || 20, 50)

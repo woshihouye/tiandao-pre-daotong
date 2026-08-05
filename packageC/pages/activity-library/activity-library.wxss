@@ -56,6 +56,22 @@ page { height: 100%; }
 }
 .side-item.active { background: var(--primary-color, #10B981); color: #fff; font-weight: 600; }
 
+/* 标签筛选行 */
+.tag-filter-row {
+  width: 100%; white-space: nowrap; padding: 4rpx 0 12rpx 0;
+  display: flex; gap: 10rpx; flex-shrink: 0;
+}
+.tag-filter-item {
+  display: inline-flex; align-items: center; flex-shrink: 0;
+  padding: 6rpx 16rpx; border-radius: 20rpx;
+  font-size: 22rpx; color: var(--text-secondary, #6b7280);
+  background: var(--bg-secondary, #f3f4f6); border: 1rpx solid transparent;
+}
+.tag-filter-item.active {
+  color: #fff; background: var(--primary-color, #10B981); border-color: transparent;
+}
+.tag-count { font-size: 18rpx; margin-left: 4rpx; opacity: 0.7; }
+
 /* ---- 右侧宫格区 ---- */
 .grid-area { flex: 1; }
 .grid-container {
@@ -106,6 +122,18 @@ page { height: 100%; }
 .score-positive { color: var(--primary-color, #10B981); }
 .score-negative { color: var(--danger-text, #ef4444); }
 
+/* ext 属性行 */
+.card-ext-row {
+  display: flex; flex-wrap: wrap; gap: 4rpx;
+  margin-top: 4rpx; justify-content: center; width: 100%;
+}
+.card-ext-item {
+  font-size: 18rpx; color: var(--text-tertiary, #9ca3af);
+  background: var(--bg-secondary, #f3f4f6);
+  padding: 2rpx 8rpx; border-radius: 6rpx;
+  max-width: 120rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
 /* 负面活动淡灰底色 */
 .grid-card.is-negative { background: rgba(239, 68, 68, 0.03); border-color: rgba(239, 68, 68, 0.1); }
 
@@ -144,6 +172,14 @@ page { height: 100%; }
   text-align: center; margin-top: 2rpx; overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap;
 }
+
+/* 分组头 */
+.group-header {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 16rpx 8rpx 8rpx 8rpx;
+}
+.group-name { font-size: 26rpx; font-weight: 700; color: var(--text-primary, #1f2937); }
+.group-count { font-size: 22rpx; color: var(--text-tertiary, #9ca3af); }
 
 /* ========== 弹窗遮罩 ========== */
 .modal-overlay {

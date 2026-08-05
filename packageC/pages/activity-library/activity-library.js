@@ -137,6 +137,9 @@ Page({
 
     // "只看我的自定义" 筛选
     showMyCustomOnly: false,
+    showAllTagsOff: false,  // false=不限，true=只看未打标签
+    selectedTag: '',        // 当前选中的 tag，空='全部'
+    allTags: [],            // 聚合后的标签列表
 
     // --- 自定义活动弹窗 ---
     showAddModal: false,
@@ -489,6 +492,28 @@ Page({
   },
 
   /**
+   * 从当前活动列表聚合标签（去重，按出现次数降序，最多20个）
+   */
+  _aggregateTags: function(list) {
+    var counts = {}
+    for (var i = 0; i < list.length; i++) {
+      var tags = list[i].tags || []
+      for (var j = 0; j < tags.length; j++) {
+        var t = tags[j]
+        if (t) counts[t] = (counts[t] || 0) + 1
+      }
+    }
+    var sorted = []
+    for (var k in counts) {
+      if (Object.prototype.hasOwnProperty.call(counts, k)) {
+        sorted.push({ name: k, count: counts[k] })
+      }
+    }
+    sorted.sort(function(a, b) { return b.count - a.count })
+    this.setData({ allTags: sorted.slice(0, 20) })
+  },
+
+  /**
    * 云端加载活动数据（官方 + 我的自定义 + 全服公开自定义）
    * 失败时自动降级到本地数据
    */
@@ -499,7 +524,7 @@ Page({
     var promises = [
       // 1. 官方活动（分页拉全量，服务端 pageSize 上限 100）
       new Promise(function(resolve) {
-        self._fetchAllPages('getLibrary', { category: cat, topFilter: 'all', sideFilter: sideF, keyword: kw || undefined }, 100).then(function(list) {
+        self._fetchAllPages('getLibrary', { category: cat, topFilter: 'all', sideFilter: sideF, keyword: kw || undefined, tag: self.data.selectedTag || undefined }, 100).then(function(list) {
           resolve({ ok: list ? true : false, data: { list: list || [], total: (list || []).length } })
         })
       }),
@@ -518,7 +543,7 @@ Page({
           resolve(null)
           return
         }
-        self._fetchAllPages('getPublicCustom', { category: cat }, 50).then(function(list) {
+        self._fetchAllPages('getPublicCustom', { category: cat, tag: self.data.selectedTag || undefined }, 50).then(function(list) {
           resolve({ ok: true, data: { list: list || [], total: (list || []).length } })
         })
       })
@@ -582,7 +607,12 @@ Page({
                 description: mc.description || '',
                 isOfficial: false,
                 isCustom: true,
-                presetAction: ''
+                presetAction: '',
+                categoryName: mc.categoryName || '',
+                ext: mc.ext || {},
+                tags: mc.tags || [],
+                icon: mc.icon || '',
+                customMeta: mc.customMeta || null
               })
             }
           }
@@ -608,7 +638,12 @@ Page({
                 isCustom: true,
                 isPublic: true,
                 ownerName: pc.ownerName || '',
-                presetAction: ''
+                presetAction: '',
+                categoryName: pc.categoryName || '',
+                ext: pc.ext || {},
+                tags: pc.tags || [],
+                icon: pc.icon || '',
+                customMeta: pc.customMeta || null
               })
             }
           }
@@ -625,6 +660,9 @@ Page({
             if (edit.category !== undefined) { list[ei].category = edit.category; list[ei].tabKey = edit.category }
           }
         }
+
+        // 全量聚合标签（在过滤前，标签行不缩水）
+        self._aggregateTags(list)
 
         self._finalizeList(list, cat, sideF)
       } else {
@@ -694,7 +732,70 @@ Page({
       }
     }
 
+    // tag 筛选
+    var st = this.data.selectedTag
+    if (st) {
+      var tagFiltered = []
+      for (var tf = 0; tf < list.length; tf++) {
+        var tags = list[tf].tags || []
+        if (tags.indexOf(st) !== -1) tagFiltered.push(list[tf])
+      }
+      list = tagFiltered
+    }
+
+    // 只看未打标签
+    if (this.data.showAllTagsOff) {
+      var noTagList = []
+      for (var nt = 0; nt < list.length; nt++) {
+        if (!list[nt].tags || list[nt].tags.length === 0) noTagList.push(list[nt])
+      }
+      list = noTagList
+    }
+
     this._finalizeList(list, cat, sideF)
+  },
+
+  /**
+   * 将"我的自定义"按分类名或第1个英文词分组
+   */
+  _groupMyCustom: function(list) {
+    var result = []
+    var groupMap = {}
+    var ungrouped = []
+
+    for (var i = 0; i < list.length; i++) {
+      var item = list[i]
+      if (item.isCustom && !item.isPublic) {
+        var groupKey = (item.categoryName || '').trim()
+        if (!groupKey && item.ext && item.ext.group) groupKey = item.ext.group
+        if (!groupKey) {
+          var m = (item.name || '').match(/^[A-Za-z]+/)
+          groupKey = m ? m[0] : ''
+        }
+        if (!groupKey) {
+          ungrouped.push(item)
+        } else {
+          if (!groupMap[groupKey]) { groupMap[groupKey] = [] }
+          groupMap[groupKey].push(item)
+        }
+      } else {
+        ungrouped.push(item)
+      }
+    }
+
+    for (var gk in groupMap) {
+      if (Object.prototype.hasOwnProperty.call(groupMap, gk)) {
+        result.push({ _isGroup: true, _groupName: gk, _groupCount: groupMap[gk].length, id: '_group_' + gk })
+        for (var gi = 0; gi < groupMap[gk].length; gi++) {
+          groupMap[gk][gi]._inGroup = gk
+          result.push(groupMap[gk][gi])
+        }
+      }
+    }
+    for (var ui = 0; ui < ungrouped.length; ui++) {
+      result.push(ungrouped[ui])
+    }
+    return result
   },
 
   /**
@@ -710,6 +811,15 @@ Page({
         }
       }
       list = filtered
+    }
+
+    // 只看未打标签
+    if (this.data.showAllTagsOff) {
+      var noTagList = []
+      for (var nt = 0; nt < list.length; nt++) {
+        if (!list[nt].tags || list[nt].tags.length === 0) noTagList.push(list[nt])
+      }
+      list = noTagList
     }
 
     // 悟·修心 / 工·功业 / 煞·心魔 分类：标记为换算模式
@@ -741,6 +851,25 @@ Page({
           break
         }
       }
+    }
+
+    // 只看我的自定义时，按自定义分类名分组
+    if (this.data.showMyCustomOnly) {
+      list = this._groupMyCustom(list)
+    }
+
+    // ext 预处理：生成 __keys 数组供 wxml 渲染
+    for (var ei = 0; ei < list.length; ei++) {
+      var it = list[ei]
+      if (it._isGroup) continue
+      var ext = it.ext || {}
+      var keys = Object.keys(ext)
+      var kArr = []
+      for (var ki = 0; ki < keys.length && ki < 4; ki++) {
+        kArr.push(keys[ki])
+      }
+      it.__keys = kArr
+      it.__ext = ext
     }
 
     this.setData({ activities: this._sortByUsage(list), cardMode: cardMode })
@@ -1120,6 +1249,21 @@ Page({
   onToggleMyCustom: function() {
     var current = this.data.showMyCustomOnly
     this.setData({ showMyCustomOnly: !current })
+    this._reloadActivities()
+  },
+
+  onTagTap: function(e) {
+    var tag = e.currentTarget.dataset.tag
+    if (this.data.selectedTag === tag) {
+      this.setData({ selectedTag: '' })
+    } else {
+      this.setData({ selectedTag: tag })
+    }
+    this._reloadActivities()
+  },
+
+  toggleAllTagsOff: function() {
+    this.setData({ showAllTagsOff: !this.data.showAllTagsOff })
     this._reloadActivities()
   },
 
