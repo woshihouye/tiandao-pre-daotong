@@ -1,9 +1,0 @@
-{
-  "name": "migration-drop-sport-activities",
-  "version": "1.0.0",
-  "description": "一次性迁移：删除所有 sport 官方活动（保留 blank_sport）",
-  "main": "index.js",
-  "dependencies": {
-    "wx-server-sdk": "latest"
-  }
-}
