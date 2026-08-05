@@ -105,3 +105,197 @@
   border-radius: 16rpx;
   text-align: center;
 }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/*  元卡区域                                                       */
+/* ═══════════════════════════════════════════════════════════════ */
+.meta-card-section {
+  background: #fff;
+  margin-top: 20rpx;
+  padding: 20rpx 30rpx;
+}
+
+/* 元卡切换栏 */
+.meta-card-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+.meta-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+.meta-card-scroll {
+  flex: 1;
+  white-space: nowrap;
+}
+.meta-card-chip {
+  display: inline-block;
+  padding: 10rpx 24rpx;
+  margin-right: 12rpx;
+  background: #f3f4f6;
+  color: #666;
+  border-radius: 20rpx;
+  font-size: 26rpx;
+}
+.meta-card-chip.active {
+  background: #3B82F6;
+  color: #fff;
+}
+
+/* 章节标题 */
+.section-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  padding: 24rpx 0 16rpx;
+  display: flex;
+  align-items: baseline;
+}
+.section-desc {
+  font-size: 22rpx;
+  color: #999;
+  font-weight: normal;
+  margin-left: 12rpx;
+}
+
+/* 肌群列表 */
+.muscle-list {
+  margin-bottom: 16rpx;
+}
+.muscle-row {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 0;
+}
+.muscle-name {
+  width: 140rpx;
+  font-size: 24rpx;
+  color: #555;
+  flex-shrink: 0;
+}
+.muscle-slider {
+  flex: 1;
+  margin: 0 16rpx;
+}
+.muscle-pct {
+  width: 60rpx;
+  font-size: 24rpx;
+  color: #3B82F6;
+  text-align: right;
+}
+.toggle-secondary {
+  padding: 8rpx 0;
+  text-align: center;
+}
+.toggle-secondary text {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 模板匹配 */
+.template-match {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 20rpx;
+  background: #ECFDF5;
+  border-radius: 12rpx;
+  margin: 16rpx 0;
+}
+.match-icon {
+  font-size: 24rpx;
+  margin-right: 8rpx;
+}
+.match-text {
+  flex: 1;
+  font-size: 24rpx;
+  color: #059669;
+}
+.match-reset {
+  font-size: 24rpx;
+  color: #EF4444;
+  padding: 4rpx 12rpx;
+}
+
+/* 容量格子 */
+.cell-list {
+  margin-bottom: 16rpx;
+}
+.cell-row {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 0;
+}
+.cell-type-picker {
+  flex-shrink: 0;
+}
+.cell-type {
+  font-size: 24rpx;
+  color: #3B82F6;
+  background: #EBF5FF;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+}
+.cell-value {
+  width: 80rpx;
+  height: 56rpx;
+  text-align: center;
+  font-size: 24rpx;
+  border: 1rpx solid #e5e5e5;
+  border-radius: 8rpx;
+  margin-left: 8rpx;
+}
+.cell-unit {
+  width: 70rpx;
+  height: 56rpx;
+  text-align: center;
+  font-size: 22rpx;
+  border: 1rpx solid #e5e5e5;
+  border-radius: 8rpx;
+  margin-left: 8rpx;
+}
+.cell-weight {
+  width: 80rpx;
+  height: 56rpx;
+  text-align: center;
+  font-size: 22rpx;
+  border: 1rpx solid #e5e5e5;
+  border-radius: 8rpx;
+  margin-left: 8rpx;
+}
+.cell-remove {
+  font-size: 28rpx;
+  color: #EF4444;
+  padding: 8rpx;
+  margin-left: 4rpx;
+}
+.add-cell-btn {
+  text-align: center;
+  padding: 16rpx 0;
+}
+.add-cell-btn text {
+  font-size: 26rpx;
+  color: #3B82F6;
+}
+
+/* 额外参数 */
+.extra-params {
+  margin-top: 16rpx;
+}
+.param-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 0;
+  border-bottom: 1rpx dashed #f0f0f0;
+}
+.param-name {
+  font-size: 26rpx;
+  color: #555;
+}
+.param-val {
+  font-size: 26rpx;
+  color: #3B82F6;
+}

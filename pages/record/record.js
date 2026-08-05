@@ -855,7 +855,9 @@ Page({
               categoryName: item.categoryName || '',
               ext: item.ext || {},
               tags: item.tags || [],
-              customMeta: item.customMeta || null
+              customMeta: item.customMeta || null,
+              // 元卡字段：从 customMeta 提取
+              metaCard: (item.customMeta && item.customMeta.metaCard) ? item.customMeta.metaCard : ''
             }
           }
           self._customActivityMap = map

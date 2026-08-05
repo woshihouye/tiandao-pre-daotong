@@ -44,7 +44,9 @@ function sanitizeActivity(doc) {
     icon: doc.icon || '',
     ext: doc.ext || {},
     tags: doc.tags || [],
-    customMeta: doc.customMeta || null
+    customMeta: doc.customMeta || null,
+    // 元卡字段：从 customMeta 提取，用于 sport 维度的元卡分类
+    metaCard: (doc.customMeta && doc.customMeta.metaCard) ? doc.customMeta.metaCard : 'unknown'
   }
 }
 
@@ -70,8 +72,8 @@ function validateActivityInput(d) {
     data: {
       name: name,
       category: d.category,
-      topFilter: d.topFilter || 'custom',
-      sideFilter: d.sideFilter || 'custom',
+      topFilter: d.topFilter || '',
+      sideFilter: d.sideFilter || '',
       description: d.description ? String(d.description).trim() : '',
       unit: d.unit || '次',
       scorePerUnit: score,
@@ -114,8 +116,13 @@ function validateActivityInput(d) {
 async function getLibrary(params) {
   var where = { status: 'active', isSystem: true }
   if (params.category) where.category = params.category
-  if (params.topFilter && params.topFilter !== 'all') where.topFilter = params.topFilter
-  if (params.sideFilter && params.sideFilter !== 'all') where.sideFilter = params.sideFilter
+  // 元卡改造：sport 维度不再使用 topFilter/sideFilter，改用 metaCard 或直接返回
+  if (params.category === 'sport' && params.metaCard) {
+    where['customMeta.metaCard'] = params.metaCard
+  } else {
+    if (params.topFilter && params.topFilter !== 'all') where.topFilter = params.topFilter
+    if (params.sideFilter && params.sideFilter !== 'all') where.sideFilter = params.sideFilter
+  }
   if (params.keyword) {
     var kw = String(params.keyword).trim()
     if (kw) {
@@ -162,8 +169,23 @@ function getFilterConfigs() {
     ],
     filters: {
       sport: {
-        top: ['all', 'bodyweight', 'dumbbell', 'barbell', 'band', 'cable', 'cardio'],
-        side: ['all', 'push', 'pull', 'squat', 'core', 'cardio', 'unknown']
+        subcategories: [
+          { key: 'all',       name: '全部',       icon: '' },
+          { key: 'anaerobic', name: '无氧力量',    icon: '力', desc: '推/拉/蹲' },
+          { key: 'core',      name: '核心训练',    icon: '核', desc: '撑/卷' },
+          { key: 'cardio',    name: '有氧心肺',    icon: '心', desc: '稳态/间歇' },
+          { key: 'unknown',   name: '不知道',      icon: '?', desc: '自由定义' }
+        ],
+        metaCards: [
+          { key: 'push',            name: '推',        subcategory: 'anaerobic', desc: '推离身体的抗阻训练' },
+          { key: 'pull',            name: '拉',        subcategory: 'anaerobic', desc: '拉近身体的抗阻训练' },
+          { key: 'squat',           name: '蹲',        subcategory: 'anaerobic', desc: '下肢屈伸抗阻训练' },
+          { key: 'hold',            name: '撑',        subcategory: 'core',      desc: '静态核心稳定' },
+          { key: 'curl',            name: '卷',        subcategory: 'core',      desc: '动态核心屈伸' },
+          { key: 'steady_cardio',   name: '稳态有氧',  subcategory: 'cardio',    desc: '持续稳定输出' },
+          { key: 'interval_cardio', name: '间歇有氧',  subcategory: 'cardio',    desc: '高低强度交替' },
+          { key: 'unknown',         name: '不知道',    subcategory: 'unknown',   desc: '完全自由定义' }
+        ]
       },
       diet: { top: ['all'], side: ['all'] },
       study: { top: ['all'], side: ['all'] },

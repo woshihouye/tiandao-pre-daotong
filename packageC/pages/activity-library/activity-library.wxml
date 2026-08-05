@@ -42,6 +42,43 @@
     <text class="filter-my-custom-label">只看我的自定义</text>
   </view>
 
+  <!-- 元卡浏览（sport 维度） -->
+  <view class="meta-card-browse" wx:if="{{showMetaCards && !showMyCustomOnly}}">
+    <!-- 子集筛选 -->
+    <scroll-view class="subcategory-bar" scroll-x>
+      <view class="subcat-chip {{currentSubcategory === 'all' ? 'active' : ''}}" 
+        data-key="all" bindtap="onSubcategoryTap">全部</view>
+      <view class="subcat-chip {{currentSubcategory === 'anaerobic' ? 'active' : ''}}" 
+        data-key="anaerobic" bindtap="onSubcategoryTap">无氧力量</view>
+      <view class="subcat-chip {{currentSubcategory === 'core' ? 'active' : ''}}" 
+        data-key="core" bindtap="onSubcategoryTap">核心训练</view>
+      <view class="subcat-chip {{currentSubcategory === 'cardio' ? 'active' : ''}}" 
+        data-key="cardio" bindtap="onSubcategoryTap">有氧心肺</view>
+      <view class="subcat-chip {{currentSubcategory === 'unknown' ? 'active' : ''}}" 
+        data-key="unknown" bindtap="onSubcategoryTap">不知道</view>
+    </scroll-view>
+
+    <!-- 模板搜索结果 -->
+    <view class="search-template-results" wx:if="{{metaCardSearchResults.length > 0}}">
+      <text class="search-template-title">动作模板匹配</text>
+      <view class="template-item" wx:for="{{metaCardSearchResults}}" wx:key="name" 
+        data-index="{{index}}" bindtap="onMetaCardSearchResultTap">
+        <text class="template-name">{{item.name}}</text>
+        <text class="template-meta">{{item.metaCardName || item.metaCard}}</text>
+      </view>
+    </view>
+
+    <!-- 元卡网格 -->
+    <view class="meta-card-grid">
+      <view class="meta-card-item" wx:for="{{metaCardsFiltered}}" wx:key="id" 
+        data-id="{{item.id}}" bindtap="onMetaCardTap">
+        <view class="meta-card-icon">{{item.subcategory === 'anaerobic' ? '💪' : item.subcategory === 'core' ? '🎯' : item.subcategory === 'cardio' ? '🏃' : '❓'}}</view>
+        <text class="meta-card-name">{{item.name}}</text>
+        <text class="meta-card-desc">{{item.description}}</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 筛选 + 内容区 -->
   <view class="filter-content-wrap">
 
@@ -443,6 +480,98 @@
         <view class="btn-cancel" bindtap="closeFoodModal">取消</view>
         <view class="btn-confirm" bindtap="{{_editingFoodId ? 'submitEditFood' : 'submitNewFood'}}">保存</view>
       </view>
+    </view>
+  </view>
+
+  <!-- 活动详情弹窗 -->
+  <view class="detail-backdrop" wx:if="{{showActivityDetail}}" bindtap="closeActivityDetail" catchtouchmove="noop">
+    <view class="detail-panel" catchtap="noop">
+      <!-- 头部 -->
+      <view class="detail-header">
+        <view class="detail-header-main">
+          <text class="detail-name">{{activityDetail.name}}</text>
+          <text class="detail-category-tag">{{activityDetail.categoryName || '自定义'}}</text>
+        </view>
+        <view class="detail-close" bindtap="closeActivityDetail">✕</view>
+      </view>
+
+      <!-- 核心数值 -->
+      <view class="detail-stats">
+        <view class="detail-stat-item">
+          <text class="detail-stat-value {{activityDetail.isNegative ? 'negative' : ''}}">{{activityDetail.isNegative ? '' : '+'}}{{activityDetail.scorePerUnit}}</text>
+          <text class="detail-stat-label">修为/{{activityDetail.unit}}</text>
+        </view>
+        <view class="detail-stat-item">
+          <text class="detail-stat-value">{{activityDetail.useCount || 0}}</text>
+          <text class="detail-stat-label">使用次数</text>
+        </view>
+      </view>
+
+      <!-- 简介 -->
+      <view class="detail-section" wx:if="{{activityDetail.description}}">
+        <text class="detail-section-title">简介</text>
+        <text class="detail-desc">{{activityDetail.description}}</text>
+      </view>
+
+      <!-- 标签 -->
+      <view class="detail-section" wx:if="{{activityDetail.tags && activityDetail.tags.length}}">
+        <text class="detail-section-title">标签</text>
+        <view class="detail-tags">
+          <text class="detail-tag" wx:for="{{activityDetail.tags}}" wx:key="*this">{{item}}</text>
+        </view>
+      </view>
+
+      <!-- 自定义属性 -->
+      <view class="detail-section" wx:if="{{activityDetail.__keys && activityDetail.__keys.length}}">
+        <text class="detail-section-title">属性</text>
+        <view class="detail-ext-list">
+          <view class="detail-ext-row" wx:for="{{activityDetail.__keys}}" wx:key="*this">
+            <text class="detail-ext-key">{{item}}</text>
+            <text class="detail-ext-sep">:</text>
+            <text class="detail-ext-val">{{activityDetail.__ext[item]}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 元信息 -->
+      <view class="detail-meta">
+        <text wx:if="{{activityDetail.isOfficial}}" class="detail-meta-badge official">官方</text>
+        <text wx:if="{{activityDetail.isCustom && !activityDetail.isPublic}}" class="detail-meta-badge custom">我的自定义</text>
+        <text wx:if="{{activityDetail.isPublic}}" class="detail-meta-badge public">公开</text>
+        <text wx:if="{{activityDetail.ownerName}}" class="detail-meta-badge author">@{{activityDetail.ownerName}}</text>
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="detail-actions">
+        <button class="detail-btn copy" bindtap="onCopyActivity" data-activity="{{activityDetail}}">创建副本</button>
+        <button wx:if="{{activityDetail.isCustom && !activityDetail.isPublic && activityDetail.category === 'sport' && activityDetail.customMeta && activityDetail.customMeta.metaCard}}" class="detail-btn reclassify" bindtap="onReclassifyActivity" data-activity="{{activityDetail}}">调整分类</button>
+        <button wx:if="{{activityDetail.isCustom && !activityDetail.isPublic}}" class="detail-btn edit" bindtap="onEditCustomActivity" data-activity="{{activityDetail}}">编辑</button>
+        <button wx:if="{{activityDetail.isCustom && !activityDetail.isPublic}}" class="detail-btn delete" bindtap="onDeleteCustomActivity" data-activity="{{activityDetail}}">删除</button>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 调整分类弹窗（元卡改造） -->
+<view class="modal-overlay {{showReclassifyModal ? 'show' : ''}}" bindtap="closeReclassifyModal">
+  <view class="modal-content reclassify-modal" catchtap="noop">
+    <view class="reclassify-header">
+      <text>调整元卡分类</text>
+      <view class="modal-close" bindtap="closeReclassifyModal">✕</view>
+    </view>
+    <view class="reclassify-body">
+      <view class="reclassify-meta-list">
+        <view class="reclassify-meta-item {{selectedReclassifyMetaCard === item.key ? 'active' : ''}}" 
+          wx:for="{{reclassifyMetaCards}}" wx:key="key" 
+          data-key="{{item.key}}" bindtap="onSelectReclassifyMetaCard">
+          <text class="reclassify-meta-name">{{item.name}}</text>
+          <text class="reclassify-meta-sub">{{item.subcategory === 'anaerobic' ? '无氧' : item.subcategory === 'core' ? '核心' : item.subcategory === 'cardio' ? '有氧' : '自定义'}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="reclassify-footer">
+      <button class="detail-btn edit" style="flex:1" bindtap="closeReclassifyModal">取消</button>
+      <button class="detail-btn copy" style="flex:2" bindtap="onConfirmReclassify">确认调整</button>
     </view>
   </view>
 </view>

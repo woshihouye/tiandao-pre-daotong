@@ -34,3 +34,9 @@ npm-debug.log*
 # ─── 编译/缓存 ───
 dist/
 .cache/
+
+# ─── 工具链 / Trea 交付 ───
+.agents/
+.ui-deliver/
+skills-lock.json
+_test_presets.js

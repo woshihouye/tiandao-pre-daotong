@@ -1,5 +1,5 @@
-// 大道之行 · 活动库 — 全量结构化活动数据（双层筛选版）
-// 五分类：武·炼体 / 食·丹食 / 悟·修心 / 工·功业 / 煞·心魔
+// 大道之行 · 活动库 — 全量结构化活动数据（元卡版）
+// 五分类：武·炼体(元卡) / 食·丹食 / 悟·修心 / 工·功业 / 煞·心魔
 
 /** 分类定义 */
 var CATEGORIES = [
@@ -16,23 +16,23 @@ var CATEGORIES = [
  */
 var FILTER_CONFIGS = {
   sport: {
-    top: [
-      { key: 'all', name: '全部' },
-      { key: 'bodyweight', name: '自重' },
-      { key: 'dumbbell', name: '哑铃' },
-      { key: 'barbell', name: '杠铃' },
-      { key: 'band', name: '弹力带' },
-      { key: 'cable', name: '钢丝绳' },
-      { key: 'cardio', name: '有氧' }
+    // 元卡改造：双层筛选(top/side) → 子集筛选 + 元卡列表
+    subcategories: [
+      { key: 'all',       name: '全部',       icon: '' },
+      { key: 'anaerobic', name: '无氧力量',    icon: '力', desc: '推/拉/蹲' },
+      { key: 'core',      name: '核心训练',    icon: '核', desc: '撑/卷' },
+      { key: 'cardio',    name: '有氧心肺',    icon: '心', desc: '稳态/间歇' },
+      { key: 'unknown',   name: '不知道',      icon: '?', desc: '自由定义' }
     ],
-    side: [
-      { key: 'all', name: '全部' },
-      { key: 'push', name: '推类' },
-      { key: 'pull', name: '拉类' },
-      { key: 'squat', name: '蹲类' },
-      { key: 'core', name: '核心' },
-      { key: 'cardio', name: '有氧' },
-      { key: 'unknown', name: '不知道' }
+    metaCards: [
+      { key: 'push',            name: '推',        subcategory: 'anaerobic', desc: '推离身体的抗阻训练' },
+      { key: 'pull',            name: '拉',        subcategory: 'anaerobic', desc: '拉近身体的抗阻训练' },
+      { key: 'squat',           name: '蹲',        subcategory: 'anaerobic', desc: '下肢屈伸抗阻训练' },
+      { key: 'hold',            name: '撑',        subcategory: 'core',      desc: '静态核心稳定' },
+      { key: 'curl',            name: '卷',        subcategory: 'core',      desc: '动态核心屈伸' },
+      { key: 'steady_cardio',   name: '稳态有氧',  subcategory: 'cardio',    desc: '持续稳定输出' },
+      { key: 'interval_cardio', name: '间歇有氧',  subcategory: 'cardio',    desc: '高低强度交替' },
+      { key: 'unknown',         name: '不知道',    subcategory: 'unknown',   desc: '完全自由定义' }
     ]
   },
   diet: {
@@ -110,16 +110,14 @@ var FILTER_CONFIGS = {
 
 /**
  * 活动库数据结构
- * 每个活动包含：id、name、topFilter、sideFilter、description、unit、scorePerUnit、isNegative
+ * 每个活动包含：id、name、metaCard(仅sport)、description、unit、scorePerUnit、isNegative
  * tabKey: 跳转 record 页面时对应的 tab 值
- * presetAction: 跳转时预选的动作标识（用于 sport 类匹配 movement id）
+ * presetAction: 跳转时预选的动作标识
  *
- * sport 分类说明（动作模式维度）：
- *   push  (推类) — 胸肌、肩部前/中束、肱三头肌 → 俯卧撑/卧推/肩推/臂屈伸/侧平举/前平举/飞鸟等
- *   pull  (拉类) — 背部、肱二头肌、肩部后束 → 引体向上/划船/高位下拉/弯举/硬拉/直臂下压/俯身飞鸟等
- *   squat (蹲类) — 腿部、臀部 → 深蹲/箭步蹲/臀桥/髋外展/提踵/腿举/罗马尼亚硬拉等
- *   core  (核心) — 腰腹核心稳定/力量 → 平板支撑/卷腹/俄罗斯转体/登山跑/死虫式/仰卧举腿等
- *   cardio(有氧) — 全身有氧耐力 → 跑步/骑行/游泳/跳绳/椭圆机/爬楼梯/HIIT/快走/划船机等
+ * sport 维度（元卡改造）：
+ *   仅保留一张空白入口卡，具体活动通过元卡编辑器（activity-edit）
+ *   选择 8 张元卡（推/拉/蹲/撑/卷/稳态有氧/间歇有氧/不知道）创建。
+ *   元卡定义见 utils/meta-cards.js
  */
 var ACTIVITY_LIBRARY = {
 
@@ -127,311 +125,12 @@ var ACTIVITY_LIBRARY = {
   //  一、武·炼体
   // ============================================================
   sport: [
-    // ======== 空白 ========
-    { id: 'blank_sport', name: '空白', topFilter: 'blank', sideFilter: 'blank',
-      description: '自由记录空白炼体活动', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: '' },
-
-    // ======== 自重 · 推类（胸肌）========
-    { id: 'push_up', name: '俯卧撑', topFilter: 'bodyweight', sideFilter: 'push',
-      description: '经典自重推力训练，强化胸肌与三头肌', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'push_up' },
-    { id: 'wide_push_up', name: '宽距俯卧撑', topFilter: 'bodyweight', sideFilter: 'push',
-      description: '宽距姿态俯卧撑，强化胸肌外侧', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'wide_push_up' },
-    { id: 'narrow_push_up', name: '窄距俯卧撑', topFilter: 'bodyweight', sideFilter: 'push',
-      description: '窄距姿态俯卧撑，集中刺激内侧胸肌与三头', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'narrow_push_up' },
-    { id: 'diamond_push_up', name: '钻石俯卧撑', topFilter: 'bodyweight', sideFilter: 'push',
-      description: '双手并拢呈钻石形俯卧撑，强化三头肌与内胸', unit: '次', scorePerUnit: 1.2, tabKey: 'sport', presetAction: 'diamond_push_up' },
-    { id: 'knee_push_up', name: '跪姿俯卧撑', topFilter: 'bodyweight', sideFilter: 'push',
-      description: '入门版俯卧撑，降低难度适合新手', unit: '次', scorePerUnit: 0.6, tabKey: 'sport', presetAction: 'knee_push_up' },
-    { id: 'decline_push_up', name: '下斜俯卧撑', topFilter: 'bodyweight', sideFilter: 'push',
-      description: '脚高于手的俯卧撑变式，强化上胸肌群', unit: '次', scorePerUnit: 1.2, tabKey: 'sport', presetAction: 'decline_push_up' },
-    { id: 'incline_push_up', name: '上斜俯卧撑', topFilter: 'bodyweight', sideFilter: 'push',
-      description: '手高于脚的俯卧撑变式，强化下胸肌群', unit: '次', scorePerUnit: 0.8, tabKey: 'sport', presetAction: 'incline_push_up' },
-    { id: 'band_push_up', name: '弹力带俯卧撑', topFilter: 'band', sideFilter: 'push',
-      description: '背上加弹力带增加负重，提升俯卧撑强度', unit: '次', scorePerUnit: 1.3, tabKey: 'sport', presetAction: 'push_up' },
-
-    // ======== 自重 · 拉类（背部）========
-    { id: 'pull_up', name: '引体向上', topFilter: 'bodyweight', sideFilter: 'pull',
-      description: '上肢拉力训练，塑造背部线条', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'pull_up' },
-    { id: 'australian_pull_up', name: '澳式引体', topFilter: 'bodyweight', sideFilter: 'pull',
-      description: '低杠反向划船式引体，适合进阶训练', unit: '次', scorePerUnit: 1.2, tabKey: 'sport', presetAction: 'australian_pull_up' },
-    { id: 'superman_hold', name: '超人式', topFilter: 'bodyweight', sideFilter: 'pull',
-      description: '俯卧同时抬起手臂与腿，强化下背部竖脊肌', unit: '秒', scorePerUnit: 0.04, tabKey: 'sport', presetAction: 'superman_hold' },
-
-    // ======== 自重 · 推类（肩部）========
-    { id: 'pike_push_up', name: '派克俯卧撑', topFilter: 'bodyweight', sideFilter: 'push',
-      description: '倒V字形俯卧撑变式，集中训练肩部三角肌', unit: '次', scorePerUnit: 1.2, tabKey: 'sport', presetAction: 'pike_push_up' },
-    { id: 'wall_handstand', name: '靠墙倒立撑', topFilter: 'bodyweight', sideFilter: 'push',
-      description: '靠墙倒立后做臂屈伸，高强度肩部训练', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'wall_handstand' },
-
-    // ======== 自重 · 拉类（肱二头肌 — 反手引体）========
-    { id: 'reverse_grip_pull_up', name: '反手引体向上', topFilter: 'bodyweight', sideFilter: 'pull',
-      description: '反握引体，侧重肱二头肌发力', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'pull_up' },
-
-    // ======== 自重 · 核心 ========
-    { id: 'plank', name: '平板支撑', topFilter: 'bodyweight', sideFilter: 'core',
-      description: '核心稳定训练，提升腰腹力量', unit: '秒', scorePerUnit: 0.05, tabKey: 'sport', presetAction: 'plank' },
-    { id: 'crunch', name: '卷腹', topFilter: 'bodyweight', sideFilter: 'core',
-      description: '经典腹肌训练，集中锻炼腹直肌上段', unit: '次', scorePerUnit: 0.3, tabKey: 'sport', presetAction: 'crunch' },
-    { id: 'reverse_crunch', name: '反向卷腹', topFilter: 'bodyweight', sideFilter: 'core',
-      description: '抬腿卷腹，侧重刺激下腹部肌群', unit: '次', scorePerUnit: 0.35, tabKey: 'sport', presetAction: 'reverse_crunch' },
-    { id: 'russian_twist', name: '俄罗斯转体', topFilter: 'bodyweight', sideFilter: 'core',
-      description: '坐姿左右转体，锻炼腹内外斜肌', unit: '次', scorePerUnit: 0.3, tabKey: 'sport', presetAction: 'russian_twist' },
-    { id: 'mountain_climber', name: '登山跑', topFilter: 'bodyweight', sideFilter: 'core',
-      description: '动态核心训练，同时提升心率燃脂', unit: '次', scorePerUnit: 0.25, tabKey: 'sport', presetAction: 'mountain_climber' },
-    { id: 'dead_bug', name: '死虫式', topFilter: 'bodyweight', sideFilter: 'core',
-      description: '对侧伸展训练，增强核心抗旋转能力', unit: '次', scorePerUnit: 0.3, tabKey: 'sport', presetAction: 'dead_bug' },
-    { id: 'side_plank', name: '侧平板支撑', topFilter: 'bodyweight', sideFilter: 'core',
-      description: '侧身支撑训练，强化腹斜肌与侧腰', unit: '秒', scorePerUnit: 0.04, tabKey: 'sport', presetAction: 'side_plank' },
-    { id: 'leg_raise', name: '仰卧举腿', topFilter: 'bodyweight', sideFilter: 'core',
-      description: '仰卧抬腿，集中锻炼下腹部肌群', unit: '次', scorePerUnit: 0.35, tabKey: 'sport', presetAction: 'leg_raise' },
-    { id: 'burpee', name: '波比跳', topFilter: 'bodyweight', sideFilter: 'core',
-      description: '全身复合动作，兼具力量与有氧', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'burpee' },
-    { id: 'bird_dog', name: '鸟狗式', topFilter: 'bodyweight', sideFilter: 'core',
-      description: '四足对侧伸展，增强核心稳定性', unit: '次', scorePerUnit: 0.3, tabKey: 'sport', presetAction: 'bird_dog' },
-    { id: 'stand_desk', name: '站立办公', topFilter: 'bodyweight', sideFilter: 'core',
-      description: '避免久坐，站立办公改善体态', unit: '小时', scorePerUnit: 1, tabKey: 'sport', presetAction: 'stand_desk' },
-
-    // ======== 自重 · 蹲类（腿部）========
-    { id: 'bodyweight_squat', name: '深蹲', topFilter: 'bodyweight', sideFilter: 'squat',
-      description: '下肢基础训练，激活臀腿核心肌群', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'bodyweight_squat' },
-    { id: 'sumo_squat', name: '相扑深蹲', topFilter: 'bodyweight', sideFilter: 'squat',
-      description: '宽距深蹲变式，强化大腿内侧肌群', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'sumo_squat' },
-    { id: 'lunge', name: '箭步蹲', topFilter: 'bodyweight', sideFilter: 'squat',
-      description: '单侧下肢训练，改善平衡与稳定', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'lunge' },
-    { id: 'bulgarian_split_squat', name: '保加利亚分腿蹲', topFilter: 'bodyweight', sideFilter: 'squat',
-      description: '后脚抬高深蹲，深度刺激股四头肌与臀部', unit: '次', scorePerUnit: 1.2, tabKey: 'sport', presetAction: 'bulgarian_split_squat' },
-    { id: 'wall_sit', name: '靠墙静蹲', topFilter: 'bodyweight', sideFilter: 'squat',
-      description: '靠墙半蹲维持姿势，强化股四头肌耐力', unit: '秒', scorePerUnit: 0.03, tabKey: 'sport', presetAction: 'wall_sit' },
-    { id: 'calf_raise', name: '提踵', topFilter: 'bodyweight', sideFilter: 'squat',
-      description: '小腿训练，增强踝关节稳定', unit: '次', scorePerUnit: 0.3, tabKey: 'sport', presetAction: 'calf_raise' },
-    { id: 'pistol_squat', name: '单腿深蹲', topFilter: 'bodyweight', sideFilter: 'squat',
-      description: '单腿自重深蹲，极强腿部力量与控制力', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'pistol_squat' },
-    { id: 'box_squat', name: '箱式深蹲', topFilter: 'bodyweight', sideFilter: 'squat',
-      description: '坐箱后起立深蹲，修正深蹲姿势', unit: '次', scorePerUnit: 0.8, tabKey: 'sport', presetAction: 'box_squat' },
-
-    // ======== 自重 · 蹲类（臀部）========
-    { id: 'glute_bridge', name: '臀桥', topFilter: 'bodyweight', sideFilter: 'squat',
-      description: '臀部激活训练，改善骨盆稳定', unit: '次', scorePerUnit: 0.5, tabKey: 'sport', presetAction: 'glute_bridge' },
-    { id: 'single_leg_glute_bridge', name: '单腿臀桥', topFilter: 'bodyweight', sideFilter: 'squat',
-      description: '单腿支撑臀桥，增强臀部力量', unit: '次', scorePerUnit: 0.7, tabKey: 'sport', presetAction: 'single_leg_glute_bridge' },
-    { id: 'clamshell', name: '蚌式开合', topFilter: 'bodyweight', sideFilter: 'squat',
-      description: '侧卧开合腿训练，激活臀中肌', unit: '次', scorePerUnit: 0.4, tabKey: 'sport', presetAction: 'clamshell' },
-    { id: 'hip_abduction_bw', name: '髋外展（自重）', topFilter: 'bodyweight', sideFilter: 'squat',
-      description: '侧卧外展腿训练，塑造臀部外侧线条', unit: '次', scorePerUnit: 0.4, tabKey: 'sport', presetAction: 'hip_abduction' },
-
-    // ======== 自重 · 有氧 ========
-    { id: 'yoga', name: '瑜伽', topFilter: 'bodyweight', sideFilter: 'cardio',
-      description: '身心合一训练，提升柔韧与平衡', unit: '分钟', scorePerUnit: 0.6, tabKey: 'sport', presetAction: 'yoga' },
-    { id: 'morning_wakeup', name: '晨间唤醒操', topFilter: 'bodyweight', sideFilter: 'cardio',
-      description: '早晨轻度活动，激活一天精力', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'morning_wakeup' },
-
-    // ======== 哑铃 · 推类（胸肌）========
-    { id: 'dumbbell_bench', name: '哑铃平板卧推', topFilter: 'dumbbell', sideFilter: 'push',
-      description: '哑铃卧推，独立训练两侧胸肌', unit: '次', scorePerUnit: 1.5, tabKey: 'sport', presetAction: 'dumbbell_bench' },
-    { id: 'dumbbell_incline_bench', name: '哑铃上斜卧推', topFilter: 'dumbbell', sideFilter: 'push',
-      description: '上斜角度卧推，集中刺激上胸肌群', unit: '次', scorePerUnit: 1.5, tabKey: 'sport', presetAction: 'dumbbell_bench' },
-    { id: 'dumbbell_fly', name: '哑铃飞鸟', topFilter: 'dumbbell', sideFilter: 'push',
-      description: '仰卧飞鸟夹胸，拉伸胸肌内侧', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'dumbbell_fly' },
-
-    // ======== 哑铃 · 拉类（背部）========
-    { id: 'dumbbell_row', name: '哑铃俯身划船', topFilter: 'dumbbell', sideFilter: 'pull',
-      description: '俯身单手哑铃划船，训练中背部', unit: '次', scorePerUnit: 1.2, tabKey: 'sport', presetAction: 'dumbbell_row' },
-    { id: 'single_arm_db_row', name: '哑铃单臂划船', topFilter: 'dumbbell', sideFilter: 'pull',
-      description: '单臂支撑划船，专注一侧背部发力', unit: '次', scorePerUnit: 1.5, tabKey: 'sport', presetAction: 'single_arm_db_row' },
-    { id: 'dumbbell_deadlift', name: '哑铃硬拉', topFilter: 'dumbbell', sideFilter: 'pull',
-      description: '哑铃版硬拉，强化后链肌群', unit: '次', scorePerUnit: 1.8, tabKey: 'sport', presetAction: 'dumbbell_deadlift' },
-
-    // ======== 哑铃 · 推类（肩部）========
-    { id: 'dumbbell_shoulder_press', name: '哑铃推举', topFilter: 'dumbbell', sideFilter: 'push',
-      description: '肩部力量训练，打造宽阔肩部', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'dumbbell_shoulder_press' },
-    { id: 'dumbbell_lateral_raise', name: '哑铃侧平举', topFilter: 'dumbbell', sideFilter: 'push',
-      description: '侧向抬臂训练，打造肩部宽度', unit: '次', scorePerUnit: 0.5, tabKey: 'sport', presetAction: 'dumbbell_lateral_raise' },
-    { id: 'dumbbell_front_raise', name: '哑铃前平举', topFilter: 'dumbbell', sideFilter: 'push',
-      description: '前向抬臂训练，强化三角肌前束', unit: '次', scorePerUnit: 0.5, tabKey: 'sport', presetAction: 'dumbbell_front_raise' },
-
-    // ======== 哑铃 · 拉类（肩部后束  — 俯身飞鸟）========
-    { id: 'dumbbell_rear_fly', name: '哑铃俯身飞鸟', topFilter: 'dumbbell', sideFilter: 'pull',
-      description: '俯身飞鸟，训练三角肌后束改善圆肩', unit: '次', scorePerUnit: 0.5, tabKey: 'sport', presetAction: 'dumbbell_rear_fly' },
-
-    // ======== 哑铃 · 拉类（肱二头肌）========
-    { id: 'dumbbell_curl', name: '哑铃弯举', topFilter: 'dumbbell', sideFilter: 'pull',
-      description: '肱二头肌孤立训练，塑造手臂线条', unit: '次', scorePerUnit: 0.8, tabKey: 'sport', presetAction: 'dumbbell_curl' },
-    { id: 'dumbbell_hammer_curl', name: '哑铃锤式弯举', topFilter: 'dumbbell', sideFilter: 'pull',
-      description: '锤式弯举变式，同时刺激肱肌与前臂', unit: '次', scorePerUnit: 0.8, tabKey: 'sport', presetAction: 'dumbbell_hammer_curl' },
-
-    // ======== 哑铃 · 推类（肱三头肌）========
-    { id: 'dumbbell_tricep_ext', name: '哑铃颈后臂屈伸', topFilter: 'dumbbell', sideFilter: 'push',
-      description: '颈后臂屈伸，孤立训练肱三头肌', unit: '次', scorePerUnit: 0.8, tabKey: 'sport', presetAction: 'dumbbell_tricep_ext' },
-    { id: 'dumbbell_kickback', name: '哑铃俯身臂屈伸', topFilter: 'dumbbell', sideFilter: 'push',
-      description: '俯身单臂后伸，雕刻肱三头肌细节', unit: '次', scorePerUnit: 0.6, tabKey: 'sport', presetAction: 'dumbbell_tricep_ext' },
-
-    // ======== 哑铃 · 核心 ========
-    { id: 'dumbbell_russian_twist', name: '哑铃俄罗斯转体', topFilter: 'dumbbell', sideFilter: 'core',
-      description: '持哑铃做转体，增加腹斜肌训练负荷', unit: '次', scorePerUnit: 0.4, tabKey: 'sport', presetAction: 'russian_twist' },
-    { id: 'dumbbell_crunch', name: '哑铃负重卷腹', topFilter: 'dumbbell', sideFilter: 'core',
-      description: '双手抱哑铃卷腹，增强腹直肌训练强度', unit: '次', scorePerUnit: 0.4, tabKey: 'sport', presetAction: 'crunch' },
-
-    // ======== 哑铃 · 蹲类（腿部）========
-    { id: 'dumbbell_squat', name: '哑铃深蹲', topFilter: 'dumbbell', sideFilter: 'squat',
-      description: '持哑铃做深蹲，增加下肢训练负荷', unit: '次', scorePerUnit: 1.5, tabKey: 'sport', presetAction: 'dumbbell_squat' },
-    { id: 'dumbbell_lunge', name: '哑铃箭步蹲', topFilter: 'dumbbell', sideFilter: 'squat',
-      description: '持哑铃做箭步蹲，双侧下肢均衡训练', unit: '次', scorePerUnit: 1.5, tabKey: 'sport', presetAction: 'dumbbell_lunge' },
-    { id: 'dumbbell_romanian_dl', name: '哑铃罗马尼亚硬拉', topFilter: 'dumbbell', sideFilter: 'squat',
-      description: '哑铃版罗马尼亚硬拉，强化股后链', unit: '次', scorePerUnit: 1.5, tabKey: 'sport', presetAction: 'dumbbell_deadlift' },
-
-    // ======== 哑铃 · 蹲类（臀部）========
-    { id: 'dumbbell_hip_thrust', name: '哑铃臀推', topFilter: 'dumbbell', sideFilter: 'squat',
-      description: '持哑铃做臀桥，强化臀部力量', unit: '次', scorePerUnit: 1.5, tabKey: 'sport', presetAction: 'dumbbell_hip_thrust' },
-
-    // ======== 杠铃 · 推类（胸肌）========
-    { id: 'barbell_bench', name: '卧推', topFilter: 'barbell', sideFilter: 'push',
-      description: '上肢推力黄金动作，胸肌训练首选', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'barbell_bench' },
-    { id: 'barbell_incline_bench', name: '杠铃上斜卧推', topFilter: 'barbell', sideFilter: 'push',
-      description: '上斜杠铃卧推，集中强化上胸', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'barbell_bench' },
-    { id: 'barbell_decline_bench', name: '杠铃下斜卧推', topFilter: 'barbell', sideFilter: 'push',
-      description: '下斜杠铃卧推，强化下胸肌群', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'barbell_bench' },
-
-    // ======== 杠铃 · 拉类（背部）========
-    { id: 'barbell_deadlift', name: '硬拉', topFilter: 'barbell', sideFilter: 'pull',
-      description: '全身力量巅峰训练，增强后链肌群', unit: '次', scorePerUnit: 2.5, tabKey: 'sport', presetAction: 'barbell_deadlift' },
-    { id: 'barbell_row', name: '杠铃俯身划船', topFilter: 'barbell', sideFilter: 'pull',
-      description: '杠铃俯身划船，训练整个背部厚度', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'barbell_row' },
-
-    // ======== 杠铃 · 蹲类（罗马尼亚硬拉）========
-    { id: 'barbell_romanian_dl', name: '杠铃罗马尼亚硬拉', topFilter: 'barbell', sideFilter: 'squat',
-      description: '膝微屈硬拉变式，强化竖脊肌与股后', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'romanian_deadlift' },
-
-    // ======== 杠铃 · 推类（肩部）========
-    { id: 'barbell_press', name: '杠铃站姿肩推', topFilter: 'barbell', sideFilter: 'push',
-      description: '直立杠铃推举，全面发展肩部力量', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'barbell_press' },
-    { id: 'barbell_push_press', name: '杠铃借力推', topFilter: 'barbell', sideFilter: 'push',
-      description: '借助腿部发力完成推举，允许更大肩部负荷', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'barbell_press' },
-
-    // ======== 杠铃 · 拉类（肱二头肌）========
-    { id: 'barbell_curl', name: '杠铃弯举', topFilter: 'barbell', sideFilter: 'pull',
-      description: '杠铃弯举，肱二头肌核心训练动作', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'barbell_curl' },
-
-    // ======== 杠铃 · 推类（肱三头肌  — 窄距卧推）========
-    { id: 'barbell_close_grip_bench', name: '杠铃窄距卧推', topFilter: 'barbell', sideFilter: 'push',
-      description: '窄握杠铃卧推，侧重肱三头肌发力', unit: '次', scorePerUnit: 1.5, tabKey: 'sport', presetAction: 'barbell_tricep_ext' },
-
-    // ======== 杠铃 · 蹲类（腿部）========
-    { id: 'barbell_squat', name: '杠铃深蹲', topFilter: 'barbell', sideFilter: 'squat',
-      description: '负重深蹲，下肢力量之王', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'barbell_squat' },
-    { id: 'barbell_lunge', name: '杠铃箭步蹲', topFilter: 'barbell', sideFilter: 'squat',
-      description: '负重箭步蹲，双侧腿部力量均衡训练', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'barbell_lunge' },
-
-    // ======== 杠铃 · 蹲类（臀部）========
-    { id: 'barbell_hip_thrust', name: '杠铃臀推', topFilter: 'barbell', sideFilter: 'squat',
-      description: '杠铃负重臀桥，最大化臀部力量增长', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'barbell_hip_thrust' },
-
-    // ======== 弹力带 · 推类（胸肌）========
-    { id: 'band_chest_fly', name: '弹力带夹胸', topFilter: 'band', sideFilter: 'push',
-      description: '双手拉弹力带夹胸，模拟飞鸟夹胸', unit: '次', scorePerUnit: 0.6, tabKey: 'sport', presetAction: 'band_chest_fly' },
-
-    // ======== 弹力带 · 拉类（背部）========
-    { id: 'band_pulldown', name: '弹力带高位下拉', topFilter: 'band', sideFilter: 'pull',
-      description: '弹力带下拉模拟高位下拉，训练背阔肌', unit: '次', scorePerUnit: 0.8, tabKey: 'sport', presetAction: 'band_pulldown' },
-    { id: 'band_seated_row', name: '弹力带坐姿划船', topFilter: 'band', sideFilter: 'pull',
-      description: '坐姿拉弹力带，模拟划船机训练背部', unit: '次', scorePerUnit: 0.8, tabKey: 'sport', presetAction: 'band_seated_row' },
-    { id: 'band_bent_row', name: '弹力带俯身划船', topFilter: 'band', sideFilter: 'pull',
-      description: '脚踏弹力带俯身划船，训练中背部', unit: '次', scorePerUnit: 0.7, tabKey: 'sport', presetAction: 'band_bent_row' },
-
-    // ======== 弹力带 · 推类（肩部）========
-    { id: 'band_lateral_raise', name: '弹力带侧平举', topFilter: 'band', sideFilter: 'push',
-      description: '弹力带替代哑铃侧平举，训练三角肌中束', unit: '次', scorePerUnit: 0.4, tabKey: 'sport', presetAction: 'band_lateral_raise' },
-    { id: 'band_ext_rotation', name: '弹力带肩外旋', topFilter: 'band', sideFilter: 'push',
-      description: '肩外旋训练，增强肩袖肌群稳定性', unit: '次', scorePerUnit: 0.3, tabKey: 'sport', presetAction: 'band_ext_rotation' },
-    { id: 'band_front_raise', name: '弹力带前平举', topFilter: 'band', sideFilter: 'push',
-      description: '弹力带前平举，训练三角肌前束', unit: '次', scorePerUnit: 0.4, tabKey: 'sport', presetAction: 'band_front_raise' },
-
-    // ======== 弹力带 · 拉类（肱二头肌）========
-    { id: 'band_curl', name: '弹力带弯举', topFilter: 'band', sideFilter: 'pull',
-      description: '弹力带变阻弯举，训练肱二头肌', unit: '次', scorePerUnit: 0.5, tabKey: 'sport', presetAction: 'band_curl' },
-
-    // ======== 弹力带 · 推类（肱三头肌）========
-    { id: 'band_tricep_ext', name: '弹力带臂屈伸', topFilter: 'band', sideFilter: 'push',
-      description: '弹力带臂屈伸，训练肱三头肌', unit: '次', scorePerUnit: 0.5, tabKey: 'sport', presetAction: 'band_tricep_ext' },
-
-    // ======== 弹力带 · 蹲类 ========
-    { id: 'band_squat', name: '弹力带深蹲', topFilter: 'band', sideFilter: 'squat',
-      description: '弹力带变阻深蹲，增加离心负荷', unit: '次', scorePerUnit: 1.2, tabKey: 'sport', presetAction: 'bodyweight_squat' },
-    { id: 'band_side_walk', name: '弹力带侧步走', topFilter: 'band', sideFilter: 'squat',
-      description: '弹力带绑膝侧向行走，激活臀中肌', unit: '次', scorePerUnit: 0.5, tabKey: 'sport', presetAction: 'band_side_walk' },
-    { id: 'band_glute_bridge', name: '弹力带臀桥', topFilter: 'band', sideFilter: 'squat',
-      description: '弹力带加阻臀桥，强化臀部发力', unit: '次', scorePerUnit: 0.7, tabKey: 'sport', presetAction: 'glute_bridge' },
-    { id: 'band_hip_abduction', name: '弹力带髋外展', topFilter: 'band', sideFilter: 'squat',
-      description: '弹力带绑膝做外展，集中训练臀中肌', unit: '次', scorePerUnit: 0.5, tabKey: 'sport', presetAction: 'hip_abduction' },
-
-    // ======== 绳索/固定器械 · 推类（胸肌）========
-    { id: 'cable_chest_fly', name: '龙门架夹胸', topFilter: 'cable', sideFilter: 'push',
-      description: '龙门架绳索夹胸，精准训练胸肌内侧', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'cable_chest_fly' },
-    { id: 'machine_chest_press', name: '坐姿推胸器', topFilter: 'cable', sideFilter: 'push',
-      description: '固定器械推胸，安全稳定强化胸肌', unit: '次', scorePerUnit: 1.5, tabKey: 'sport', presetAction: 'machine_chest_press' },
-
-    // ======== 绳索/固定器械 · 拉类（背部）========
-    { id: 'lat_pulldown', name: '高位下拉', topFilter: 'cable', sideFilter: 'pull',
-      description: '下拉器训练背阔肌，塑造倒三角体型', unit: '次', scorePerUnit: 1.5, tabKey: 'sport', presetAction: 'lat_pulldown' },
-    { id: 'seated_row', name: '坐姿划船', topFilter: 'cable', sideFilter: 'pull',
-      description: '坐姿划船器训练，强化中背部厚度', unit: '次', scorePerUnit: 1.5, tabKey: 'sport', presetAction: 'seated_row' },
-    { id: 'cable_straight_arm_pd', name: '直臂下压', topFilter: 'cable', sideFilter: 'pull',
-      description: '龙门架直臂下压，孤立训练背阔肌', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'cable_straight_arm_pd' },
-
-    // ======== 绳索/固定器械 · 推类（肩部）========
-    { id: 'cable_lateral_raise', name: '龙门架侧平举', topFilter: 'cable', sideFilter: 'push',
-      description: '龙门架侧向抬臂，持续张力训练三角肌中束', unit: '次', scorePerUnit: 0.6, tabKey: 'sport', presetAction: 'machine_lateral_raise' },
-    { id: 'cable_front_raise', name: '龙门架前平举', topFilter: 'cable', sideFilter: 'push',
-      description: '龙门架前向抬臂，训练三角肌前束', unit: '次', scorePerUnit: 0.6, tabKey: 'sport', presetAction: 'cable_front_raise' },
-
-    // ======== 绳索/固定器械 · 推类（肱三头肌）========
-    { id: 'tricep_pushdown', name: '绳索下压（肱三头）', topFilter: 'cable', sideFilter: 'push',
-      description: '龙门架绳索下压，肱三头肌最佳训练动作', unit: '次', scorePerUnit: 0.8, tabKey: 'sport', presetAction: 'tricep_pushdown' },
-
-    // ======== 绳索/固定器械 · 拉类（肱二头肌）========
-    { id: 'cable_curl', name: '绳索弯举（肱二头）', topFilter: 'cable', sideFilter: 'pull',
-      description: '龙门架绳索弯举，持续张力刺激肱二头肌', unit: '次', scorePerUnit: 0.8, tabKey: 'sport', presetAction: 'cable_curl' },
-
-    // ======== 绳索/固定器械 · 蹲类 ========
-    { id: 'leg_press', name: '腿举机', topFilter: 'cable', sideFilter: 'squat',
-      description: '腿举机推举，安全高效训练股四头肌', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'leg_press' },
-    { id: 'leg_extension', name: '腿屈伸', topFilter: 'cable', sideFilter: 'squat',
-      description: '固定器械腿屈伸，孤立训练股四头肌', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'leg_extension' },
-    { id: 'leg_curl', name: '腿弯举', topFilter: 'cable', sideFilter: 'squat',
-      description: '固定器械腿弯举，孤立训练股后肌群', unit: '次', scorePerUnit: 1, tabKey: 'sport', presetAction: 'leg_curl' },
-    { id: 'hip_abduction', name: '坐姿髋外展', topFilter: 'cable', sideFilter: 'squat',
-      description: '髋外展机训练，集中锻炼臀中肌', unit: '次', scorePerUnit: 0.8, tabKey: 'sport', presetAction: 'hip_abduction' },
-
-    // ======== 绳索/固定器械 · 核心 ========
-    { id: 'cable_crunch', name: '绳索卷腹', topFilter: 'cable', sideFilter: 'core',
-      description: '龙门架绳索卷腹，负重强化腹直肌', unit: '次', scorePerUnit: 0.5, tabKey: 'sport', presetAction: 'cable_crunch' },
-
-    // ======== 有氧 · 全身/拉伸 ========
-    { id: 'running', name: '跑步', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '经典有氧运动，提升心肺耐力', unit: '分钟', scorePerUnit: 1, tabKey: 'sport', presetAction: 'running' },
-    { id: 'cycling', name: '骑行', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '户外有氧骑行，锻炼下肢与心肺', unit: '分钟', scorePerUnit: 0.8, tabKey: 'sport', presetAction: 'cycling' },
-    { id: 'jump_rope', name: '跳绳', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '高效燃脂有氧，随时随地可练', unit: '分钟', scorePerUnit: 1, tabKey: 'sport', presetAction: 'jump_rope' },
-    { id: 'swimming', name: '游泳', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '全身低冲击运动，关节友好', unit: '分钟', scorePerUnit: 1.2, tabKey: 'sport', presetAction: 'swimming' },
-    { id: 'hiit', name: 'HIIT训练', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '高强度间歇训练，燃脂效率极高', unit: '分钟', scorePerUnit: 1.5, tabKey: 'sport', presetAction: 'hiit' },
-    { id: 'elliptical', name: '椭圆机', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '低冲击全身有氧，保护关节的燃脂好选择', unit: '分钟', scorePerUnit: 0.8, tabKey: 'sport', presetAction: 'elliptical' },
-    { id: 'rowing_machine', name: '划船机', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '全身拉拽有氧，同时锻炼心肺与背部', unit: '分钟', scorePerUnit: 1, tabKey: 'sport', presetAction: 'rowing_machine' },
-    { id: 'brisk_walk', name: '快走/步行', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '日常步行锻炼，低强度有氧', unit: '分钟', scorePerUnit: 0.5, tabKey: 'sport', presetAction: 'brisk_walk' },
-    { id: 'stair_climb', name: '爬楼梯', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '利用楼梯做有氧训练，锻炼下肢', unit: '层', scorePerUnit: 0.5, tabKey: 'sport', presetAction: 'stair_climb' },
-    { id: 'housework', name: '家务劳动', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '打扫、拖地、整理等日常体力活动', unit: '分钟', scorePerUnit: 0.3, tabKey: 'sport', presetAction: 'housework' },
-    { id: 'dynamic_stretch', name: '动态拉伸', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '运动前热身拉伸，预防损伤', unit: '分钟', scorePerUnit: 0.3, tabKey: 'sport', presetAction: 'dynamic_stretch' },
-    { id: 'static_stretch', name: '静态拉伸', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '运动后放松拉伸，促进恢复', unit: '分钟', scorePerUnit: 0.3, tabKey: 'sport', presetAction: 'static_stretch' },
-    { id: 'bedtime_stretch', name: '睡前放松拉伸', topFilter: 'cardio', sideFilter: 'cardio',
-      description: '睡前轻度拉伸，改善睡眠质量', unit: '次', scorePerUnit: 2, tabKey: 'sport', presetAction: 'bedtime_stretch' }
+    // 元卡改造：sport 维度仅保留空白入口卡，具体活动通过元卡编辑器创建
+    { id: 'blank_sport', name: '空白炼体',
+      metaCard: 'unknown',  // 关联元卡（兜底）
+      description: '自由记录运动修行',
+      unit: '次', scorePerUnit: 1,
+      tabKey: 'sport', presetAction: '' }
   ],
 
   // ============================================================

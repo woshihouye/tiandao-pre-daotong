@@ -222,6 +222,42 @@ async function remove(openid, params) {
   return { ok: true, removed: res.stats ? res.stats.removed : 0 }
 }
 
+// ==================== reclassify（元卡改造：调整活动分类）====================
+async function reclassify(openid, params) {
+  if (!openid) return { ok: false, error: '未登录' }
+  var activityId = params.activityId
+  if (!activityId) return { ok: false, error: '缺少 activityId' }
+
+  // 校验归属
+  var existRes = await db.collection('user_activities')
+    .where({ activityId: activityId, userId: openid }).limit(1).get()
+  if (!existRes.data || existRes.data.length === 0) {
+    return { ok: false, error: '无权修改或活动不存在' }
+  }
+
+  var existing = existRes.data[0]
+  var currentMeta = existing.customMeta || {}
+
+  // 更新分类元数据
+  if (params.metaCard) currentMeta.metaCard = params.metaCard
+  if (params.subcategory) currentMeta.subcategory = params.subcategory
+  if (params.muscleWeights) currentMeta.muscleWeights = params.muscleWeights
+
+  var upd = {
+    customMeta: currentMeta,
+    updatedAt: new Date().toISOString()
+  }
+  // 同步更新 topFilter/sideFilter（兼容旧维度）
+  if (params.topFilter !== undefined) upd.topFilter = params.topFilter
+  if (params.sideFilter !== undefined) upd.sideFilter = params.sideFilter
+
+  await db.collection('user_activities')
+    .where({ activityId: activityId, userId: openid })
+    .update({ data: upd })
+
+  return { ok: true }
+}
+
 // ==================== 入口 ====================
 exports.main = async function(event, context) {
   var action = event.action
@@ -242,6 +278,7 @@ exports.main = async function(event, context) {
       case 'copy':   return await copy(openid, params)
       case 'update': return await update(openid, params)
       case 'delete': return await remove(openid, params)
+      case 'reclassify': return await reclassify(openid, params)
       case 'health': return { ok: true, status: 'running' }
       default: return { ok: false, error: 'unknown action: ' + String(action) }
     }

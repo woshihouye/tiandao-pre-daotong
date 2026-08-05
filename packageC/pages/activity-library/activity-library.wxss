@@ -506,3 +506,150 @@ page { height: 100%; }
   border-color: #EF4444;
   background: #FEF2F2;
 }
+
+/* ========== 活动详情弹窗 ========== */
+.detail-backdrop {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 1000;
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: fadeIn .25s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.detail-panel {
+  width: 100%; max-width: 600px; max-height: 85vh;
+  background: var(--bg-primary, #fff); border-radius: 24rpx 24rpx 0 0;
+  padding: 24rpx 28rpx 40rpx; overflow-y: auto;
+  box-sizing: border-box;
+  animation: slideUp .3s ease;
+}
+
+/* 头部 */
+.detail-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding-bottom: 16rpx; border-bottom: 1rpx solid var(--border-primary, #e5e7eb);
+}
+.detail-header-main { display: flex; flex-direction: column; gap: 8rpx; flex: 1; }
+.detail-name { font-size: 34rpx; font-weight: 700; color: var(--text-primary, #1f2937); }
+.detail-category-tag {
+  display: inline-block; padding: 2rpx 12rpx; border-radius: 12rpx;
+  font-size: 22rpx; color: var(--secondary-color, #8B5CF6);
+  background: rgba(139,92,246,0.1); width: fit-content;
+}
+.detail-close {
+  width: 48rpx; height: 48rpx; display: flex; align-items: center; justify-content: center;
+  font-size: 28rpx; color: var(--text-secondary, #6b7280);
+  border-radius: 50%; background: var(--bg-secondary, #f3f4f6);
+}
+
+/* 核心数值 */
+.detail-stats {
+  display: flex; gap: 32rpx; padding: 24rpx 0;
+  border-bottom: 1rpx solid var(--border-primary, #e5e7eb);
+}
+.detail-stat-item { display: flex; flex-direction: column; align-items: center; }
+.detail-stat-value { font-size: 40rpx; font-weight: 700; color: var(--primary-color, #10B981); }
+.detail-stat-value.negative { color: #EF4444; }
+.detail-stat-label { font-size: 22rpx; color: var(--text-tertiary, #9ca3af); margin-top: 4rpx; }
+
+/* 分区 */
+.detail-section { padding: 20rpx 0; border-bottom: 1rpx solid var(--border-primary, #e5e7eb); }
+.detail-section-title { font-size: 26rpx; font-weight: 600; color: var(--text-primary, #1f2937); margin-bottom: 12rpx; }
+.detail-desc { font-size: 26rpx; color: var(--text-secondary, #6b7280); line-height: 1.6; }
+
+/* 标签 */
+.detail-tags { display: flex; flex-wrap: wrap; gap: 8rpx; }
+.detail-tag {
+  padding: 4rpx 14rpx; border-radius: 16rpx; font-size: 22rpx;
+  color: var(--primary-color, #10B981); background: rgba(16,185,129,0.1);
+}
+
+/* 自定义属性 */
+.detail-ext-list { display: flex; flex-wrap: wrap; gap: 8rpx 16rpx; }
+.detail-ext-row { display: flex; align-items: center; gap: 4rpx; }
+.detail-ext-key { font-size: 22rpx; color: var(--text-secondary, #6b7280); }
+.detail-ext-sep { font-size: 22rpx; color: var(--text-tertiary, #9ca3af); }
+.detail-ext-val { font-size: 24rpx; color: var(--text-primary, #1f2937); font-weight: 500; }
+
+/* 元信息 */
+.detail-meta {
+  display: flex; flex-wrap: wrap; gap: 8rpx; padding: 20rpx 0;
+  border-bottom: 1rpx solid var(--border-primary, #e5e7eb);
+}
+.detail-meta-badge {
+  padding: 4rpx 12rpx; border-radius: 12rpx; font-size: 20rpx;
+}
+.detail-meta-badge.official { color: #D97706; background: rgba(217,119,6,0.1); }
+.detail-meta-badge.custom { color: var(--secondary-color, #8B5CF6); background: rgba(139,92,246,0.1); }
+.detail-meta-badge.public { color: #3B82F6; background: rgba(59,130,246,0.1); }
+.detail-meta-badge.author { color: var(--text-tertiary, #9ca3af); background: var(--bg-secondary, #f3f4f6); }
+
+/* 操作按钮 */
+.detail-actions { display: flex; gap: 16rpx; padding-top: 24rpx; }
+.detail-btn {
+  flex: 1; padding: 18rpx 0; border-radius: 16rpx;
+  font-size: 28rpx; font-weight: 600; text-align: center;
+  border: none; line-height: 1.4;
+}
+.detail-btn::after { border: none; }
+.detail-btn.copy { color: #fff; background: var(--primary-color, #10B981); }
+.detail-btn.edit { color: var(--primary-color, #10B981); background: var(--bg-secondary, #f3f4f6); }
+.detail-btn.delete { color: #EF4444; background: var(--bg-secondary, #f3f4f6); }
+.detail-btn.reclassify { color: #8B5CF6; background: #F5F3FF; }
+
+/* 调整分类弹窗 */
+.reclassify-modal { max-width: 560rpx; }
+.reclassify-header { display: flex; justify-content: space-between; align-items: center;
+  padding-bottom: 20rpx; font-size: 30rpx; font-weight: bold; }
+.reclassify-body { padding: 8rpx 0; }
+.reclassify-meta-list { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.reclassify-meta-item {
+  width: calc(25% - 9rpx); padding: 16rpx 8rpx; text-align: center;
+  border-radius: 12rpx; border: 2rpx solid #e5e7eb; background: #f9fafb;
+}
+.reclassify-meta-item.active { border-color: #8B5CF6; background: #F5F3FF; }
+.reclassify-meta-name { font-size: 28rpx; font-weight: bold; color: #333; display: block; }
+.reclassify-meta-sub { font-size: 20rpx; color: #999; display: block; margin-top: 4rpx; }
+.reclassify-footer { display: flex; gap: 16rpx; margin-top: 24rpx; }
+
+/* ========== 元卡浏览（sport 维度）========== */
+.meta-card-browse { background: #fff; padding: 20rpx 0; }
+
+/* 子集筛选 */
+.subcategory-bar { white-space: nowrap; padding: 0 20rpx 20rpx; }
+.subcat-chip {
+  display: inline-block; padding: 10rpx 28rpx; margin-right: 16rpx;
+  background: #f3f4f6; color: #666; border-radius: 24rpx; font-size: 26rpx;
+}
+.subcat-chip.active { background: #3B82F6; color: #fff; }
+
+/* 元卡网格 */
+.meta-card-grid { display: flex; flex-wrap: wrap; padding: 0 20rpx; }
+.meta-card-item {
+  width: calc(50% - 12rpx); margin: 0 24rpx 24rpx 0;
+  padding: 28rpx 20rpx; background: #fff; border-radius: 16rpx;
+  border: 2rpx solid #f0f0f0; box-sizing: border-box;
+}
+.meta-card-item:nth-child(2n) { margin-right: 0; }
+.meta-card-icon { font-size: 48rpx; text-align: center; margin-bottom: 12rpx; }
+.meta-card-name {
+  font-size: 30rpx; font-weight: bold; color: #333;
+  text-align: center; display: block; margin-bottom: 8rpx;
+}
+.meta-card-desc {
+  font-size: 22rpx; color: #999; text-align: center;
+  display: block; line-height: 1.4;
+}
+
+/* 模板搜索结果 */
+.search-template-results { padding: 0 20rpx; margin-bottom: 24rpx; }
+.search-template-title { font-size: 24rpx; color: #999; padding: 12rpx 0; display: block; }
+.template-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20rpx 24rpx; background: #f9fafb; border-radius: 12rpx; margin-bottom: 12rpx;
+}
+.template-name { font-size: 28rpx; color: #333; }
+.template-meta {
+  font-size: 22rpx; color: #3B82F6; background: #EBF5FF;
+  padding: 4rpx 16rpx; border-radius: 12rpx;
+}

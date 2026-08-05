@@ -5,14 +5,14 @@
     <view class="nav-back" bindtap="onCancel">
       <text class="nav-back-icon">←</text>
     </view>
-    <text class="nav-title">{{isNew ? '复制活动' : '编辑活动'}}</text>
+    <text class="nav-title">{{mode === 'metaCard' ? '元卡创建' : (isNew ? '复制活动' : '编辑活动')}}</text>
     <view class="nav-action" bindtap="onSave">
       <text class="nav-save-text">{{saving ? '保存中...' : '保存'}}</text>
     </view>
   </view>
 
   <!-- 提示 -->
-  <view class="tip-bar" wx:if="{{isNew && originActivityName}}">
+  <view class="tip-bar" wx:if="{{mode !== 'metaCard' && isNew && originActivityName}}">
     <text class="tip-icon">💡</text>
     <text class="tip-text">正在复制「{{originActivityName}}」，你可以修改以下内容</text>
   </view>
@@ -22,11 +22,11 @@
     <!-- 活动名称 -->
     <view class="form-item">
       <text class="form-label">活动名称</text>
-      <input class="form-input" placeholder="请输入活动名称（最多20字）" value="{{name}}" bindinput="onNameInput" maxlength="20" />
+      <input class="form-input" placeholder="请输入活动名称（最多20字）" value="{{name}}" bindinput="onNameInput" bindblur="onNameBlur" maxlength="20" />
     </view>
 
-    <!-- 分类 -->
-    <view class="form-item">
+    <!-- 分类（元卡模式下隐藏） -->
+    <view class="form-item" wx:if="{{mode !== 'metaCard'}}">
       <text class="form-label">分类</text>
       <picker mode="selector" range="{{categories}}" range-key="label" value="{{categoryIndex}}" bindchange="onCategoryChange">
         <view class="form-picker">
@@ -34,6 +34,118 @@
           <text class="picker-arrow">▾</text>
         </view>
       </picker>
+    </view>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--  元卡模式 UI 区块                                               -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <view class="meta-card-section" wx:if="{{mode === 'metaCard'}}">
+      <!-- 元卡切换 -->
+      <view class="meta-card-bar">
+        <text class="meta-label">元卡类型</text>
+        <scroll-view scroll-x class="meta-card-scroll">
+          <view 
+            class="meta-card-chip {{selectedMetaCard === item.id ? 'active' : ''}}" 
+            wx:for="{{metaCardList}}" 
+            wx:key="id" 
+            data-key="{{item.id}}" 
+            bindtap="onChangeMetaCard"
+          >{{item.name}}</view>
+        </scroll-view>
+      </view>
+
+      <!-- 肌群参与度 -->
+      <view class="section-title">
+        <text>肌群参与度</text>
+        <text class="section-desc">拖拽调节，自动归一化</text>
+      </view>
+      <view class="muscle-list">
+        <view class="muscle-row" wx:for="{{muscleWeights}}" wx:key="id" wx:if="{{item.group === 'primary' || showSecondaryMuscles}}">
+          <text class="muscle-name">{{item.name}}</text>
+          <slider 
+            class="muscle-slider" 
+            min="0" max="100" 
+            value="{{item.weight * 100}}" 
+            data-index="{{index}}" 
+            bindchanging="onMuscleSliderChange" 
+            activeColor="{{item.group === 'primary' ? '#3B82F6' : '#9CA3AF'}}" 
+            backgroundColor="#E5E7EB" 
+            block-size="18" 
+          />
+          <text class="muscle-pct">{{Math.round(item.weight * 100)}}%</text>
+        </view>
+      </view>
+      <view class="toggle-secondary" bindtap="toggleSecondaryMuscles">
+        <text>{{showSecondaryMuscles ? '收起' : '展开'}}辅助肌群 ▸</text>
+      </view>
+
+      <!-- 模板匹配提示 -->
+      <view class="template-match" wx:if="{{matchedTemplate}}">
+        <text class="match-icon">OK</text>
+        <text class="match-text">已匹配动作模板，肌群权重已推荐</text>
+        <text class="match-reset" bindtap="resetToDefault">重置默认</text>
+      </view>
+
+      <!-- 容量格子 -->
+      <view class="section-title">容量格子</view>
+      <view class="cell-list">
+        <view class="cell-row" wx:for="{{cells}}" wx:key="id">
+          <picker 
+            class="cell-type-picker" 
+            mode="selector" 
+            range="{{cellTypeOptions}}" 
+            range-key="name" 
+            value="{{item.typeIndex}}" 
+            data-index="{{index}}" 
+            bindchange="onCellTypeChange"
+          >
+            <text class="cell-type">{{item.name}}</text>
+          </picker>
+          <input 
+            class="cell-value" 
+            type="number" 
+            placeholder="值" 
+            value="{{item.value}}" 
+            data-index="{{index}}" 
+            bindinput="onCellValueInput" 
+          />
+          <input 
+            class="cell-unit" 
+            placeholder="单位" 
+            value="{{item.unit}}" 
+            data-index="{{index}}" 
+            bindinput="onCellUnitInput" 
+          />
+          <input 
+            class="cell-weight" 
+            type="digit" 
+            placeholder="权重" 
+            value="{{item.weight}}" 
+            data-index="{{index}}" 
+            bindinput="onCellWeightInput" 
+          />
+          <text class="cell-remove" data-index="{{index}}" bindtap="removeCell">✕</text>
+        </view>
+      </view>
+      <view class="add-cell-btn" bindtap="addCell">
+        <text>+ 添加格子</text>
+      </view>
+
+      <!-- 额外参数 -->
+      <view class="extra-params" wx:if="{{metaCardInfo.extraParams}}">
+        <view class="param-row" wx:for="{{metaCardInfo.extraParams}}" wx:key="id">
+          <text class="param-name">{{item.name}}</text>
+          <picker 
+            mode="selector" 
+            range="{{item.options}}" 
+            value="{{extraParamValues[item.id + '_idx'] || 0}}" 
+            data-param-id="{{item.id}}" 
+            bindchange="onExtraParamChange"
+          >
+            <text class="param-val">{{extraParamValues[item.id] || item.default}}</text>
+          </picker>
+        </view>
+      </view>
     </view>
 
     <!-- 自定义分类名 -->
@@ -108,7 +220,7 @@
   <!-- 底部保存按钮 -->
   <view class="bottom-bar">
     <button class="btn-save" bindtap="onSave" loading="{{saving}}" disabled="{{saving}}">
-      {{isNew ? '复制并保存' : '保存修改'}}
+      {{mode === 'metaCard' ? '创建元卡活动' : (isNew ? '复制并保存' : '保存修改')}}
     </button>
   </view>
 </view>

@@ -1,6 +1,7 @@
 // 大道之行 · 活动库
 var app = getApp()
 var Alib = require('../../../utils/activity-library.js')
+var MetaCards = require('../../../utils/meta-cards.js')
 
 /** 收藏本地存储 key 前缀 */
 var FAV_STORAGE_PREFIX = 'tiandao_actlib_fav_'
@@ -125,6 +126,14 @@ Page({
     currentSideFilter: 'all',
     cardMode: 'default',  // 'study' | 'food' | 'default'
 
+    // 元卡浏览（sport 维度）
+    showMetaCards: false,      // 是否显示元卡浏览
+    metaCards: [],             // 从 META_CARDS 转换的显示列表
+    currentSubcategory: 'all', // 当前子集筛选
+    metaCardsFiltered: [],     // 按子集筛选后的元卡列表
+    metaCardSearchKeyword: '', // 动作搜索关键词
+    metaCardSearchResults: [], // 动作搜索匹配结果
+
     // 活动数据
     activities: [],
     searchKeyword: '',
@@ -140,6 +149,25 @@ Page({
     showAllTagsOff: false,  // false=不限，true=只看未打标签
     selectedTag: '',        // 当前选中的 tag，空='全部'
     allTags: [],            // 聚合后的标签列表
+
+    // 活动详情弹窗
+    showActivityDetail: false,
+    activityDetail: null,
+
+    // 调整分类弹窗（元卡改造）
+    showReclassifyModal: false,
+    reclassifyActivity: null,
+    reclassifyMetaCards: [
+      { key: 'push', name: '推', subcategory: 'anaerobic' },
+      { key: 'pull', name: '拉', subcategory: 'anaerobic' },
+      { key: 'squat', name: '蹲', subcategory: 'anaerobic' },
+      { key: 'hold', name: '撑', subcategory: 'core' },
+      { key: 'curl', name: '卷', subcategory: 'core' },
+      { key: 'steady_cardio', name: '稳态有氧', subcategory: 'cardio' },
+      { key: 'interval_cardio', name: '间歇有氧', subcategory: 'cardio' },
+      { key: 'unknown', name: '不知道', subcategory: 'unknown' }
+    ],
+    selectedReclassifyMetaCard: '',
 
     // --- 自定义活动弹窗 ---
     showAddModal: false,
@@ -355,7 +383,9 @@ Page({
     this.setData({
       currentCategory: cat,
       searchKeyword: '',
-      currentSideFilter: 'all'
+      currentSideFilter: 'all',
+      metaCardSearchKeyword: '',
+      metaCardSearchResults: []
     })
     this._initFilters()
     this._reloadActivities()
@@ -373,13 +403,101 @@ Page({
 
   onSearchInput: function(e) {
     var kw = e.detail.value
-    this.setData({ searchKeyword: kw })
+    this.setData({ searchKeyword: kw, metaCardSearchKeyword: kw, metaCardSearchResults: [] })
+
+    // sport 维度：搜索动作模板
+    if (this.data.currentCategory === 'sport' && kw && kw.trim()) {
+      var templates = MetaCards.MOVEMENT_TEMPLATES
+      var results = []
+      var kwLower = kw.trim().toLowerCase()
+      for (var name in templates) {
+        if (Object.prototype.hasOwnProperty.call(templates, name)) {
+          if (name.toLowerCase().indexOf(kwLower) !== -1) {
+            var t = templates[name]
+            var metaCard = MetaCards.getMetaCard(t.metaCard)
+            results.push({
+              name: name,
+              metaCard: t.metaCard,
+              metaCardName: metaCard ? metaCard.name : t.metaCard,
+              muscles: t.muscles
+            })
+          }
+        }
+      }
+      // 限制最多 20 条
+      if (results.length > 20) results = results.slice(0, 20)
+      this.setData({ metaCardSearchResults: results })
+    }
+
     this._reloadActivities()
   },
 
   clearSearch: function() {
-    this.setData({ searchKeyword: '' })
+    this.setData({ searchKeyword: '', metaCardSearchKeyword: '', metaCardSearchResults: [] })
     this._reloadActivities()
+  },
+
+  // ==================== 元卡浏览（sport 维度）====================
+
+  /** 将 META_CARDS 对象转为显示数组 */
+  _initMetaCards: function() {
+    var cards = MetaCards.META_CARDS
+    var arr = []
+    for (var key in cards) {
+      if (Object.prototype.hasOwnProperty.call(cards, key)) {
+        var card = cards[key]
+        arr.push({
+          id: card.id,
+          name: card.name,
+          subcategory: card.subcategory,
+          description: card.description
+        })
+      }
+    }
+    this.setData({
+      metaCards: arr,
+      currentSubcategory: 'all',
+      metaCardsFiltered: arr
+    })
+  },
+
+  /** 元卡子集筛选 */
+  onSubcategoryTap: function(e) {
+    var key = e.currentTarget.dataset.key
+    var filtered = []
+    var all = this.data.metaCards
+    if (key === 'all') {
+      filtered = all
+    } else {
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].subcategory === key) {
+          filtered.push(all[i])
+        }
+      }
+    }
+    this.setData({
+      currentSubcategory: key,
+      metaCardsFiltered: filtered
+    })
+  },
+
+  /** 点击元卡 → 跳转元卡编辑页 */
+  onMetaCardTap: function(e) {
+    var metaCardId = e.currentTarget.dataset.id
+    if (!metaCardId) return
+    wx.navigateTo({
+      url: '../activity-edit/activity-edit?metaCard=' + metaCardId
+    })
+  },
+
+  /** 点击模板搜索结果 → 跳转编辑页并预填模板参数 */
+  onMetaCardSearchResultTap: function(e) {
+    var index = e.currentTarget.dataset.index
+    var result = this.data.metaCardSearchResults[index]
+    if (!result) return
+    wx.navigateTo({
+      url: '../activity-edit/activity-edit?metaCard=' + result.metaCard + '&templateName=' + encodeURIComponent(result.name)
+    })
   },
 
   // ==================== 数据加载 ====================
@@ -388,6 +506,16 @@ Page({
     var cat = this.data.currentCategory
     var kw = this.data.searchKeyword
     var sideF = this.data.currentSideFilter
+
+    // sport 维度：显示元卡浏览，其他维度隐藏
+    if (cat === 'sport') {
+      if (!this.data.showMetaCards) {
+        this._initMetaCards()
+      }
+      this.setData({ showMetaCards: true })
+    } else {
+      this.setData({ showMetaCards: false, metaCardSearchKeyword: '', metaCardSearchResults: [] })
+    }
 
     // 食·丹食 使用独立食物知识库
     if (cat === 'diet') {
@@ -1139,7 +1267,8 @@ Page({
       return
     }
 
-    this.openEditPanel(activity)
+    // 通用卡片 → 打开详情弹窗
+    this.openActivityDetail(activity)
   },
 
   /** 克隆公开活动：提示确认后调用云端 cloneActivity */
@@ -1189,6 +1318,7 @@ Page({
       icon: activity.presetAction || ''
     }))
 
+    this.closeActivityDetail()
     wx.navigateTo({
       url: '/packageC/pages/activity-edit/activity-edit?isNew=true&data=' + data + '&originActivityName=' + encodeURIComponent(activity.name)
     })
@@ -1209,6 +1339,7 @@ Page({
       icon: activity.icon || ''
     }))
 
+    this.closeActivityDetail()
     wx.navigateTo({
       url: '/packageC/pages/activity-edit/activity-edit?isNew=false&data=' + data
     })
@@ -1234,6 +1365,7 @@ Page({
             },
             success: function() {
               self._reloadActivities()
+              self.closeActivityDetail()
               wx.showToast({ title: '已删除', icon: 'success' })
             },
             fail: function() {
@@ -1243,6 +1375,102 @@ Page({
         }
       }
     })
+  },
+
+  /** 阻止事件冒泡 */
+  noop: function() {},
+
+  /** 打开活动详情 */
+  openActivityDetail: function(activity) {
+    if (!activity) return
+    // 详情面板使用的字段，从 activity 对象透传
+    var d = {
+      id: activity.id,
+      name: activity.name,
+      category: activity.category,
+      categoryName: activity.categoryName || '',
+      unit: activity.unit || '次',
+      scorePerUnit: activity.scorePerUnit || 0,
+      description: activity.description || '',
+      icon: activity.icon || activity.presetAction || '',
+      isCustom: !!activity.isCustom,
+      isPublic: !!activity.isPublic,
+      isOfficial: !!activity.isOfficial,
+      isFood: !!activity.isFood,
+      isStudyMode: !!activity.isStudyMode,
+      ownerName: activity.ownerName || '',
+      useCount: activity.useCount || 0,
+      likeCount: activity.likeCount || 0,
+      ext: activity.ext || {},
+      tags: activity.tags || [],
+      customMeta: activity.customMeta || null,
+      // 面板专用
+      isNegative: (activity.scorePerUnit || 0) < 0,
+      createdTime: activity.createdAt || activity.createdTime || ''
+    }
+    // ext 转化为 __keys 数组
+    var keys = Object.keys(d.ext)
+    var kArr = []
+    for (var ki = 0; ki < keys.length && ki < 6; ki++) kArr.push(keys[ki])
+    d.__keys = kArr
+    d.__ext = d.ext
+    this.setData({ showActivityDetail: true, activityDetail: d })
+  },
+
+  /** 关闭详情 */
+  closeActivityDetail: function() {
+    this.setData({ showActivityDetail: false, activityDetail: null })
+  },
+
+  /** 调整分类（元卡改造） */
+  onReclassifyActivity: function(e) {
+    var activity = e.currentTarget.dataset.activity
+    var currentMetaCard = (activity.customMeta && activity.customMeta.metaCard) || 'unknown'
+    this.setData({
+      showReclassifyModal: true,
+      reclassifyActivity: activity,
+      selectedReclassifyMetaCard: currentMetaCard
+    })
+  },
+
+  onSelectReclassifyMetaCard: function(e) {
+    this.setData({ selectedReclassifyMetaCard: e.currentTarget.dataset.key })
+  },
+
+  onConfirmReclassify: function() {
+    var self = this
+    var metaCard = this.data.selectedReclassifyMetaCard
+    var activity = this.data.reclassifyActivity
+    if (!activity || !metaCard) return
+
+    wx.cloud.callFunction({
+      name: 'user-activity',
+      data: {
+        action: 'reclassify',
+        activityId: activity.id,
+        metaCard: metaCard
+      },
+      success: function(res) {
+        if (res.result && res.result.ok) {
+          wx.showToast({ title: '分类已更新', icon: 'success' })
+          // 更新当前详情中的 customMeta
+          var detail = self.data.activityDetail
+          detail.customMeta = detail.customMeta || {}
+          detail.customMeta.metaCard = metaCard
+          self.setData({ activityDetail: detail, showReclassifyModal: false })
+          self._reloadActivities()
+        } else {
+          wx.showToast({ title: (res.result && res.result.error) || '调整失败', icon: 'none' })
+        }
+      },
+      fail: function() {
+        wx.showToast({ title: '网络错误', icon: 'none' })
+      }
+    })
+  },
+
+  closeReclassifyModal: function() {
+    this.setData({ showReclassifyModal: false })
   },
 
   /** 切换"只看我的自定义" */
@@ -1404,6 +1632,7 @@ Page({
         success: function() {
           self._syncToTemplates(ed.id, name, scoreVal)
           self._reloadActivities()
+          self.closeActivityDetail()
           wx.showToast({ title: '保存成功', icon: 'success' })
         },
         fail: function() {
@@ -1424,6 +1653,7 @@ Page({
           self._saveCustomActivities(customList)
           self._syncToTemplates(ed.id, name, scoreVal)
           self._reloadActivities()
+          self.closeActivityDetail()
           wx.showToast({ title: '已本地保存', icon: 'success' })
         }
       })
