@@ -3,8 +3,8 @@ var app = getApp()
 var Alib = require('../../../utils/activity-library.js')
 var MetaCards = require('../../../utils/meta-cards.js')
 
-/** 收藏本地存储 key 前缀 */
-var FAV_STORAGE_PREFIX = 'tiandao_actlib_fav_'
+/** 置顶本地存储 key 前缀 */
+var PIN_STORAGE_PREFIX = 'tiandao_actlib_pin_'
 /** 自定义活动存储 key 前缀 */
 var CUSTOM_STORAGE_PREFIX = 'tiandao_custom_act_'
 /** 自定义食物存储 key 前缀 */
@@ -136,8 +136,8 @@ Page({
     activities: [],
     searchKeyword: '',
 
-    // 收藏集合（ID 集合）
-    favorites: {},
+    // 置顶集合（ID 集合）
+    pinned: {},
 
     // 管理员标识
     isAdmin: false,
@@ -166,20 +166,6 @@ Page({
       { key: 'unknown', name: '不知道', subcategory: 'unknown' }
     ],
     selectedReclassifyMetaCard: '',
-
-    // --- 自定义活动弹窗 ---
-    showAddModal: false,
-    formData: {
-      name: '',
-      description: '',
-      categoryIndex: 0,
-      sideFilterIndex: 0,
-      unitIndex: 0,
-      scorePerUnit: '1'
-    },
-    formCategoryOptions: [],
-    formSideFilterOptions: [],
-    formUnitOptions: ['次', '组', '分钟', '秒', '次/天'],
 
     // --- 活动编辑弹窗 ---
     showEditModal: false,
@@ -232,7 +218,17 @@ Page({
       carbs: '',
       fat: ''
     },
-    foodFormSideOptions: FOOD_SIDE_FILTERS.filter(function(f) { return f.key !== 'all' })
+    foodFormSideOptions: FOOD_SIDE_FILTERS.filter(function(f) { return f.key !== 'all' }),
+
+    // --- 元卡详情面板 ---
+    showMetaDetail: false,
+    metaDetail: {
+      id: '',
+      name: '',
+      description: '',
+      muscles: '',
+      movements: []
+    }
   },
 
   // ==================== 生命周期 ====================
@@ -249,7 +245,7 @@ Page({
       }
     }
     this.setData({ themeClass: tc, isAdmin: isAdmin })
-    this._loadFavorites()
+    this._loadPinned()
     this._initFilters()
     this._reloadActivities()
     this._migrateLegacyCustomActivities()
@@ -275,43 +271,45 @@ Page({
     this._reloadActivities()
   },
 
-  // ==================== 收藏 ====================
+  // ==================== 置顶 ====================
 
   _getUid: function() {
     return (app.globalData && app.globalData.userId) || 'default'
   },
 
-  _getFavStorageKey: function() {
-    return FAV_STORAGE_PREFIX + this._getUid()
+  _getPinStorageKey: function() {
+    return PIN_STORAGE_PREFIX + this._getUid()
   },
 
-  _loadFavorites: function() {
+  _loadPinned: function() {
     try {
-      var data = wx.getStorageSync(this._getFavStorageKey()) || {}
-      this.setData({ favorites: data })
+      var data = wx.getStorageSync(this._getPinStorageKey()) || {}
+      this.setData({ pinned: data })
     } catch (e) {
-      this.setData({ favorites: {} })
+      this.setData({ pinned: {} })
     }
   },
 
-  _saveFavorites: function(favObj) {
+  _savePinned: function(pinObj) {
     try {
-      wx.setStorageSync(this._getFavStorageKey(), favObj)
+      wx.setStorageSync(this._getPinStorageKey(), pinObj)
     } catch (e) {}
   },
 
-  /** 切换收藏状态 */
-  toggleFavorite: function(e) {
+  /** 切换置顶状态 */
+  togglePin: function(e) {
     var activityId = e.currentTarget.dataset.id
     if (!activityId) return
-    var fav = this.data.favorites || {}
-    if (fav[activityId]) {
-      delete fav[activityId]
+    var pin = this.data.pinned || {}
+    if (pin[activityId]) {
+      delete pin[activityId]
     } else {
-      fav[activityId] = true
+      pin[activityId] = true
     }
-    this.setData({ favorites: fav })
-    this._saveFavorites(fav)
+    this.setData({ pinned: pin })
+    this._savePinned(pin)
+    // 即时重新排序
+    this.setData({ activities: this._sortByUsage(this.data.activities) })
   },
 
   // ==================== 自定义活动存储 ====================
@@ -509,6 +507,19 @@ Page({
     return arr
   },
 
+  /** 获取某元卡的建议衍生活动 */
+  _getMetaCardMovements: function(metaCardId) {
+    var templates = MetaCards.MOVEMENT_TEMPLATES
+    var result = []
+    for (var name in templates) {
+      if (!Object.prototype.hasOwnProperty.call(templates, name)) continue
+      if (templates[name].metaCard === metaCardId) {
+        result.push(name)
+      }
+    }
+    return result.slice(0, 8)
+  },
+
   /** 元卡子集筛选 */
   onSubcategoryTap: function(e) {
     var key = e.currentTarget.dataset.key
@@ -521,6 +532,44 @@ Page({
     var key = e.currentTarget.dataset.key
     this.setData({ currentMetaCard: key })
     this._reloadActivities()
+  },
+
+  /** 打开元卡详情面板 */
+  _openMetaDetail: function(metaActivity) {
+    var card = MetaCards.getMetaCard ? MetaCards.getMetaCard(metaActivity.metaCardId) : (MetaCards.META_CARDS[metaActivity.metaCardId] || {})
+    var pool = card.musclePool || card.paramPool
+    var muscleNames = []
+    if (pool && pool.primary) {
+      for (var i = 0; i < pool.primary.length; i++) {
+        muscleNames.push(pool.primary[i].name)
+      }
+    }
+    var movements = this._getMetaCardMovements(metaActivity.metaCardId)
+    this.setData({
+      showMetaDetail: true,
+      metaDetail: {
+        id: metaActivity.metaCardId,
+        name: metaActivity.name,
+        description: metaActivity.description || '',
+        muscles: muscleNames.join('、'),
+        movements: movements
+      }
+    })
+  },
+
+  /** 关闭元卡详情面板 */
+  closeMetaDetail: function() {
+    this.setData({ showMetaDetail: false })
+  },
+
+  /** 创建衍生活动 → 跳转编辑页 */
+  onCreateDerivative: function(e) {
+    var activity = e.currentTarget.dataset.activity
+    var metaCardId = activity.metaCardId || activity.id
+    if (!metaCardId) return
+    wx.navigateTo({
+      url: '../activity-edit/activity-edit?metaCard=' + metaCardId
+    })
   },
 
   /** 点击模板搜索结果 → 跳转编辑页并预填模板参数 */
@@ -1123,21 +1172,23 @@ Page({
     this.setData({ activities: this._sortByUsage(list), cardMode: 'default' })
   },
 
-  /** 按使用次数排序（使用次数高的在前），暂无数据时保持原序 */
+  /** 按置顶+使用次数排序：置顶优先，其次按使用次数降序 */
   _sortByUsage: function(list) {
+    var pinned = this.data.pinned || {}
     // 尝试从本地读取使用统计
+    var usage = {}
     try {
       var usageKey = 'tiandao_act_usage_' + this._getUid()
-      var usage = wx.getStorageSync(usageKey) || {}
-      if (Object.keys(usage).length > 0) {
-        return list.slice().sort(function(a, b) {
-          var ua = usage[a.id] || 0
-          var ub = usage[b.id] || 0
-          return ub - ua
-        })
-      }
+      usage = wx.getStorageSync(usageKey) || {}
     } catch (e) {}
-    return list
+    return list.slice().sort(function(a, b) {
+      var aPin = pinned[a.id] ? 1 : 0
+      var bPin = pinned[b.id] ? 1 : 0
+      if (aPin !== bPin) return bPin - aPin
+      var ua = usage[a.id] || 0
+      var ub = usage[b.id] || 0
+      return ub - ua
+    })
   },
 
   // ==================== 跳转 ====================
@@ -1174,174 +1225,8 @@ Page({
     return 0
   },
 
-  /** 打开添加弹窗 */
-  openAddModal: function() {
-    var cat = this.data.currentCategory
-
-    // 食·丹食 分类走食物新建面板
-    if (cat === 'diet') {
-      this.openFoodModal()
-      return
-    }
-
-    var sideF = this.data.currentSideFilter
-
-    // 主分类选项
-    var catOptions = this.data.categories
-    var catIdx = this._getCategoryIndex(cat)
-
-    // 子分类选项（根据当前主分类）
-    var config = Alib.FILTER_CONFIGS[cat] || { side: [] }
-    var sideOptions = config.side || []
-    var sideIdx = this._getSideFilterIndex(sideOptions, sideF)
-
-    // 悟·修心 / 工·功业 / 煞·心魔 使用不同的单位选项
-    var unitOptions
-    if (cat === 'study') {
-      unitOptions = ['10分钟', '次']
-    } else if (cat === 'work' || cat === 'debuff') {
-      unitOptions = ['30分钟', '次']
-    } else {
-      unitOptions = ['次', '组', '分钟', '秒', '次/天']
-    }
-
-    this.setData({
-      showAddModal: true,
-      'formData.name': '',
-      'formData.description': '',
-      'formData.categoryIndex': catIdx,
-      'formData.sideFilterIndex': sideIdx,
-      'formData.unitIndex': 0,
-      'formData.scorePerUnit': '1',
-      formCategoryOptions: catOptions,
-      formSideFilterOptions: sideOptions,
-      formUnitOptions: unitOptions
-    })
-  },
-
-  /** 关闭弹窗 */
-  closeAddModal: function() {
-    this.setData({ showAddModal: false })
-  },
-
   /** 阻止冒泡 */
   preventBubble: function() {},
-
-  /** 表单：活动名称 */
-  onFormNameInput: function(e) {
-    this.setData({ 'formData.name': e.detail.value })
-  },
-
-  /** 表单：活动简介 */
-  onFormDescInput: function(e) {
-    this.setData({ 'formData.description': e.detail.value })
-  },
-
-  /** 表单：主分类切换 */
-  onFormCategoryChange: function(e) {
-    var idx = parseInt(e.detail.value)
-    var catKey = this.data.formCategoryOptions[idx].key
-    // 联动更新子分类选项
-    var config = Alib.FILTER_CONFIGS[catKey] || { side: [] }
-    var sideOptions = config.side || []
-    this.setData({
-      'formData.categoryIndex': idx,
-      'formData.sideFilterIndex': 0,
-      formSideFilterOptions: sideOptions
-    })
-  },
-
-  /** 表单：子分类切换 */
-  onFormSideFilterChange: function(e) {
-    var idx = parseInt(e.detail.value)
-    this.setData({ 'formData.sideFilterIndex': idx })
-  },
-
-  /** 表单：结算单位切换 */
-  onFormUnitChange: function(e) {
-    var idx = parseInt(e.detail.value)
-    this.setData({ 'formData.unitIndex': idx })
-  },
-
-  /** 表单：单位修为值 */
-  onFormScoreInput: function(e) {
-    this.setData({ 'formData.scorePerUnit': e.detail.value })
-  },
-
-  /** 提交自定义活动 */
-  submitCustomActivity: function() {
-    var fd = this.data.formData
-    var name = (fd.name || '').trim()
-    if (!name) {
-      wx.showToast({ title: '请输入活动名称', icon: 'none' })
-      return
-    }
-
-    var scoreVal = parseFloat(fd.scorePerUnit)
-    if (isNaN(scoreVal) || scoreVal === 0) {
-      wx.showToast({ title: '请输入有效的修为值', icon: 'none' })
-      return
-    }
-
-    var catKey = this.data.formCategoryOptions[fd.categoryIndex].key
-    var sideKey = this.data.formSideFilterOptions[fd.sideFilterIndex].key
-    var unit = this.data.formUnitOptions[fd.unitIndex]
-
-    // 自动取 topFilter：取该分类第一个非 all 的 top filter，没有则用分类 key
-    var config = Alib.FILTER_CONFIGS[catKey] || { top: [] }
-    var topFilters = config.top || []
-    var topF = catKey
-    for (var i = 0; i < topFilters.length; i++) {
-      if (topFilters[i].key !== 'all') { topF = topFilters[i].key; break }
-    }
-
-    var desc = fd.description || ''
-    var self = this
-    this.setData({ showAddModal: false })
-
-    // 云端优先
-    wx.cloud.callFunction({
-      name: 'activity-api',
-      data: {
-        action: 'createCustom',
-        params: {
-          name: name,
-          category: catKey,
-          scorePerUnit: scoreVal,
-          unit: unit,
-          description: desc,
-          topFilter: topF,
-          sideFilter: sideKey
-        }
-      },
-      success: function() {
-        self._reloadActivities()
-        wx.showToast({ title: '添加成功', icon: 'success' })
-      },
-      fail: function() {
-        // 降级：写入本地 storage
-        var newActivity = {
-          id: 'custom_' + Date.now(),
-          name: name,
-          description: desc,
-          category: catKey,
-          topFilter: topF,
-          sideFilter: sideKey,
-          unit: unit,
-          scorePerUnit: scoreVal,
-          isNegative: scoreVal < 0,
-          isCustom: true,
-          tabKey: catKey,
-          presetAction: ''
-        }
-        var customList = self._loadCustomActivities()
-        customList.unshift(newActivity)
-        self._saveCustomActivities(customList)
-        self._reloadActivities()
-        wx.showToast({ title: '已本地保存', icon: 'success' })
-      }
-    })
-  },
 
   // ==================== 活动编辑存储 ====================
 
@@ -1369,11 +1254,9 @@ Page({
     var activity = e.currentTarget.dataset.activity
     if (!activity) return
 
-    // 元卡点击 → 跳转元卡编辑页
+    // 元卡点击 → 显示详情面板
     if (activity._isMetaCard) {
-      wx.navigateTo({
-        url: '../activity-edit/activity-edit?metaCard=' + activity.metaCardId
-      })
+      this._openMetaDetail(activity)
       return
     }
 

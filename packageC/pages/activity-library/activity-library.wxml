@@ -95,8 +95,8 @@
                 <text class="card-tag custom" wx:if="{{act.isCustom && !act.isPublic}}">自定义</text>
                 <text class="card-tag public" wx:if="{{act.isPublic}}">公开</text>
               </view>
-              <view class="card-star {{favorites[act.id] ? 'starred' : ''}}" data-id="{{act.id}}" catchtap="toggleFavorite">
-                <text>{{favorites[act.id] ? '★' : '☆'}}</text>
+              <view class="card-pin {{pinned[act.id] ? 'pinned' : ''}}" data-id="{{act.id}}" catchtap="togglePin">
+                <text>{{pinned[act.id] ? '📌' : '📍'}}</text>
               </view>
               <view class="study-card-name">{{act.name}}</view>
               <view wx:if="{{act.ownerName}}" class="card-owner-name">{{act.ownerName}}</view>
@@ -118,8 +118,8 @@
               <view class="card-tags">
                 <text class="card-tag custom" wx:if="{{act.isCustom}}">自定义</text>
               </view>
-              <view class="card-star {{favorites[act.id] ? 'starred' : ''}}" data-id="{{act.id}}" catchtap="toggleFavorite">
-                <text>{{favorites[act.id] ? '★' : '☆'}}</text>
+              <view class="card-pin {{pinned[act.id] ? 'pinned' : ''}}" data-id="{{act.id}}" catchtap="togglePin">
+                <text>{{pinned[act.id] ? '📌' : '📍'}}</text>
               </view>
               <view class="food-card-name">{{act.name}}</view>
               <view class="food-card-calories">{{act.calories}} 千卡/100g</view>
@@ -130,8 +130,8 @@
                 <text class="card-tag custom" wx:if="{{act.isCustom && !act.isPublic}}">自定义</text>
                 <text class="card-tag public" wx:if="{{act.isPublic}}">公开</text>
               </view>
-              <view class="card-star {{favorites[act.id] ? 'starred' : ''}}" data-id="{{act.id}}" catchtap="toggleFavorite">
-                <text>{{favorites[act.id] ? '★' : '☆'}}</text>
+              <view class="card-pin {{pinned[act.id] ? 'pinned' : ''}}" data-id="{{act.id}}" catchtap="togglePin">
+                <text>{{pinned[act.id] ? '📌' : '📍'}}</text>
               </view>
               <view class="card-name">{{act.name}}</view>
               <view wx:if="{{act.ownerName}}" class="card-owner-name">{{act.ownerName}}</view>
@@ -148,9 +148,9 @@
               </view>
               <!-- 操作按钮 -->
               <view class="card-actions" wx:if="{{!act.isPublic}}">
-                <!-- 元卡：使用按钮 -->
-                <view class="card-btn use" wx:if="{{act._isMetaCard}}" catchtap="onCardTap" data-activity="{{act}}">
-                  <text>使用</text>
+                <!-- 元卡：创建衍生 -->
+                <view class="card-btn use" wx:if="{{act._isMetaCard}}" catchtap="onCreateDerivative" data-activity="{{act}}">
+                  <text>创建衍生</text>
                 </view>
                 <view class="card-btn copy" wx:elif="{{act.isOfficial}}" catchtap="onCopyActivity" data-activity="{{act}}">
                   <text>复制</text>
@@ -175,66 +175,6 @@
         </view>
       </view>
 
-    </view>
-  </view>
-
-  <!-- 悬浮添加按钮 -->
-  <view class="fab-btn" bindtap="openAddModal">
-    <text class="fab-icon">+</text>
-  </view>
-
-  <!-- 添加自定义活动弹窗 -->
-  <view class="modal-overlay {{showAddModal ? 'show' : ''}}" bindtap="closeAddModal">
-    <view class="modal-sheet" catchtap="preventBubble">
-      <view class="modal-title">添加自定义活动</view>
-
-      <!-- 活动名称 -->
-      <view class="form-group">
-        <view class="form-label">活动名称 <text class="form-required">*</text></view>
-        <input class="form-input" placeholder="请输入活动名称" value="{{formData.name}}" bindinput="onFormNameInput" maxlength="20"/>
-      </view>
-
-      <!-- 活动简介 -->
-      <view class="form-group">
-        <view class="form-label">活动简介</view>
-        <textarea class="form-textarea" placeholder="请输入活动说明" value="{{formData.description}}" bindinput="onFormDescInput" maxlength="50" auto-height/>
-      </view>
-
-      <!-- 所属主分类 -->
-      <view class="form-group">
-        <view class="form-label">所属主分类</view>
-        <picker mode="selector" range="{{formCategoryOptions}}" range-key="name" value="{{formData.categoryIndex}}" bindchange="onFormCategoryChange">
-          <view class="form-picker">{{formCategoryOptions[formData.categoryIndex].name}}</view>
-        </picker>
-      </view>
-
-      <!-- 所属子分类 -->
-      <view class="form-group">
-        <view class="form-label">所属子分类</view>
-        <picker mode="selector" range="{{formSideFilterOptions}}" range-key="name" value="{{formData.sideFilterIndex}}" bindchange="onFormSideFilterChange">
-          <view class="form-picker">{{formSideFilterOptions[formData.sideFilterIndex].name}}</view>
-        </picker>
-      </view>
-
-      <!-- 结算单位 -->
-      <view class="form-group">
-        <view class="form-label">{{currentCategory === 'study' ? '计算单位' : '结算单位'}}</view>
-        <picker mode="selector" range="{{formUnitOptions}}" value="{{formData.unitIndex}}" bindchange="onFormUnitChange">
-          <view class="form-picker">{{formUnitOptions[formData.unitIndex]}}</view>
-        </picker>
-      </view>
-
-      <!-- 单位修为值 -->
-      <view class="form-group">
-        <view class="form-label">{{currentCategory === 'study' ? '基准修为值' : '单位修为值'}}</view>
-        <input class="form-input" type="digit" placeholder="{{currentCategory === 'study' ? '如：2（每10分钟/每次）' : '正数为正向，负数为负向'}}" value="{{formData.scorePerUnit}}" bindinput="onFormScoreInput"/>
-      </view>
-
-      <!-- 底部按钮 -->
-      <view class="modal-actions">
-        <view class="btn-cancel" bindtap="closeAddModal">取消</view>
-        <view class="btn-confirm" bindtap="submitCustomActivity">确认添加</view>
-      </view>
     </view>
   </view>
 
@@ -407,6 +347,34 @@
       <view class="food-detail-actions">
         <view class="btn-cancel" bindtap="closeStudyDetail">关闭</view>
         <view class="btn-confirm" bindtap="addStudyToRecord">{{studyDetail.baseScore < 0 ? '标记到今日记录' : '添加到今日记录'}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 元卡详情面板 -->
+  <view class="modal-overlay {{showMetaDetail ? 'show' : ''}}" bindtap="closeMetaDetail">
+    <view class="modal-sheet" catchtap="preventBubble">
+      <view class="meta-detail-header">
+        <view class="meta-detail-name">{{metaDetail.name}}</view>
+        <view class="meta-detail-tag">元卡 · 运动原型</view>
+      </view>
+
+      <view class="meta-section-title">功能介绍</view>
+      <view class="meta-detail-desc">{{metaDetail.description}}</view>
+
+      <view class="meta-section-title" wx:if="{{metaDetail.muscles}}">涉及肌群</view>
+      <view class="meta-muscle-tags" wx:if="{{metaDetail.muscles}}">
+        <text class="meta-muscle-item">{{metaDetail.muscles}}</text>
+      </view>
+
+      <view class="meta-section-title" wx:if="{{metaDetail.movements.length > 0}}">建议衍生活动</view>
+      <view class="meta-movement-list" wx:if="{{metaDetail.movements.length > 0}}">
+        <view wx:for="{{metaDetail.movements}}" wx:key="*this" class="meta-movement-item">{{item}}</view>
+      </view>
+
+      <view class="meta-detail-actions">
+        <view class="btn-cancel" bindtap="closeMetaDetail">关闭</view>
+        <view class="btn-confirm" bindtap="onCreateDerivative" data-activity="{{metaDetail}}">创建衍生</view>
       </view>
     </view>
   </view>

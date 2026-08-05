@@ -81,6 +81,9 @@ Page({
     matchedTemplate: null,         // 匹配到的动作模板对象
     matchedTemplateName: '',       // 匹配到的模板名
     extraParamValues: {},          // 额外参数值 { rom: '全程', intensity: '适中' }
+    coverTempPath: '',             // 封面本地临时路径
+    coverFileID: '',               // 封面云存储 fileID
+    coverDisplayUrl: '',           // 封面展示 URL
 
     saving: false
   },
@@ -292,6 +295,7 @@ Page({
         unit: dc.unit || '',
         value: dc.value || '',
         weight: dc.weight || 0,
+        weightPct: Math.round((dc.weight || 0) * 100),
         typeIndex: typeIndex
       })
     }
@@ -480,11 +484,24 @@ Page({
     this.setData({ cells: cells })
   },
 
-  /** 输入格子权重 */
+  /** 输入格子权重（百分比）← 存储为0-1小数 */
   onCellWeightInput: function(e) {
     var index = e.currentTarget.dataset.index
     var cells = this.data.cells.slice()
-    cells[index].weight = parseFloat(e.detail.value) || 0
+    var rawValue = e.detail.value
+    // 允许用户清空输入框
+    if (rawValue === '' || rawValue === undefined || rawValue === null) {
+      cells[index].weight = 0
+      cells[index].weightPct = 0
+      this.setData({ cells: cells })
+      return
+    }
+    var cleanValue = String(rawValue).replace(/%/g, '')
+    var pct = parseFloat(cleanValue)
+    if (isNaN(pct)) pct = 0
+    pct = Math.max(0, Math.min(100, Math.round(pct)))
+    cells[index].weight = pct / 100
+    cells[index].weightPct = pct
     this.setData({ cells: cells })
   },
 
@@ -502,6 +519,7 @@ Page({
       unit: '',
       value: '',
       weight: 0,
+      weightPct: 0,
       typeIndex: 0
     })
     this.setData({ cells: cells })
@@ -543,6 +561,41 @@ Page({
     this.setData({ extraParamValues: extraParamValues })
   },
 
+  /** 选择封面图片 */
+  onChooseCover: function() {
+    var self = this
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: function(res) {
+        var tempFilePath = res.tempFilePaths[0]
+        // 检查文件大小
+        var fs = wx.getFileSystemManager()
+        try {
+          var stat = fs.statSync(tempFilePath)
+          var maxSize = 2 * 1024 * 1024 // 2MB
+          if (stat.size > maxSize) {
+            wx.showToast({ title: '图片不能超过 2MB', icon: 'none' })
+            return
+          }
+          // 检查文件类型（仅判断扩展名）
+          var ext = tempFilePath.split('.').pop().toLowerCase()
+          if (ext !== 'jpg' && ext !== 'jpeg' && ext !== 'png') {
+            wx.showToast({ title: '仅支持 jpg/png 格式', icon: 'none' })
+            return
+          }
+        } catch (e) {
+          // statSync 可能失败，继续执行
+        }
+        self.setData({
+          coverTempPath: tempFilePath,
+          coverDisplayUrl: tempFilePath
+        })
+      }
+    })
+  },
+
   // 保存
   onSave: function() {
     var self = this
@@ -563,83 +616,7 @@ Page({
 
     // ── 元卡模式保存 ──
     if (this.data.mode === 'metaCard') {
-      var customMeta = {
-        metaCard: this.data.selectedMetaCard,
-        muscleWeights: [],
-        cells: [],
-        extraParams: {}
-      }
-
-      // 构建肌群权重
-      var muscleWeights = this.data.muscleWeights
-      for (var mwi = 0; mwi < muscleWeights.length; mwi++) {
-        customMeta.muscleWeights.push({
-          id: muscleWeights[mwi].id,
-          name: muscleWeights[mwi].name,
-          weight: muscleWeights[mwi].weight,
-          group: muscleWeights[mwi].group
-        })
-      }
-
-      // 构建容量格子
-      var cells = this.data.cells
-      for (var ci = 0; ci < cells.length; ci++) {
-        customMeta.cells.push({
-          id: cells[ci].id,
-          type: cells[ci].type,
-          name: cells[ci].name,
-          unit: cells[ci].unit,
-          value: cells[ci].value,
-          weight: cells[ci].weight
-        })
-      }
-
-      // 构建额外参数
-      var extraParamValues = this.data.extraParamValues
-      for (var ek in extraParamValues) {
-        if (Object.prototype.hasOwnProperty.call(extraParamValues, ek) && ek.indexOf('_idx') === -1) {
-          customMeta.extraParams[ek] = extraParamValues[ek]
-        }
-      }
-
-      var metaUnit = (this.data.unit || '次').trim() || '次'
-      var metaScore = parseFloat(this.data.scorePerUnit) || 1
-      if (isNaN(metaScore)) metaScore = 1
-
-      var metaParams = {
-        name: name,
-        category: 'sport',
-        unit: metaUnit,
-        scorePerUnit: metaScore,
-        description: this.data.description || '',
-        icon: this.data.icon || '',
-        categoryName: this.data.categoryName || '',
-        ext: {},
-        tags: [],
-        customMeta: customMeta
-      }
-
-      wx.cloud.callFunction({
-        name: 'activity-api',
-        data: {
-          action: 'createCustom',
-          params: metaParams
-        },
-        success: function(res) {
-          self.setData({ saving: false })
-          if (res.result && res.result.ok) {
-            wx.showToast({ title: '创建成功', icon: 'success' })
-            self._notifyParentSaved()
-            setTimeout(function() { wx.navigateBack() }, 1500)
-          } else {
-            wx.showToast({ title: (res.result && res.result.error) || '创建失败', icon: 'none' })
-          }
-        },
-        fail: function() {
-          self.setData({ saving: false })
-          wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' })
-        }
-      })
+      this._saveMetaCard(name)
       return
     }
 
@@ -767,6 +744,107 @@ Page({
           wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' })
         }
       })
+    }
+  },
+
+  /** 元卡模式保存：先上传封面（如有），再创建活动 */
+  _saveMetaCard: function(name) {
+    var self = this
+
+    // 构建 customMeta
+    var customMeta = {
+      metaCard: this.data.selectedMetaCard,
+      muscleWeights: [],
+      cells: [],
+      extraParams: {}
+    }
+
+    var muscleWeights = this.data.muscleWeights
+    for (var mwi = 0; mwi < muscleWeights.length; mwi++) {
+      customMeta.muscleWeights.push({
+        id: muscleWeights[mwi].id,
+        name: muscleWeights[mwi].name,
+        weight: muscleWeights[mwi].weight,
+        group: muscleWeights[mwi].group
+      })
+    }
+
+    var cells = this.data.cells
+    for (var ci = 0; ci < cells.length; ci++) {
+      customMeta.cells.push({
+        id: cells[ci].id,
+        type: cells[ci].type,
+        name: cells[ci].name,
+        unit: cells[ci].unit,
+        value: cells[ci].value,
+        weight: cells[ci].weight
+      })
+    }
+
+    var extraParamValues = this.data.extraParamValues
+    for (var ek in extraParamValues) {
+      if (Object.prototype.hasOwnProperty.call(extraParamValues, ek) && ek.indexOf('_idx') === -1) {
+        customMeta.extraParams[ek] = extraParamValues[ek]
+      }
+    }
+
+    // 构建请求参数
+    function doCreate(icon) {
+      var params = {
+        name: name,
+        category: 'sport',
+        unit: '次',
+        scorePerUnit: 1,
+        description: self.data.description || '',
+        icon: icon || '',
+        ext: {},
+        tags: [],
+        customMeta: customMeta
+      }
+
+      wx.cloud.callFunction({
+        name: 'activity-api',
+        data: {
+          action: 'createCustom',
+          params: params
+        },
+        success: function(res) {
+          self.setData({ saving: false })
+          if (res.result && res.result.ok) {
+            wx.showToast({ title: '创建成功', icon: 'success' })
+            self._notifyParentSaved()
+            setTimeout(function() { wx.navigateBack() }, 1500)
+          } else {
+            wx.showToast({ title: (res.result && res.result.error) || '创建失败', icon: 'none' })
+          }
+        },
+        fail: function() {
+          self.setData({ saving: false })
+          wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' })
+        }
+      })
+    }
+
+    // 有封面图片 → 先上传到云存储
+    var coverTempPath = this.data.coverTempPath
+    if (coverTempPath) {
+      var userId = (app.globalData && app.globalData.userId) || 'unknown'
+      var timestamp = Date.now()
+      var cloudPath = 'covers/' + userId + '/' + timestamp + '.jpg'
+
+      wx.cloud.uploadFile({
+        cloudPath: cloudPath,
+        filePath: coverTempPath,
+        success: function(uploadRes) {
+          doCreate(uploadRes.fileID)
+        },
+        fail: function() {
+          self.setData({ saving: false })
+          wx.showToast({ title: '封面上传失败，请重试', icon: 'none' })
+        }
+      })
+    } else {
+      doCreate('')
     }
   },
 

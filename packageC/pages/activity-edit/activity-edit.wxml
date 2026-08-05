@@ -5,7 +5,7 @@
     <view class="nav-back" bindtap="onCancel">
       <text class="nav-back-icon">←</text>
     </view>
-    <text class="nav-title">{{mode === 'metaCard' ? '元卡创建' : (isNew ? '复制活动' : '编辑活动')}}</text>
+    <text class="nav-title">{{mode === 'metaCard' ? '我的衍生' : (isNew ? '复制活动' : '编辑活动')}}</text>
     <view class="nav-action" bindtap="onSave">
       <text class="nav-save-text">{{saving ? '保存中...' : '保存'}}</text>
     </view>
@@ -40,20 +40,6 @@
     <!--  元卡模式 UI 区块                                               -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <view class="meta-card-section" wx:if="{{mode === 'metaCard'}}">
-      <!-- 元卡切换 -->
-      <view class="meta-card-bar">
-        <text class="meta-label">元卡类型</text>
-        <scroll-view scroll-x class="meta-card-scroll">
-          <view 
-            class="meta-card-chip {{selectedMetaCard === item.id ? 'active' : ''}}" 
-            wx:for="{{metaCardList}}" 
-            wx:key="id" 
-            data-key="{{item.id}}" 
-            bindtap="onChangeMetaCard"
-          >{{item.name}}</view>
-        </scroll-view>
-      </view>
-
       <!-- 肌群参与度 -->
       <view class="section-title">
         <text>肌群参与度</text>
@@ -87,7 +73,18 @@
       </view>
 
       <!-- 容量格子 -->
-      <view class="section-title">容量格子</view>
+      <view class="section-title">
+        <text>容量格子</text>
+        <text class="section-tip">ⓘ 权重越高=该维度对训练量贡献越大</text>
+      </view>
+      <!-- 表头 -->
+      <view class="cell-header">
+        <text class="cell-hd-type">类型</text>
+        <text class="cell-hd-value">值</text>
+        <text class="cell-hd-unit">单位</text>
+        <text class="cell-hd-weight">权重</text>
+        <text class="cell-hd-del"></text>
+      </view>
       <view class="cell-list">
         <view class="cell-row" wx:for="{{cells}}" wx:key="id">
           <picker 
@@ -116,54 +113,41 @@
             data-index="{{index}}" 
             bindinput="onCellUnitInput" 
           />
-          <input 
-            class="cell-weight" 
-            type="digit" 
-            placeholder="权重" 
-            value="{{item.weight}}" 
-            data-index="{{index}}" 
-            bindinput="onCellWeightInput" 
-          />
+          <view class="cell-weight-wrap">
+            <input 
+              class="cell-weight" 
+              type="digit" 
+              placeholder="0" 
+              value="{{item.weightPct}}" 
+              data-index="{{index}}" 
+              bindinput="onCellWeightInput" 
+            />
+            <text class="cell-weight-suffix">%</text>
+          </view>
           <text class="cell-remove" data-index="{{index}}" bindtap="removeCell">✕</text>
         </view>
       </view>
       <view class="add-cell-btn" bindtap="addCell">
         <text>+ 添加格子</text>
       </view>
-
-      <!-- 额外参数 -->
-      <view class="extra-params" wx:if="{{metaCardInfo.extraParams}}">
-        <view class="param-row" wx:for="{{metaCardInfo.extraParams}}" wx:key="id">
-          <text class="param-name">{{item.name}}</text>
-          <picker 
-            mode="selector" 
-            range="{{item.options}}" 
-            value="{{extraParamValues[item.id + '_idx'] || 0}}" 
-            data-param-id="{{item.id}}" 
-            bindchange="onExtraParamChange"
-          >
-            <text class="param-val">{{extraParamValues[item.id] || item.default}}</text>
-          </picker>
-        </view>
-      </view>
     </view>
 
-    <!-- 自定义分类名 -->
-    <view class="form-item">
+    <!-- 自定义分类名（元卡模式下隐藏） -->
+    <view class="form-item" wx:if="{{mode !== 'metaCard'}}">
       <text class="form-label">自定义分类名</text>
       <input class="form-input" placeholder="留空则使用默认分类名" value="{{categoryName}}" bindinput="onCategoryNameInput" maxlength="10" />
       <text class="form-hint">替换上方默认分类名的展示文本</text>
     </view>
 
-    <!-- 单位（自由输入） -->
-    <view class="form-item">
+    <!-- 单位（元卡模式下隐藏） -->
+    <view class="form-item" wx:if="{{mode !== 'metaCard'}}">
       <text class="form-label">单位</text>
       <input class="form-input" placeholder="如 次/分钟/组/秒/份/枚/..." value="{{unit}}" bindinput="onUnitInput" maxlength="10" />
       <text class="form-hint">支持任意自定义单位</text>
     </view>
 
-    <!-- 每单位修为 -->
-    <view class="form-item">
+    <!-- 每单位修为（元卡模式下隐藏） -->
+    <view class="form-item" wx:if="{{mode !== 'metaCard'}}">
       <text class="form-label">每单位修为</text>
       <input class="form-input" type="number" placeholder="输入数值（如 1、-5）" value="{{scorePerUnit}}" bindinput="onScoreInput" />
       <text class="form-hint">正数为增益，负数为减益</text>
@@ -175,14 +159,27 @@
       <textarea class="form-textarea" placeholder="输入活动描述（选填）" value="{{description}}" bindinput="onDescInput" maxlength="200" />
     </view>
 
-    <!-- 图标 -->
-    <view class="form-item">
+    <!-- 图标（非元卡模式：emoji 输入） -->
+    <view class="form-item" wx:if="{{mode !== 'metaCard'}}">
       <text class="form-label">图标（emoji）</text>
       <input class="form-input" placeholder="输入一个 emoji 作为图标（选填）" value="{{icon}}" bindinput="onIconInput" maxlength="2" />
     </view>
 
-    <!-- 属性编辑区（ext） -->
-    <view class="form-section">
+    <!-- 封面（元卡模式：图片上传） -->
+    <view class="form-item" wx:if="{{mode === 'metaCard'}}">
+      <text class="form-label">封面</text>
+      <view class="cover-area" bindtap="onChooseCover">
+        <image wx:if="{{coverDisplayUrl}}" class="cover-preview" src="{{coverDisplayUrl}}" mode="aspectFill" />
+        <view wx:else class="cover-placeholder">
+          <text class="cover-placeholder-icon">📷</text>
+          <text class="cover-placeholder-text">点击上传封面图片</text>
+        </view>
+      </view>
+      <text class="form-hint">建议 1:1 正方形图片，最大 2MB，支持 jpg/png</text>
+    </view>
+
+    <!-- 属性编辑区（ext，元卡模式下隐藏） -->
+    <view class="form-section" wx:if="{{mode !== 'metaCard'}}">
       <text class="form-section-title">自定义属性</text>
       <view class="ext-list">
         <view class="ext-row" wx:for="{{extList}}" wx:key="key">
@@ -199,14 +196,14 @@
       </view>
     </view>
 
-    <!-- 标签 -->
-    <view class="form-item">
+    <!-- 标签（元卡模式下隐藏） -->
+    <view class="form-item" wx:if="{{mode !== 'metaCard'}}">
       <text class="form-label">标签</text>
       <input class="form-input" placeholder="标签以逗号分隔，如：减脂, 入门, 低强度" value="{{tagsStr}}" bindinput="onTagsInput" maxlength="100" />
     </view>
 
-    <!-- 高级设置 -->
-    <view class="form-section">
+    <!-- 高级设置（元卡模式下隐藏） -->
+    <view class="form-section" wx:if="{{mode !== 'metaCard'}}">
       <view class="advanced-header" bindtap="toggleAdvanced">
         <text class="form-section-title">高级设置（自定义元数据）</text>
         <text class="advanced-arrow">{{showAdvanced ? '▾' : '▸'}}</text>
