@@ -38,7 +38,13 @@ function sanitizeActivity(doc) {
     visibility: doc.visibility || 'public',
     useCount: doc.useCount || 0,
     likeCount: doc.likeCount || 0,
-    createdAt: doc.createdAt || ''
+    createdAt: doc.createdAt || '',
+    // 自由度字段：透传自定义输入
+    categoryName: doc.categoryName || '',
+    icon: doc.icon || '',
+    ext: doc.ext || {},
+    tags: doc.tags || [],
+    customMeta: doc.customMeta || null
   }
 }
 
@@ -53,10 +59,10 @@ function validateActivityInput(d) {
   if (!d || !d.name) return { ok: false, error: '缺少活动名称' }
   var name = String(d.name).trim()
   if (!name) return { ok: false, error: '活动名称不能为空' }
-  if (name.length > 10) return { ok: false, error: '活动名称最多10个字符' }
+  if (name.length > 20) return { ok: false, error: '活动名称最多20个字符' }
   var score = Number(d.scorePerUnit)
   if (isNaN(score)) return { ok: false, error: '修为值不合法' }
-  if (score < -100 || score > 100) return { ok: false, error: '修为值超出范围(-100~100)' }
+  if (score < -1000 || score > 1000) return { ok: false, error: '修为值超出范围(-1000~1000)' }
   var cats = ['sport', 'diet', 'study', 'work', 'debuff']
   if (cats.indexOf(d.category) === -1) return { ok: false, error: '分类不合法' }
   return {
@@ -71,7 +77,33 @@ function validateActivityInput(d) {
       scorePerUnit: score,
       presetAction: d.presetAction || '',
       defaultGroup: score >= 0 ? (Number(d.defaultGroup) || 1) : undefined,
-      isStudyMode: !!d.isStudyMode
+      isStudyMode: !!d.isStudyMode,
+      // 自由度字段：透传前端自定义输入
+      categoryName: d.categoryName ? String(d.categoryName).trim() : '',
+      icon: d.icon ? String(d.icon).trim().substring(0, 4) : '',
+      // ext: 仅接受对象，≤20键，键≤20字符，值≤100字符
+      ext: (function() {
+        var ext = {}
+        if (d.ext && typeof d.ext === 'object' && !Array.isArray(d.ext)) {
+          var keys = Object.keys(d.ext)
+          for (var ek = 0; ek < keys.length && ek < 20; ek++) {
+            var k = keys[ek]
+            if (String(k).length <= 20) ext[k] = String(d.ext[k]).substring(0, 100)
+          }
+        }
+        return ext
+      })(),
+      tags: Array.isArray(d.tags) ? d.tags.map(function(t) { return String(t).trim() }).filter(Boolean).slice(0, 10) : [],
+      // customMeta: 仅接受对象，序列化后 ≤2000 字符
+      customMeta: (function() {
+        if (d.customMeta && typeof d.customMeta === 'object' && !Array.isArray(d.customMeta)) {
+          try {
+            var s = JSON.stringify(d.customMeta)
+            if (s && s.length <= 2000) return d.customMeta
+          } catch (e) { /* ignore */ }
+        }
+        return null
+      })()
     }
   }
 }
@@ -231,6 +263,12 @@ async function createCustom(openid, params) {
   doc.status = 'active'
   doc.createdAt = new Date().toISOString()
   doc.updatedAt = doc.createdAt
+  // 自由度字段写入
+  doc.icon = params.icon || ''
+  doc.categoryName = doc.categoryName || ''
+  doc.ext = doc.ext || {}
+  doc.tags = doc.tags || []
+  doc.customMeta = params.customMeta || null
   var res = await db.collection('user_activities').add({ data: doc })
   return { ok: true, activityId: doc.activityId, _id: res._id }
 }
@@ -248,11 +286,18 @@ async function updateCustom(openid, params) {
   if (!existRes.data || existRes.data.length === 0) {
     return { ok: false, error: '无权修改或活动不存在' }
   }
-  var doc = v.data
-  doc.updatedAt = new Date().toISOString()
+  // ★ 只更新 params 显式提供的字段（缺失字段不覆盖）
+  var upd = { updatedAt: new Date().toISOString() }
+  var fields = ['name', 'category', 'topFilter', 'sideFilter', 'description',
+                'unit', 'scorePerUnit', 'presetAction', 'defaultGroup',
+                'isStudyMode', 'categoryName', 'icon', 'ext', 'tags', 'customMeta']
+  for (var i = 0; i < fields.length; i++) {
+    var f = fields[i]
+    if (params[f] !== undefined) upd[f] = v.data[f] !== undefined ? v.data[f] : params[f]
+  }
   await db.collection('user_activities')
     .where({ activityId: activityId, ownerId: openid })
-    .update({ data: doc })
+    .update({ data: upd })
   return { ok: true }
 }
 

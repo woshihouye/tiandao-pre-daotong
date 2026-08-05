@@ -1155,7 +1155,13 @@ Page({
         categoryIndex: catIdx,
         isCustom: !!activity.isCustom,
         isNegative: (activity.scorePerUnit || 0) < 0,
-        isStudyMode: isStudy || false
+        isStudyMode: isStudy || false,
+        // 自由度字段
+        icon: activity.icon || '',
+        categoryName: activity.categoryName || '',
+        ext: activity.ext || {},
+        tags: activity.tags || [],
+        customMeta: activity.customMeta || null
       }
     })
   },
@@ -1214,8 +1220,8 @@ Page({
       wx.showToast({ title: '请输入活动名称', icon: 'none' })
       return
     }
-    if (name.length > 10) {
-      wx.showToast({ title: '名称最多10个字符', icon: 'none' })
+    if (name.length > 20) {
+      wx.showToast({ title: '名称最多20个字符', icon: 'none' })
       return
     }
 
@@ -1243,7 +1249,12 @@ Page({
             scorePerUnit: scoreVal,
             unit: unit,
             category: catKey,
-            description: ''
+            description: '',
+            icon: ed.icon || '',
+            categoryName: ed.categoryName || '',
+            ext: ed.ext || {},
+            tags: ed.tags || [],
+            customMeta: ed.customMeta || null
           }
         },
         success: function() {

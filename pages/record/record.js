@@ -850,7 +850,12 @@ Page({
               isNegative: item.scorePerUnit < 0,
               isCustom: true,
               tabKey: item.category,
-              originActivityId: item.originActivityId || ''
+              originActivityId: item.originActivityId || '',
+              // 自由度字段透传
+              categoryName: item.categoryName || '',
+              ext: item.ext || {},
+              tags: item.tags || [],
+              customMeta: item.customMeta || null
             }
           }
           self._customActivityMap = map

@@ -47,7 +47,7 @@ function calcWuTemplateResult(template, activityProgress) {
     var progress = (activityProgress && activityProgress[activity.id]) || 0
     var factor = progress / 100
 
-    var meta = activityMeta.getActivityMeta(activity.id, 'wu')
+    var meta = activityMeta.getActivityMeta(activity.id, 'wu', activity)
     if (meta.caloriesPerUnit) {
       totalCalories += meta.caloriesPerUnit * factor
     }
@@ -138,7 +138,7 @@ function calcShiTemplateResult(template, activityProgress) {
     var progress = (activityProgress && activityProgress[activity.id]) || 0
     var factor = progress / 100
 
-    var meta = activityMeta.getActivityMeta(activity.id, 'shi')
+    var meta = activityMeta.getActivityMeta(activity.id, 'shi', activity)
 
     if (meta.caloriesPerUnit) {
       totalCalories += meta.caloriesPerUnit * factor

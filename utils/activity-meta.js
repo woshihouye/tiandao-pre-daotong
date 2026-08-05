@@ -190,22 +190,36 @@ var MUSCLE_DISPLAY_ORDER = ['chest', 'back', 'shoulders', 'biceps', 'triceps', '
 
 /**
  * 获取活动元数据，没有则返回默认值
+ * @param {string} activityId
+ * @param {string} category
+ * @param {object} [act] - 活动对象（可选，若有 customMeta 则合并覆盖）
  */
-function getActivityMeta(activityId, category) {
+function getActivityMeta(activityId, category, act) {
+  var base = {}
   if (category === 'wu' || category === 'sport') {
-    return WU_ACTIVITY_META[activityId] || {
+    base = WU_ACTIVITY_META[activityId] || {
       muscles: { full_body: 0.5 },
       caloriesPerUnit: 3,
       category: 'core'
     }
-  }
-  if (category === 'shi' || category === 'diet') {
-    return SHI_ACTIVITY_META[activityId] || {
+  } else if (category === 'shi' || category === 'diet') {
+    base = SHI_ACTIVITY_META[activityId] || {
       nutrition: { carbs: 10 },
       caloriesPerUnit: 50
     }
   }
-  return {}
+
+  // 若活动自带 customMeta，浅合并覆盖内置元数据
+  if (act && act.customMeta) {
+    var cm = act.customMeta
+    for (var k in cm) {
+      if (Object.prototype.hasOwnProperty.call(cm, k)) {
+        base[k] = cm[k]
+      }
+    }
+  }
+
+  return base
 }
 
 module.exports = {

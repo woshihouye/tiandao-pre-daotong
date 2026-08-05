@@ -30,13 +30,12 @@ function validate(d) {
   if (name.length > 20) return { ok: false, error: '活动名称最多20个字符' }
   var score = Number(d.scorePerUnit)
   if (isNaN(score)) return { ok: false, error: '修为值不合法' }
-  if (score < -100 || score > 100) return { ok: false, error: '修为值超出范围(-100~100)' }
+  if (score < -1000 || score > 1000) return { ok: false, error: '修为值超出范围(-1000~1000)' }
   var cats = ['wu', 'shi', 'wu2', 'gong', 'sha', 'sport', 'diet', 'study', 'work', 'debuff']
   var cat = d.category
   if (cats.indexOf(cat) === -1) return { ok: false, error: '分类不合法' }
-  var units = ['次', '分钟', '组', '秒', '份']
-  var unit = d.unit || '次'
-  if (units.indexOf(unit) === -1) unit = '次'
+  // 单位允许自定义文本（无白名单限制）
+  var unit = (d.unit || '次').trim() || '次'
   return {
     ok: true,
     data: {
@@ -45,7 +44,32 @@ function validate(d) {
       unit: unit,
       scorePerUnit: score,
       description: d.description ? String(d.description).trim().substring(0, 200) : '',
-      icon: d.icon || ''
+      icon: d.icon || '',
+      // 自由度字段
+      categoryName: d.categoryName ? String(d.categoryName).trim() : '',
+      // ext: 仅接受对象，≤20键，键≤20字符，值≤100字符
+      ext: (function() {
+        var ext = {}
+        if (d.ext && typeof d.ext === 'object' && !Array.isArray(d.ext)) {
+          var keys = Object.keys(d.ext)
+          for (var ek = 0; ek < keys.length && ek < 20; ek++) {
+            var k = keys[ek]
+            if (String(k).length <= 20) ext[k] = String(d.ext[k]).substring(0, 100)
+          }
+        }
+        return ext
+      })(),
+      tags: Array.isArray(d.tags) ? d.tags.map(function(t) { return String(t).trim() }).filter(Boolean).slice(0, 10) : [],
+      // customMeta: 仅接受对象，序列化后 ≤2000 字符
+      customMeta: (function() {
+        if (d.customMeta && typeof d.customMeta === 'object' && !Array.isArray(d.customMeta)) {
+          try {
+            var s = JSON.stringify(d.customMeta)
+            if (s && s.length <= 2000) return d.customMeta
+          } catch (e) { /* ignore */ }
+        }
+        return null
+      })()
     }
   }
 }
@@ -66,7 +90,12 @@ function sanitize(doc) {
     description: doc.description || '',
     icon: doc.icon || '',
     createdAt: doc.createdAt || '',
-    updatedAt: doc.updatedAt || ''
+    updatedAt: doc.updatedAt || '',
+    // 自由度字段
+    categoryName: doc.categoryName || '',
+    ext: doc.ext || {},
+    tags: doc.tags || [],
+    customMeta: doc.customMeta || null
   }
 }
 
@@ -130,7 +159,11 @@ async function copy(openid, params) {
     unit: origin.unit || '次',
     scorePerUnit: origin.scorePerUnit != null ? origin.scorePerUnit : 1,
     description: origin.description || '',
-    icon: origin.icon || origin.presetAction || '',
+    icon: params.icon || origin.icon || origin.presetAction || '',
+    categoryName: params.categoryName || origin.categoryName || '',
+    ext: params.ext || origin.ext || {},
+    tags: params.tags || origin.tags || [],
+    customMeta: params.customMeta || origin.customMeta || null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }
@@ -162,6 +195,10 @@ async function update(openid, params) {
     scorePerUnit: v.data.scorePerUnit,
     description: v.data.description,
     icon: v.data.icon,
+    categoryName: v.data.categoryName,
+    ext: v.data.ext,
+    tags: v.data.tags,
+    customMeta: v.data.customMeta,
     updatedAt: new Date().toISOString()
   }
 
