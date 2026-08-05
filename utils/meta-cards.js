@@ -1,4 +1,4 @@
-// 大道之行 · 元卡定义（v1.0 – sport 维度）
+// 大道之行 · 元卡定义（v1.1 – sport / diet 双维度）
 // 元卡 = 动作原型的最小全集。用户通过组合元卡 + 自由命名 + 调参数 → 衍生所有活动。
 
 var META_CARDS = {
@@ -258,15 +258,87 @@ var META_CARDS = {
     cellTypes: ['weight', 'reps', 'sets', 'time', 'distance', 'custom'],
     valueType: 'unknown',
     breakthrough: { type: 'none' }
+  },
+
+  // ========== 食·丹食 子集 ==========
+
+  daily: {
+    id: 'daily',
+    name: '日常卡',
+    category: 'diet',
+    description: '选几项就记完，模糊判断食物质量',
+    selectParams: [
+      { id: 'fullness', name: '饱腹度', options: ['没吃', '七分饱', '饱了', '撑了'], default: '饱了' },
+      { id: 'meat_veg_ratio', name: '荤素比', options: ['全素', '均衡', '肉多', '全肉'], default: '均衡' },
+      { id: 'carb_level', name: '碳水量', options: ['低碳', '均衡', '高碳'], default: '均衡' },
+      { id: 'fat_level', name: '油脂量', options: ['少油', '均衡', '高油'], default: '均衡' },
+      { id: 'processing', name: '加工程度', options: ['天然', '轻度加工', '精加工', '超加工'], default: '轻度加工' }
+    ],
+    defaultCells: [
+      { id: 1, type: 'subjective', name: '主观评价', unit: '', weight: 1.0,
+        meta: { selectOptions: ['吃多了', '还行', '吃少了'] } }
+    ],
+    cellTypes: ['subjective', 'portion', 'weight_g', 'calories', 'custom'],
+    valueType: 'diet_daily',
+    breakthrough: { type: 'trend', formula: 'weekly_compare' }
+  },
+
+  precision: {
+    id: 'precision',
+    name: '精准卡',
+    category: 'diet',
+    description: '滑块调节营养素比例，精确管理饮食',
+    paramPool: {
+      primary: [
+        { id: 'protein',  name: '蛋白质', defaultWeight: 0.33 },
+        { id: 'carbs',    name: '碳水',   defaultWeight: 0.33 },
+        { id: 'fat',      name: '脂肪',   defaultWeight: 0.33 }
+      ],
+      secondary: [
+        { id: 'fiber',    name: '膳食纤维', defaultWeight: 0 },
+        { id: 'cal_density', name: '热量密度', defaultWeight: 0 },
+        { id: 'micronutrients', name: '微量营养素', defaultWeight: 0 }
+      ]
+    },
+    defaultCells: [
+      { id: 1, type: 'weight_g',  name: '重量',   unit: 'g',    weight: 0.50 },
+      { id: 2, type: 'calories',  name: '卡路里', unit: 'kcal', weight: 0.50 }
+    ],
+    cellTypes: ['weight_g', 'calories', 'portion', 'custom'],
+    valueType: 'diet_precision',
+    breakthrough: { type: 'trend', formula: 'weekly_compare' }
+  },
+
+  diet_free: {
+    id: 'diet_free',
+    name: 'free卡',
+    category: 'diet',
+    description: '自由定义饮食活动',
+    paramPool: {
+      primary: [],
+      secondary: [
+        { id: 'protein', name: '蛋白质', defaultWeight: 0 },
+        { id: 'carbs', name: '碳水', defaultWeight: 0 },
+        { id: 'fat', name: '脂肪', defaultWeight: 0 },
+        { id: 'fiber', name: '膳食纤维', defaultWeight: 0 },
+        { id: 'cal_density', name: '热量密度', defaultWeight: 0 },
+        { id: 'micronutrients', name: '微量营养素', defaultWeight: 0 }
+      ]
+    },
+    defaultCells: [],
+    cellTypes: ['weight_g', 'calories', 'portion', 'subjective', 'custom'],
+    valueType: 'diet_free',
+    breakthrough: { type: 'none' }
   }
 }
 
-// ========== 子集分组 ==========
+// ========== 维度分组 ==========
 var SUBCATEGORIES = {
   anaerobic: { name: '无氧', cards: ['push', 'pull', 'squat'], desc: '抗阻力量训练' },
   core:      { name: '核心', cards: ['hold', 'curl'],          desc: '腰腹核心训练' },
   cardio:    { name: '有氧', cards: ['steady_cardio', 'interval_cardio'], desc: '心肺耐力训练' },
-  unknown:   { name: '不知道', cards: ['unknown'],              desc: '自由定义' }
+  unknown:   { name: '不知道', cards: ['unknown'],              desc: '自由定义' },
+  diet:      { name: '饮食', cards: ['daily', 'precision', 'diet_free'], desc: '' }
 }
 
 // ========== 价值计算公式 ==========

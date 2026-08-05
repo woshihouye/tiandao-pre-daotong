@@ -40,30 +40,53 @@
     <!--  元卡模式 UI 区块                                               -->
     <!-- ═══════════════════════════════════════════════════════════════ -->
     <view class="meta-card-section" wx:if="{{mode === 'metaCard'}}">
-      <!-- 肌群参与度 -->
-      <view class="section-title">
-        <text>肌群参与度</text>
-        <text class="section-desc">拖拽调节，自动归一化</text>
-      </view>
-      <view class="muscle-list">
-        <view class="muscle-row" wx:for="{{muscleWeights}}" wx:key="id" wx:if="{{item.group === 'primary' || showSecondaryMuscles}}">
-          <text class="muscle-name">{{item.name}}</text>
-          <slider 
-            class="muscle-slider" 
-            min="0" max="100" 
-            value="{{item.weight * 100}}" 
-            data-index="{{index}}" 
-            bindchanging="onMuscleSliderChange" 
-            activeColor="{{item.group === 'primary' ? '#3B82F6' : '#9CA3AF'}}" 
-            backgroundColor="#E5E7EB" 
-            block-size="18" 
-          />
-          <text class="muscle-pct">{{Math.round(item.weight * 100)}}%</text>
+      <!-- 食物描述（diet 日常卡 picker） -->
+      <block wx:if="{{metaCardInfo.selectParams}}">
+        <view class="section-title">
+          <text>食物描述</text>
         </view>
-      </view>
-      <view class="toggle-secondary" bindtap="toggleSecondaryMuscles">
-        <text>{{showSecondaryMuscles ? '收起' : '展开'}}辅助肌群 ▸</text>
-      </view>
+        <view class="select-param-list">
+          <view class="select-param-row" wx:for="{{metaCardInfo.selectParams}}" wx:key="id">
+            <text class="select-param-name">{{item.name}}</text>
+            <picker 
+              mode="selector" 
+              range="{{item.options}}" 
+              value="{{selectParamValues[item.id + '_idx'] || 0}}" 
+              data-param-id="{{item.id}}" 
+              bindchange="onSelectParamChange"
+            >
+              <view class="select-param-val">{{selectParamValues[item.id] || item.default}}</view>
+            </picker>
+          </view>
+        </view>
+      </block>
+
+      <!-- 肌群参与度（sport / diet 精准卡 滑块） -->
+      <block wx:else>
+        <view class="section-title">
+          <text>肌群参与度</text>
+          <text class="section-desc">拖拽调节，自动归一化</text>
+        </view>
+        <view class="muscle-list">
+          <view class="muscle-row" wx:for="{{muscleWeights}}" wx:key="id" wx:if="{{item.group === 'primary' || showSecondaryMuscles}}">
+            <text class="muscle-name">{{item.name}}</text>
+            <slider 
+              class="muscle-slider" 
+              min="0" max="100" 
+              value="{{item.weight * 100}}" 
+              data-index="{{index}}" 
+              bindchanging="onMuscleSliderChange" 
+              activeColor="{{item.group === 'primary' ? '#3B82F6' : '#9CA3AF'}}" 
+              backgroundColor="#E5E7EB" 
+              block-size="18" 
+            />
+            <text class="muscle-pct">{{Math.round(item.weight * 100)}}%</text>
+          </view>
+        </view>
+        <view class="toggle-secondary" bindtap="toggleSecondaryMuscles">
+          <text>{{showSecondaryMuscles ? '收起' : '展开'}}辅助肌群 ▸</text>
+        </view>
+      </block>
 
       <!-- 模板匹配提示 -->
       <view class="template-match" wx:if="{{matchedTemplate}}">

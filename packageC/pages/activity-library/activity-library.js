@@ -18,13 +18,14 @@ var FOOD_SIDE_FILTERS = [
   { key: 'carb', name: '碳水类' },
   { key: 'supplement', name: '补剂类' },
   { key: 'nutrition', name: '营养品' },
-  { key: 'medicine', name: '药品' }
+  { key: 'medicine', name: '药品' },
+  { key: 'unknown', name: '不知道' }
 ]
 
 /** 食物知识库 — 每100g营养数据 */
 var FOOD_KNOWLEDGE_BASE = [
   // ---- 空白 ----
-  { id: 'blank_diet', name: '空白', sideFilter: 'blank', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } },
+  { id: 'blank_diet', name: '空白', sideFilter: 'unknown', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } },
   // ---- 肉类 ----
   { id: 'food_chicken_breast', name: '鸡胸肉', sideFilter: 'meat', nutrition: { calories: 133, protein: 19.4, carbs: 2.5, fat: 5.0 } },
   { id: 'food_lean_beef', name: '瘦牛肉', sideFilter: 'meat', nutrition: { calories: 125, protein: 20.2, carbs: 0.2, fat: 4.2 } },
@@ -126,7 +127,7 @@ Page({
     currentSideFilter: 'all',
     cardMode: 'default',  // 'study' | 'food' | 'default'
 
-    // 元卡浏览（sport 维度）
+    // 元卡浏览（sport / diet 维度）
     currentSubcategory: 'all', // 当前子集筛选
     currentMetaCard: '',       // 当前元卡筛选（空=全部）
     metaCardSearchKeyword: '', // 动作搜索关键词
@@ -357,10 +358,15 @@ Page({
   _initFilters: function() {
     var cat = this.data.currentCategory
     if (cat === 'diet') {
-      // 食·丹食 使用食物自定义侧栏
+      // 食·丹食 元卡改造：使用 categories 侧栏 + metaCards 筛选
+      var dietConfig = Alib.FILTER_CONFIGS.diet || { categories: [], metaCards: [] }
+      var dietSideFilters = dietConfig.categories || []
       this.setData({
-        sideFilters: FOOD_SIDE_FILTERS,
-        currentSideFilter: 'all'
+        sideFilters: dietSideFilters,
+        currentSideFilter: 'all',
+        currentSubcategory: 'all',
+        currentMetaCard: '',
+        currentDietGoal: 'all'
       })
     } else if (cat === 'sport') {
       // 元卡改造：sport 使用子集侧栏筛选
@@ -395,7 +401,8 @@ Page({
       searchKeyword: '',
       currentSideFilter: 'all',
       metaCardSearchKeyword: '',
-      metaCardSearchResults: []
+      metaCardSearchResults: [],
+      activities: []          // 切换时立即清空，避免旧分类列表滞留
     })
     this._initFilters()
     this._reloadActivities()
@@ -405,7 +412,7 @@ Page({
 
   tapSideFilter: function(e) {
     var key = e.currentTarget.dataset.key
-    if (this.data.currentCategory === 'sport') {
+    if (this.data.currentCategory === 'sport' || this.data.currentCategory === 'diet') {
       this.setData({ currentSideFilter: key, currentSubcategory: key })
     } else {
       this.setData({ currentSideFilter: key })
@@ -454,6 +461,78 @@ Page({
   // ==================== 元卡：虚拟活动注入（sport 维度）====================
 
   /**
+   * 构建 diet 元卡活动列表（3 张）
+   */
+  _buildDietMetaCardActivities: function() {
+    var cards = MetaCards.META_CARDS
+    var sub = this.data.currentSubcategory || 'all'
+    var mc = this.data.currentMetaCard || ''
+    var arr = []
+
+    // 子集（增肌/减脂/养生/我free啦/不知道）到元卡的映射
+    var goalCardMap = {
+      bulk: ['precision'],
+      cut: ['precision'],
+      health: ['daily', 'precision'],
+      free: ['diet_free'],
+      unknown: ['diet_free']
+    }
+
+    for (var key in cards) {
+      if (!Object.prototype.hasOwnProperty.call(cards, key)) continue
+      var card = cards[key]
+      if (card.category !== 'diet') continue
+
+      // 元卡筛选
+      if (mc && card.id !== mc) continue
+
+      // 子集（目标）筛选
+      if (sub !== 'all') {
+        var allowedCards = goalCardMap[sub] || []
+        if (allowedCards.indexOf(card.id) === -1) continue
+      }
+
+      // 构建参数摘要
+      var summary = ''
+      if (card.selectParams) {
+        var names = []
+        for (var i = 0; i < card.selectParams.length; i++) {
+          names.push(card.selectParams[i].name)
+        }
+        summary = names.slice(0, 3).join('·')
+      } else if (card.paramPool && card.paramPool.primary) {
+        var pNames = []
+        for (var j = 0; j < card.paramPool.primary.length; j++) {
+          pNames.push(card.paramPool.primary[j].name)
+        }
+        summary = pNames.slice(0, 3).join('·')
+      }
+
+      arr.push({
+        id: 'meta_' + card.id,
+        name: card.name,
+        category: 'diet',
+        tabKey: 'diet',
+        metaCardId: card.id,
+        description: card.description,
+        unit: '次',
+        scorePerUnit: 1,
+        presetAction: '',
+        isOfficial: false,
+        isCustom: false,
+        isPublic: false,
+        sideFilter: sub !== 'all' ? sub : 'all',
+        _isMetaCard: true,
+        _muscleSummary: summary,
+        ext: {},
+        tags: [],
+        __keys: []
+      })
+    }
+    return arr
+  },
+
+  /**
    * 构建 8 张元卡为普通活动对象，混入 activities 列表统一渲染
    * @returns {Array} 8 个虚拟活动对象
    */
@@ -467,6 +546,9 @@ Page({
     for (var key in cards) {
       if (!Object.prototype.hasOwnProperty.call(cards, key)) continue
       var card = cards[key]
+
+      // 排除 diet 元卡（diet 卡有 category='diet'，sport 卡无 category 字段）
+      if (card.category === 'diet') continue
 
       // 子集筛选
       if (sub !== 'all' && card.subcategory !== sub) continue
@@ -585,6 +667,7 @@ Page({
   // ==================== 数据加载 ====================
 
   _reloadActivities: function() {
+    var self = this
     var cat = this.data.currentCategory
     var kw = this.data.searchKeyword
     var sideF = this.data.currentSideFilter
@@ -624,58 +707,29 @@ Page({
       return
     }
 
-    // 食·丹食 使用独立食物知识库
+    // 食·丹食 元卡改造：虚拟注入 diet 元卡 + 自定义活动
     if (cat === 'diet') {
-      var list = []
-      if (kw && kw.trim()) {
-        // 搜索模式
-        var kwLower = kw.trim().toLowerCase()
-        for (var i = 0; i < FOOD_KNOWLEDGE_BASE.length; i++) {
-          var fi = FOOD_KNOWLEDGE_BASE[i]
-          if (fi.name.toLowerCase().indexOf(kwLower) !== -1) {
-            var foodItem = {
-              id: fi.id, name: fi.name, category: 'diet', sideFilter: fi.sideFilter,
-              isFood: true, nutrition: fi.nutrition,
-              calories: fi.nutrition.calories
-            }
-            list.push(foodItem)
-          }
-        }
-        // 同时搜索自定义食物
-        var customFoods = this._loadCustomFoods()
-        for (var j = 0; j < customFoods.length; j++) {
-          var cf = customFoods[j]
-          if (cf.name.toLowerCase().indexOf(kwLower) !== -1) {
-            cf.isFood = true; cf.calories = cf.nutrition.calories
-            list.unshift(cf)
-          }
-        }
-      } else {
-        // 非搜索模式：知识库 + 自定义食物合并
-        for (var m = 0; m < FOOD_KNOWLEDGE_BASE.length; m++) {
-          var fm = FOOD_KNOWLEDGE_BASE[m]
-          if (sideF === 'all' || fm.sideFilter === sideF) {
-            var foodItem2 = {
-              id: fm.id, name: fm.name, category: 'diet', sideFilter: fm.sideFilter,
-              isFood: true, nutrition: fm.nutrition,
-              calories: fm.nutrition.calories
-            }
-            list.push(foodItem2)
-          }
-        }
-        // 合并自定义食物
-        var customFoods2 = this._loadCustomFoods()
-        var customFoodFiltered = []
-        for (var n = 0; n < customFoods2.length; n++) {
-          var cfn = customFoods2[n]
-          if (sideF === 'all' || cfn.sideFilter === sideF) {
-            cfn.isFood = true; cfn.calories = cfn.nutrition.calories
-            customFoodFiltered.push(cfn)
-          }
-        }
-        list = customFoodFiltered.concat(list)
+      var dietMetaActs = self._buildDietMetaCardActivities()
+      var kw2 = (self.data.searchKeyword || '').trim()
+
+      // 搜索模式下按名称匹配
+      if (kw2) {
+        dietMetaActs = dietMetaActs.filter(function(a) {
+          return a.name.indexOf(kw2) !== -1
+        })
       }
-      this._finalizeList(list, cat, sideF)
+
+      // 先同步显示 diet 元卡（立即渲染，对齐 sport 分支），再异步追加自定义活动
+      self._finalizeListWithMetaCards(dietMetaActs, cat)
+
+      // 加载自定义 diet 活动（与 sport 分支同款函数）
+      self._loadCustomFromCloud(cat, kw, sideF, function(customList) {
+        var merged = dietMetaActs.concat(customList)
+        if (self.data.showMyCustomOnly) {
+          merged = self._groupMyCustom(customList)
+        }
+        self._finalizeListWithMetaCards(merged, cat)
+      })
       return
     }
 
@@ -1037,6 +1091,9 @@ Page({
    * 列表最终处理：标记修心模式、设置卡模式、空白置顶、排序展示
    */
   _finalizeList: function(list, cat, sideF) {
+    // 竞态守卫：请求返回时若分类已切换，丢弃过期结果
+    if (cat !== this.data.currentCategory) return
+
     // 筛选：只看我的自定义
     if (this.data.showMyCustomOnly) {
       var filtered = []
@@ -1152,6 +1209,9 @@ Page({
 
   /** sport 元卡模式专用 finalize：不按 sideFilter 过滤（已由 pill 栏处理） */
   _finalizeListWithMetaCards: function(list, cat) {
+    // 竞态守卫：请求返回时若分类已切换，丢弃过期结果
+    if (cat !== this.data.currentCategory) return
+
     // 标签聚合
     this._aggregateTags(list)
 

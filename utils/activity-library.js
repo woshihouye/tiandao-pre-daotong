@@ -36,23 +36,18 @@ var FILTER_CONFIGS = {
     ]
   },
   diet: {
-    top: [
+    categories: [
       { key: 'all', name: '全部' },
-      { key: 'meal', name: '正餐' },
-      { key: 'water', name: '饮水' },
-      { key: 'snack', name: '加餐' },
-      { key: 'habit', name: '习惯' },
-      { key: 'avoid', name: '忌口' }
-    ],
-    side: [
-      { key: 'all', name: '全部' },
-      { key: 'breakfast', name: '早餐' },
-      { key: 'lunch', name: '午餐' },
-      { key: 'dinner', name: '晚餐' },
-      { key: 'beverage', name: '饮品摄入' },
-      { key: 'nutrition_supp', name: '营养补充' },
-      { key: 'eating_habit', name: '饮食习惯' },
+      { key: 'bulk', name: '增肌' },
+      { key: 'cut', name: '减脂' },
+      { key: 'health', name: '养生' },
+      { key: 'free', name: '我free啦' },
       { key: 'unknown', name: '不知道' }
+    ],
+    metaCards: [
+      { key: 'daily', name: '日常卡', desc: '选几项就记完' },
+      { key: 'precision', name: '精准卡', desc: '精确营养素' },
+      { key: 'diet_free', name: 'free卡', desc: '自由定义' }
     ]
   },
   study: {
@@ -137,29 +132,8 @@ var ACTIVITY_LIBRARY = {
   //  二、食·丹食
   // ============================================================
   diet: [
-    { id: 'blank_diet', name: '空白', topFilter: 'blank', sideFilter: 'blank',
-      description: '自由记录空白丹食', unit: '份', scorePerUnit: 1, tabKey: 'diet', presetAction: '' },
-
-    { id: 'healthy_breakfast', name: '健康早餐', topFilter: 'meal', sideFilter: 'breakfast',
-      description: '早起吃一顿营养均衡的早餐，开启元气一天', unit: '次/天', scorePerUnit: 3, tabKey: 'diet', presetAction: '' },
-    { id: 'nutritious_lunch', name: '营养午餐', topFilter: 'meal', sideFilter: 'lunch',
-      description: '均衡搭配蛋白质+蔬菜+主食，午间充电', unit: '次/天', scorePerUnit: 3, tabKey: 'diet', presetAction: '' },
-    { id: 'light_dinner', name: '清淡晚餐', topFilter: 'meal', sideFilter: 'dinner',
-      description: '少油少盐、不过饱，晚间清淡饮食', unit: '次/天', scorePerUnit: 3, tabKey: 'diet', presetAction: '' },
-    { id: 'drink_8_water', name: '喝够8杯水', topFilter: 'water', sideFilter: 'beverage',
-      description: '每日饮水充足，维持身体代谢平衡', unit: '次/天', scorePerUnit: 4, tabKey: 'diet', presetAction: '' },
-    { id: 'enough_veggies', name: '摄入足量蔬菜', topFilter: 'meal', sideFilter: 'nutrition_supp',
-      description: '每日蔬菜摄入达标，补充维生素与纤维', unit: '次/天', scorePerUnit: 3, tabKey: 'diet', presetAction: '' },
-    { id: 'no_sugar_drink', name: '戒断高糖饮料', topFilter: 'avoid', sideFilter: 'eating_habit',
-      description: '不喝奶茶、可乐等高糖饮品', unit: '次/天', scorePerUnit: 5, tabKey: 'diet', presetAction: '' },
-    { id: 'calorie_control', name: '控制热量摄入', topFilter: 'habit', sideFilter: 'eating_habit',
-      description: '有意识地控制全天总热量不超标', unit: '次/天', scorePerUnit: 4, tabKey: 'diet', presetAction: '' },
-    { id: 'quality_protein', name: '补充优质蛋白', topFilter: 'snack', sideFilter: 'nutrition_supp',
-      description: '摄入鸡胸肉、鱼虾、蛋奶等优质蛋白', unit: '次/天', scorePerUnit: 3, tabKey: 'diet', presetAction: '' },
-    { id: 'regular_meals', name: '规律进食', topFilter: 'habit', sideFilter: 'eating_habit',
-      description: '三餐定时定量，不暴饮暴食', unit: '次/天', scorePerUnit: 4, tabKey: 'diet', presetAction: '' },
-    { id: 'no_late_snack', name: '戒断夜宵', topFilter: 'avoid', sideFilter: 'eating_habit',
-      description: '晚间8点后不进食，减轻肠胃负担', unit: '次/天', scorePerUnit: 4, tabKey: 'diet', presetAction: '' }
+    { id: 'blank_diet', name: '空白丹食', metaCard: 'diet_free',
+      description: '自由记录饮食修行', unit: '份', scorePerUnit: 1, tabKey: 'diet', presetAction: '' }
   ],
 
   // ============================================================
@@ -527,7 +501,7 @@ function filterActivities(categoryKey, topFilterKey, sideFilterKey) {
   // 全部视图下，空白活动固定置顶
   if (!sideFilterKey || sideFilterKey === 'all') {
     for (var i = 0; i < result.length; i++) {
-      if (result[i].sideFilter === 'blank') {
+      if (result[i].sideFilter === 'blank' || result[i].sideFilter === 'unknown') {
         var blankItem = result.splice(i, 1)[0]
         result.unshift(blankItem)
         break

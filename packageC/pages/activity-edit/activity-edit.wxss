@@ -353,9 +353,29 @@
   font-size: 26rpx;
   color: #555;
 }
-.param-val {
+/* 选择型参数（diet 日常卡 picker） */
+.select-param-list {
+  margin-top: 8rpx;
+}
+.select-param-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14rpx 16rpx;
+  background: #F9FAFB;
+  border-radius: 8rpx;
+  margin-bottom: 8rpx;
+}
+.select-param-name {
+  font-size: 26rpx;
+  color: #555;
+}
+.select-param-val {
   font-size: 26rpx;
   color: #3B82F6;
+  padding: 6rpx 12rpx;
+  background: #EFF6FF;
+  border-radius: 6rpx;
 }
 
 /* 封面上传 */

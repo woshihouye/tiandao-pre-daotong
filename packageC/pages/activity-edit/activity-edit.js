@@ -17,18 +17,6 @@ var CATEGORY_OPTIONS = [
 // 单位选项
 var UNIT_OPTIONS = ['次', '分钟', '组', '秒', '份']
 
-// 元卡列表（顶部切换 chips）
-var META_CARD_LIST = [
-  { id: 'push', name: '推' },
-  { id: 'pull', name: '拉' },
-  { id: 'squat', name: '蹲' },
-  { id: 'hold', name: '撑' },
-  { id: 'curl', name: '卷' },
-  { id: 'steady_cardio', name: '稳态有氧' },
-  { id: 'interval_cardio', name: '间歇有氧' },
-  { id: 'unknown', name: '不知道' }
-]
-
 // 容量格子类型选项
 var CELL_TYPES = [
   { type: 'weight', name: '重量' },
@@ -36,6 +24,10 @@ var CELL_TYPES = [
   { type: 'sets', name: '组数' },
   { type: 'time', name: '时长' },
   { type: 'distance', name: '距离' },
+  { type: 'weight_g', name: '重量(g)' },
+  { type: 'calories', name: '卡路里' },
+  { type: 'portion', name: '份量' },
+  { type: 'subjective', name: '主观评价' },
   { type: 'custom', name: '自定义' }
 ]
 
@@ -72,7 +64,6 @@ Page({
 
     // ── 元卡模式字段 ──
     selectedMetaCard: '',          // 当前元卡 id
-    metaCardList: META_CARD_LIST,  // 元卡列表
     metaCardInfo: null,            // 元卡完整定义
     muscleWeights: [],             // 肌群权重 [{ id, name, weight, group:'primary'|'secondary' }]
     showSecondaryMuscles: false,   // 是否展开辅助肌群
@@ -80,7 +71,7 @@ Page({
     cellTypeOptions: [],           // 当前元卡可用的格子类型
     matchedTemplate: null,         // 匹配到的动作模板对象
     matchedTemplateName: '',       // 匹配到的模板名
-    extraParamValues: {},          // 额外参数值 { rom: '全程', intensity: '适中' }
+    selectParamValues: {},         // 选择型参数值（diet 日常卡）
     coverTempPath: '',             // 封面本地临时路径
     coverFileID: '',               // 封面云存储 fileID
     coverDisplayUrl: '',           // 封面展示 URL
@@ -234,15 +225,65 @@ Page({
       metaCardInfo = metaCards.getMetaCard('push')
       cardId = 'push'
     }
+
+    var categoryIdx = metaCardInfo.category === 'diet' ? 1 : 0
+
     this.setData({
       metaCardInfo: metaCardInfo,
       selectedMetaCard: cardId,
+      categoryIndex: categoryIdx,
+      muscleWeights: [],
+      cells: [],
       matchedTemplate: null,
       matchedTemplateName: ''
     })
-    this._initMuscleWeights(metaCardInfo)
+
+    // diet 日常卡：选择型参数
+    if (metaCardInfo.selectParams) {
+      this._initSelectParams(metaCardInfo)
+    } else {
+      this._initMuscleWeights(metaCardInfo)
+    }
     this._initCells(metaCardInfo)
-    this._initExtraParams(metaCardInfo)
+  },
+
+  /** 初始化选择型参数（diet 日常卡 picker） */
+  _initSelectParams: function(metaCard) {
+    var values = {}
+    var params = metaCard.selectParams || []
+    for (var i = 0; i < params.length; i++) {
+      var p = params[i]
+      var defVal = p.default || (p.options && p.options[0]) || ''
+      values[p.id] = defVal
+      // 在 options 中查找默认值索引
+      var defIdx = 0
+      if (p.options) {
+        for (var j = 0; j < p.options.length; j++) {
+          if (p.options[j] === defVal) { defIdx = j; break }
+        }
+      }
+      values[p.id + '_idx'] = defIdx
+    }
+    this.setData({ selectParamValues: values })
+  },
+
+  /** 选择型参数变更（diet 日常卡） */
+  onSelectParamChange: function(e) {
+    var paramId = e.currentTarget.dataset.paramId
+    var idx = parseInt(e.detail.value)
+    var metaCardInfo = this.data.metaCardInfo
+    var values = this.data.selectParamValues
+    if (metaCardInfo && metaCardInfo.selectParams) {
+      for (var i = 0; i < metaCardInfo.selectParams.length; i++) {
+        var sp = metaCardInfo.selectParams[i]
+        if (sp.id === paramId && sp.options && idx < sp.options.length) {
+          values[paramId] = sp.options[idx]
+          values[paramId + '_idx'] = idx
+          break
+        }
+      }
+    }
+    this.setData({ selectParamValues: values })
   },
 
   /** 从元卡 musclePool/paramPool 构建肌群权重列表 */
@@ -316,36 +357,6 @@ Page({
       }
     }
     return result
-  },
-
-  /** 初始化额外参数（如蹲的幅度、有氧的强度） */
-  _initExtraParams: function(metaCard) {
-    var extraParamValues = {}
-    if (metaCard.extraParams) {
-      for (var i = 0; i < metaCard.extraParams.length; i++) {
-        var ep = metaCard.extraParams[i]
-        extraParamValues[ep.id] = ep.default || (ep.options && ep.options[0]) || ''
-        // 在 options 中查找默认值的索引
-        var defIdx = 0
-        if (ep.options) {
-          for (var j = 0; j < ep.options.length; j++) {
-            if (ep.options[j] === extraParamValues[ep.id]) {
-              defIdx = j
-              break
-            }
-          }
-        }
-        extraParamValues[ep.id + '_idx'] = defIdx
-      }
-    }
-    this.setData({ extraParamValues: extraParamValues })
-  },
-
-  /** 元卡选择器切换 */
-  onChangeMetaCard: function(e) {
-    var cardId = e.currentTarget.dataset.key
-    if (cardId === this.data.selectedMetaCard) return
-    this._initMetaCard(cardId)
   },
 
   /** 肌群滑块拖拽 — 实时归一化，保持总和 = 1 */
@@ -531,34 +542,6 @@ Page({
     var cells = this.data.cells.slice()
     cells.splice(index, 1)
     this.setData({ cells: cells })
-  },
-
-  /** 额外参数变更 */
-  onExtraParamChange: function(e) {
-    var paramId = e.currentTarget.dataset.paramId
-    var idx = parseInt(e.detail.value)
-    var extraParamValues = {}
-    // 浅拷贝当前值
-    var current = this.data.extraParamValues
-    for (var k in current) {
-      if (Object.prototype.hasOwnProperty.call(current, k)) {
-        extraParamValues[k] = current[k]
-      }
-    }
-
-    var metaCardInfo = this.data.metaCardInfo
-    if (metaCardInfo && metaCardInfo.extraParams) {
-      for (var i = 0; i < metaCardInfo.extraParams.length; i++) {
-        var ep = metaCardInfo.extraParams[i]
-        if (ep.id === paramId && ep.options && idx < ep.options.length) {
-          extraParamValues[paramId] = ep.options[idx]
-          extraParamValues[paramId + '_idx'] = idx
-          break
-        }
-      }
-    }
-
-    this.setData({ extraParamValues: extraParamValues })
   },
 
   /** 选择封面图片 */
@@ -756,7 +739,16 @@ Page({
       metaCard: this.data.selectedMetaCard,
       muscleWeights: [],
       cells: [],
+      selectParams: {},
       extraParams: {}
+    }
+
+    // 保存选择型参数值（diet 日常卡）
+    var selectParamValues = this.data.selectParamValues
+    for (var spk in selectParamValues) {
+      if (Object.prototype.hasOwnProperty.call(selectParamValues, spk) && spk.indexOf('_idx') === -1) {
+        customMeta.selectParams[spk] = selectParamValues[spk]
+      }
     }
 
     var muscleWeights = this.data.muscleWeights
@@ -781,18 +773,12 @@ Page({
       })
     }
 
-    var extraParamValues = this.data.extraParamValues
-    for (var ek in extraParamValues) {
-      if (Object.prototype.hasOwnProperty.call(extraParamValues, ek) && ek.indexOf('_idx') === -1) {
-        customMeta.extraParams[ek] = extraParamValues[ek]
-      }
-    }
-
     // 构建请求参数
+    var metaCategory = (this.data.metaCardInfo && this.data.metaCardInfo.category) || 'sport'
     function doCreate(icon) {
       var params = {
         name: name,
-        category: 'sport',
+        category: metaCategory,
         unit: '次',
         scorePerUnit: 1,
         description: self.data.description || '',

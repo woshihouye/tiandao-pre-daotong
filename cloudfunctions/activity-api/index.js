@@ -116,8 +116,8 @@ function validateActivityInput(d) {
 async function getLibrary(params) {
   var where = { status: 'active', isSystem: true }
   if (params.category) where.category = params.category
-  // 元卡改造：sport 维度不再使用 topFilter/sideFilter，改用 metaCard 或直接返回
-  if (params.category === 'sport' && params.metaCard) {
+  // 元卡改造：sport / diet 维度不再使用 topFilter/sideFilter，改用 metaCard 或直接返回
+  if ((params.category === 'sport' || params.category === 'diet') && params.metaCard) {
     where['customMeta.metaCard'] = params.metaCard
   } else {
     if (params.topFilter && params.topFilter !== 'all') where.topFilter = params.topFilter
@@ -187,7 +187,21 @@ function getFilterConfigs() {
           { key: 'unknown',         name: '不知道',    subcategory: 'unknown',   desc: '完全自由定义' }
         ]
       },
-      diet: { top: ['all'], side: ['all'] },
+      diet: {
+        categories: [
+          { key: 'all', name: '全部' },
+          { key: 'bulk', name: '增肌' },
+          { key: 'cut', name: '减脂' },
+          { key: 'health', name: '养生' },
+          { key: 'free', name: '我free啦' },
+          { key: 'unknown', name: '不知道' }
+        ],
+        metaCards: [
+          { key: 'daily', name: '日常卡' },
+          { key: 'precision', name: '精准卡' },
+          { key: 'diet_free', name: 'free卡' }
+        ]
+      },
       study: { top: ['all'], side: ['all'] },
       work: { top: ['all'], side: ['all'] },
       debuff: { top: ['all'], side: ['all'] }
