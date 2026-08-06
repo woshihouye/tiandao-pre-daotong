@@ -124,6 +124,7 @@
     ]
   },
   "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
   "usingComponents": {
     "dao-spirit": "/components/dao-spirit/dao-spirit",
     "progress-ring": "/components/progress-ring/progress-ring",
