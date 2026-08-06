@@ -1,6 +1,7 @@
 // 自建模板配置页
 var app = getApp()
 var Alib = require('../../../utils/activity-library.js')
+var MetaCards = require('../../utils/meta-cards.js')
 
 /** 存储 key */
 var CUSTOM_TEMPLATES_KEY = 'tiandao_custom_templates_'
@@ -37,103 +38,6 @@ var CAPACITY_UNITS_ALL = ['次', '组', '分钟', '秒', '次/天', '份', '组�
 var DEFAULT_UNIT_MAP = {
   sport: '组/次', diet: '份', study: '分钟', work: '分钟', debuff: '次'
 }
-
-/** 食物侧栏分类（与主修行库一致） */
-var FOOD_SIDE_FILTERS = [
-  { key: 'all', name: '全部' },
-  { key: 'meat', name: '肉类' },
-  { key: 'vegetable', name: '蔬菜类' },
-  { key: 'carb', name: '碳水类' },
-  { key: 'supplement', name: '补剂类' },
-  { key: 'nutrition', name: '营养品' },
-  { key: 'medicine', name: '药品' }
-]
-
-/** 食物知识库 — 每100g营养数据（与主修行库完全一致） */
-var FOOD_KNOWLEDGE_BASE = [
-  // ---- 空白 ----
-  { id: 'blank_diet', name: '空白', sideFilter: 'blank', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } },
-  // ---- 肉类 ----
-  { id: 'food_chicken_breast', name: '鸡胸肉', sideFilter: 'meat', nutrition: { calories: 133, protein: 19.4, carbs: 2.5, fat: 5.0 } },
-  { id: 'food_lean_beef', name: '瘦牛肉', sideFilter: 'meat', nutrition: { calories: 125, protein: 20.2, carbs: 0.2, fat: 4.2 } },
-  { id: 'food_pork_tenderloin', name: '猪里脊', sideFilter: 'meat', nutrition: { calories: 155, protein: 20.2, carbs: 0.7, fat: 7.9 } },
-  { id: 'food_salmon', name: '三文鱼', sideFilter: 'meat', nutrition: { calories: 139, protein: 17.2, carbs: 0, fat: 7.8 } },
-  { id: 'food_sole_fish', name: '龙利鱼', sideFilter: 'meat', nutrition: { calories: 83, protein: 17.0, carbs: 0, fat: 1.4 } },
-  { id: 'food_shrimp', name: '虾仁', sideFilter: 'meat', nutrition: { calories: 93, protein: 18.6, carbs: 0.3, fat: 1.4 } },
-  { id: 'food_egg', name: '鸡蛋', sideFilter: 'meat', nutrition: { calories: 144, protein: 13.3, carbs: 1.5, fat: 8.8 } },
-  { id: 'food_duck_egg', name: '鸭蛋', sideFilter: 'meat', nutrition: { calories: 180, protein: 12.6, carbs: 3.1, fat: 13.0 } },
-  { id: 'food_chicken_thigh', name: '鸡腿肉（去皮）', sideFilter: 'meat', nutrition: { calories: 119, protein: 19.7, carbs: 0, fat: 4.0 } },
-  { id: 'food_duck', name: '鸭肉', sideFilter: 'meat', nutrition: { calories: 240, protein: 15.5, carbs: 0.2, fat: 19.7 } },
-  { id: 'food_lean_lamb', name: '瘦羊肉', sideFilter: 'meat', nutrition: { calories: 118, protein: 20.5, carbs: 0.2, fat: 3.9 } },
-  { id: 'food_tuna', name: '金枪鱼', sideFilter: 'meat', nutrition: { calories: 108, protein: 23.3, carbs: 0, fat: 1.0 } },
-  { id: 'food_cod', name: '鳕鱼', sideFilter: 'meat', nutrition: { calories: 88, protein: 20.4, carbs: 0, fat: 0.5 } },
-  { id: 'food_chicken_sausage', name: '鸡胸肉肠', sideFilter: 'meat', nutrition: { calories: 110, protein: 20.0, carbs: 1.0, fat: 2.5 } },
-  { id: 'food_braised_beef', name: '卤牛肉', sideFilter: 'meat', nutrition: { calories: 190, protein: 26.0, carbs: 1.8, fat: 8.0 } },
-  // ---- 蔬菜类 ----
-  { id: 'food_broccoli', name: '西兰花', sideFilter: 'vegetable', nutrition: { calories: 36, protein: 4.1, carbs: 4.5, fat: 0.3 } },
-  { id: 'food_spinach', name: '菠菜', sideFilter: 'vegetable', nutrition: { calories: 28, protein: 2.6, carbs: 2.8, fat: 0.3 } },
-  { id: 'food_lettuce', name: '生菜', sideFilter: 'vegetable', nutrition: { calories: 15, protein: 1.4, carbs: 1.6, fat: 0.2 } },
-  { id: 'food_cucumber', name: '黄瓜', sideFilter: 'vegetable', nutrition: { calories: 16, protein: 0.7, carbs: 2.9, fat: 0.1 } },
-  { id: 'food_tomato', name: '番茄', sideFilter: 'vegetable', nutrition: { calories: 20, protein: 0.9, carbs: 3.5, fat: 0.2 } },
-  { id: 'food_celery', name: '芹菜', sideFilter: 'vegetable', nutrition: { calories: 17, protein: 0.8, carbs: 2.5, fat: 0.1 } },
-  { id: 'food_asparagus', name: '芦笋', sideFilter: 'vegetable', nutrition: { calories: 22, protein: 2.2, carbs: 3.7, fat: 0.2 } },
-  { id: 'food_baby_cabbage', name: '娃娃菜', sideFilter: 'vegetable', nutrition: { calories: 13, protein: 1.5, carbs: 2.2, fat: 0.1 } },
-  { id: 'food_napa_cabbage', name: '白菜', sideFilter: 'vegetable', nutrition: { calories: 17, protein: 1.5, carbs: 2.4, fat: 0.2 } },
-  { id: 'food_leaf_lettuce', name: '油麦菜', sideFilter: 'vegetable', nutrition: { calories: 15, protein: 1.5, carbs: 1.7, fat: 0.3 } },
-  { id: 'food_carrot', name: '胡萝卜', sideFilter: 'vegetable', nutrition: { calories: 37, protein: 1.0, carbs: 7.7, fat: 0.2 } },
-  { id: 'food_pumpkin', name: '南瓜', sideFilter: 'vegetable', nutrition: { calories: 23, protein: 0.7, carbs: 4.5, fat: 0.1 } },
-  { id: 'food_winter_melon', name: '冬瓜', sideFilter: 'vegetable', nutrition: { calories: 12, protein: 0.4, carbs: 2.4, fat: 0.1 } },
-  { id: 'food_bitter_melon', name: '苦瓜', sideFilter: 'vegetable', nutrition: { calories: 22, protein: 1.0, carbs: 3.5, fat: 0.1 } },
-  { id: 'food_enoki', name: '金针菇', sideFilter: 'vegetable', nutrition: { calories: 32, protein: 2.7, carbs: 4.0, fat: 0.5 } },
-  { id: 'food_shitake', name: '香菇', sideFilter: 'vegetable', nutrition: { calories: 26, protein: 2.2, carbs: 3.3, fat: 0.3 } },
-  { id: 'food_wood_ear', name: '木耳', sideFilter: 'vegetable', nutrition: { calories: 27, protein: 1.5, carbs: 5.5, fat: 0.2 } },
-  { id: 'food_kelp', name: '海带', sideFilter: 'vegetable', nutrition: { calories: 13, protein: 1.2, carbs: 1.6, fat: 0.1 } },
-  { id: 'food_purple_cabbage', name: '紫甘蓝', sideFilter: 'vegetable', nutrition: { calories: 25, protein: 1.4, carbs: 4.8, fat: 0.1 } },
-  { id: 'food_green_pepper', name: '青椒', sideFilter: 'vegetable', nutrition: { calories: 22, protein: 1.0, carbs: 4.2, fat: 0.2 } },
-  // ---- 碳水类 ----
-  { id: 'food_rice', name: '米饭', sideFilter: 'carb', nutrition: { calories: 116, protein: 2.6, carbs: 25.6, fat: 0.3 } },
-  { id: 'food_steamed_bun', name: '馒头', sideFilter: 'carb', nutrition: { calories: 223, protein: 7.0, carbs: 44.2, fat: 1.1 } },
-  { id: 'food_whole_wheat_bread', name: '全麦面包', sideFilter: 'carb', nutrition: { calories: 246, protein: 10.9, carbs: 42.7, fat: 3.4 } },
-  { id: 'food_oats', name: '燕麦片', sideFilter: 'carb', nutrition: { calories: 367, protein: 11.3, carbs: 60.6, fat: 6.7 } },
-  { id: 'food_sweet_potato', name: '红薯', sideFilter: 'carb', nutrition: { calories: 86, protein: 1.6, carbs: 20.1, fat: 0.1 } },
-  { id: 'food_purple_potato', name: '紫薯', sideFilter: 'carb', nutrition: { calories: 82, protein: 1.8, carbs: 17.6, fat: 0.2 } },
-  { id: 'food_corn', name: '玉米', sideFilter: 'carb', nutrition: { calories: 112, protein: 4.0, carbs: 19.9, fat: 1.2 } },
-  { id: 'food_noodles', name: '面条', sideFilter: 'carb', nutrition: { calories: 284, protein: 8.3, carbs: 54.7, fat: 0.7 } },
-  { id: 'food_brown_rice', name: '糙米', sideFilter: 'carb', nutrition: { calories: 111, protein: 2.5, carbs: 23.0, fat: 0.9 } },
-  { id: 'food_millet_porridge', name: '小米粥', sideFilter: 'carb', nutrition: { calories: 46, protein: 1.4, carbs: 8.4, fat: 0.7 } },
-  { id: 'food_buckwheat_noodles', name: '荞麦面', sideFilter: 'carb', nutrition: { calories: 329, protein: 11.3, carbs: 60.0, fat: 2.8 } },
-  { id: 'food_yam', name: '山药', sideFilter: 'carb', nutrition: { calories: 57, protein: 1.9, carbs: 11.6, fat: 0.1 } },
-  { id: 'food_potato', name: '土豆', sideFilter: 'carb', nutrition: { calories: 81, protein: 2.0, carbs: 16.5, fat: 0.2 } },
-  { id: 'food_toast', name: '吐司', sideFilter: 'carb', nutrition: { calories: 278, protein: 8.4, carbs: 49.6, fat: 3.9 } },
-  { id: 'food_pasta', name: '意面', sideFilter: 'carb', nutrition: { calories: 350, protein: 12.0, carbs: 71.0, fat: 1.5 } },
-  // ---- 补剂类 ----
-  { id: 'food_whey_protein', name: '乳清蛋白粉', sideFilter: 'supplement', nutrition: { calories: 390, protein: 75.0, carbs: 10.0, fat: 5.0 } },
-  { id: 'food_creatine', name: '肌酸', sideFilter: 'supplement', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } },
-  { id: 'food_bcaa', name: '支链氨基酸', sideFilter: 'supplement', nutrition: { calories: 400, protein: 100.0, carbs: 0, fat: 0 } },
-  { id: 'food_pre_workout', name: '氮泵', sideFilter: 'supplement', nutrition: { calories: 300, protein: 5.0, carbs: 60.0, fat: 1.0 } },
-  { id: 'food_fish_oil', name: '鱼油', sideFilter: 'supplement', nutrition: { calories: 900, protein: 0, carbs: 0, fat: 100.0 } },
-  { id: 'food_vitamin_c', name: '维生素C', sideFilter: 'supplement', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } },
-  { id: 'food_multivitamin', name: '复合维生素', sideFilter: 'supplement', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } },
-  { id: 'food_calcium', name: '钙片', sideFilter: 'supplement', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } },
-  // ---- 营养品 ----
-  { id: 'food_milk', name: '牛奶', sideFilter: 'nutrition', nutrition: { calories: 66, protein: 3.2, carbs: 4.9, fat: 3.6 } },
-  { id: 'food_yogurt', name: '无糖酸奶', sideFilter: 'nutrition', nutrition: { calories: 72, protein: 5.7, carbs: 9.3, fat: 1.3 } },
-  { id: 'food_soy_milk', name: '豆浆', sideFilter: 'nutrition', nutrition: { calories: 31, protein: 3.2, carbs: 1.2, fat: 1.6 } },
-  { id: 'food_walnut', name: '核桃', sideFilter: 'nutrition', nutrition: { calories: 627, protein: 16.1, carbs: 10.1, fat: 58.8 } },
-  { id: 'food_almond', name: '杏仁', sideFilter: 'nutrition', nutrition: { calories: 578, protein: 21.2, carbs: 19.7, fat: 49.9 } },
-  { id: 'food_peanut', name: '花生', sideFilter: 'nutrition', nutrition: { calories: 563, protein: 24.8, carbs: 16.1, fat: 44.3 } },
-  { id: 'food_black_sesame', name: '黑芝麻', sideFilter: 'nutrition', nutrition: { calories: 559, protein: 19.7, carbs: 11.6, fat: 46.1 } },
-  { id: 'food_goji', name: '枸杞', sideFilter: 'nutrition', nutrition: { calories: 349, protein: 14.3, carbs: 64.0, fat: 1.5 } },
-  { id: 'food_red_date', name: '红枣', sideFilter: 'nutrition', nutrition: { calories: 276, protein: 3.4, carbs: 64.0, fat: 0.4 } },
-  { id: 'food_honey', name: '蜂蜜', sideFilter: 'nutrition', nutrition: { calories: 321, protein: 0.4, carbs: 75.6, fat: 0.2 } },
-  // ---- 药品 ----
-  { id: 'food_ibuprofen', name: '布洛芬', sideFilter: 'medicine', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } },
-  { id: 'food_cold_medicine', name: '感冒灵', sideFilter: 'medicine', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } },
-  { id: 'food_amoxicillin', name: '阿莫西林', sideFilter: 'medicine', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } },
-  { id: 'food_omeprazole', name: '奥美拉唑', sideFilter: 'medicine', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } },
-  { id: 'food_montmorillonite', name: '蒙脱石散', sideFilter: 'medicine', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } },
-  { id: 'food_vitamin_b', name: '维生素B族', sideFilter: 'medicine', nutrition: { calories: 0, protein: 0, carbs: 0, fat: 0 } }
-]
 
 Page({
   data: {
@@ -217,6 +121,11 @@ Page({
     this._initTimeSlots()
     this._initWeekData()
     this._initLibSideFilters()
+    this._loadLibActivities()
+  },
+
+  onShow: function() {
+    // 从 activity-edit 返回后刷新活动库
     this._loadLibActivities()
   },
 
@@ -405,14 +314,9 @@ Page({
 
   _initLibSideFilters: function() {
     var cat = this.data.currentCategory
-    if (cat === 'diet') {
-      // 食·丹食 使用食物自定义侧栏（与主修行库一致）
-      this.setData({ libSideFilters: FOOD_SIDE_FILTERS, currentLibSide: 'all' })
-      this._loadLibActivities()
-      return
-    }
-    var config = Alib.FILTER_CONFIGS[cat] || { side: [] }
-    this.setData({ libSideFilters: config.side || [], currentLibSide: 'all' })
+    var config = Alib.FILTER_CONFIGS[cat] || { categories: [], subcategories: [] }
+    var sideFilters = config.categories || config.subcategories || []
+    this.setData({ libSideFilters: sideFilters, currentLibSide: 'all' })
     this._loadLibActivities()
   },
 
@@ -443,71 +347,70 @@ Page({
     var kw = this.data.libKeyword
     var side = this.data.currentLibSide
 
-    var list = []
+    // 统一流程：元卡渲染 → 回退本地活动库
+    this._loadLibFromLocal(cat, kw, side)
+  },
 
-    // 食·丹食 使用食物知识库（与主修行库数据源一致）
-    if (cat === 'diet') {
+  /**
+   * 构建元卡活动列表项（字段白名单：仅允许 id/actId/activityName/name/category/tabKey/sideFilter/description/scorePerUnit/unit/_isMetaCard）
+   * @param {string} sideFilter - 当前侧栏筛选 key
+   */
+  _buildTemplateMetaCards: function(sideFilter) {
+    var cat = this.data.currentCategory
+    var kw = this.data.libKeyword
+    var cards = MetaCards.META_CARDS
+    var arr = []
+    for (var key in cards) {
+      if (!Object.prototype.hasOwnProperty.call(cards, key)) continue
+      var card = cards[key]
+      // 非 sport 维度按 category 过滤；sport 维度无 category 字段
+      if (card.category && card.category !== cat) continue
+      if (!card.category && cat !== 'sport') continue
+      // 侧栏筛选
+      if (sideFilter !== 'all') {
+        if (cat === 'sport' && card.subcategory !== sideFilter) continue
+        if (cat === 'debuff') {
+          if (sideFilter === 'body_hurt' && card.id !== 'body_harm') continue
+          if (sideFilter === 'eat_chaos' && card.id !== 'eat_chaos') continue
+          if (sideFilter === 'screen_lost' && card.id !== 'screen_lost') continue
+          if (sideFilter === 'inner_demon' && card.id !== 'inner_demon') continue
+          if (sideFilter === 'unknown' && card.id !== 'inner_demon') continue
+        }
+        if (cat === 'work') {
+          var goalCardMap = { kaitian: ['plan', 'talk'], butian: ['execute', 'talk'], fun: ['plan', 'execute'], boring: ['execute'], unknown: ['talk'] }
+          var allowedCards = goalCardMap[sideFilter] || []
+          if (allowedCards.indexOf(card.id) === -1) continue
+        }
+        if (cat === 'study') {
+          var learnCardMap = { knowledge: ['input'], skill: ['process'], worldly: ['output'], cyber: ['input', 'process'], unknown: ['output'] }
+          var allowedStudy = learnCardMap[sideFilter] || []
+          if (allowedStudy.indexOf(card.id) === -1) continue
+        }
+      }
+      // 关键词模糊匹配
       if (kw && kw.trim()) {
         var kwLower = kw.trim().toLowerCase()
-        for (var fi = 0; fi < FOOD_KNOWLEDGE_BASE.length; fi++) {
-          var foodItem = FOOD_KNOWLEDGE_BASE[fi]
-          if (foodItem.name.toLowerCase().indexOf(kwLower) !== -1) {
-            list.push({
-              id: foodItem.id, name: foodItem.name, category: 'diet', tabKey: 'diet',
-              sideFilter: foodItem.sideFilter, isFood: true
-            })
-          }
-        }
-        // 同时搜索自定义食物
-        var customFoodsSrch = []
-        try { customFoodsSrch = wx.getStorageSync('tiandao_custom_food_' + this._getUid()) || [] } catch(e) {}
-        for (var cfs = 0; cfs < customFoodsSrch.length; cfs++) {
-          var cfsItem = customFoodsSrch[cfs]
-          if (cfsItem.name.toLowerCase().indexOf(kwLower) !== -1) {
-            cfsItem.category = 'diet'; cfsItem.tabKey = 'diet'; cfsItem.isFood = true
-            list.unshift(cfsItem)
-          }
-        }
-      } else {
-        // 非搜索：按侧栏筛选食物知识库
-        for (var fm = 0; fm < FOOD_KNOWLEDGE_BASE.length; fm++) {
-          var fmItem = FOOD_KNOWLEDGE_BASE[fm]
-          if (side === 'all' || fmItem.sideFilter === side) {
-            list.push({
-              id: fmItem.id, name: fmItem.name, category: 'diet', tabKey: 'diet',
-              sideFilter: fmItem.sideFilter, isFood: true
-            })
-          }
-        }
-        // 合并自定义食物
-        var customFoodsAll = []
-        try { customFoodsAll = wx.getStorageSync('tiandao_custom_food_' + this._getUid()) || [] } catch(e) {}
-        var customFoodFiltered = []
-        for (var cfn = 0; cfn < customFoodsAll.length; cfn++) {
-          var cfnItem = customFoodsAll[cfn]
-          if (side === 'all' || cfnItem.sideFilter === side) {
-            cfnItem.category = 'diet'; cfnItem.tabKey = 'diet'; cfnItem.isFood = true
-            customFoodFiltered.push(cfnItem)
-          }
-        }
-        list = customFoodFiltered.concat(list)
-      }
-      // 全部视图下，空白食物固定置顶
-      if (side === 'all') {
-        for (var bfi = 0; bfi < list.length; bfi++) {
-          if (list[bfi].id === 'blank_diet') {
-            var blankFood = list.splice(bfi, 1)[0]
-            list.unshift(blankFood)
-            break
-          }
+        if (card.name.toLowerCase().indexOf(kwLower) === -1 &&
+            (!card.description || card.description.toLowerCase().indexOf(kwLower) === -1)) {
+          continue
         }
       }
-      this.setData({ libActivities: list })
-      return
+      // 字段白名单：仅保留规范的输出字段
+      arr.push({
+        id: 'meta_' + card.id,
+        actId: 'meta_' + card.id,
+        activityName: card.name,
+        name: card.name,
+        category: cat,
+        tabKey: cat,
+        sideFilter: sideFilter !== 'all' ? sideFilter : 'all',
+        description: card.description || '',
+        scorePerUnit: cat === 'debuff' ? -1 : 1,
+        unit: '次',
+        _isMetaCard: true
+      })
     }
-
-    // 其他分类：优先云端，失败回退本地
-    this._loadLibFromCloud(cat, kw, side)
+    return arr
   },
 
   /** 从 storage 读取活动编辑覆写 */
@@ -575,150 +478,38 @@ Page({
     })
   },
 
-  /** 从云端 activity-api 加载活动库，失败回退本地 */
-  _loadLibFromCloud: function(cat, kw, side) {
-    var self = this
-    // 并行请求官方库（分页拉全量） + 我的自定义
-    Promise.all([
-      new Promise(function(resolve) {
-        if (!wx.cloud || !wx.cloud.callFunction) { resolve(null); return }
-        self._fetchAllPages('getLibrary', { category: cat, topFilter: 'all', sideFilter: side, keyword: kw || undefined }, 100).then(function(list) {
-          resolve({ ok: list ? true : false, data: { list: list || [], total: (list || []).length } })
-        })
-      }),
-      new Promise(function(resolve) {
-        if (!wx.cloud || !wx.cloud.callFunction) { resolve(null); return }
-        wx.cloud.callFunction({
-          name: 'activity-api',
-          data: { action: 'getMine' },
-          success: function(r) { resolve(r.result) },
-          fail: function() { resolve(null) }
-        })
-      })
-    ]).then(function(results) {
-      var officialRes = results[0]
-      var mineRes = results[1]
-
-      // 云端不可用，回退本地
-      if (!officialRes || !officialRes.ok) {
-        self._loadLibFromLocal(cat, kw, side)
-        return
-      }
-
-      var list = []
-
-      // 官方活动
-      var officialList = (officialRes.data && officialRes.data.list) || []
-      for (var a = 0; a < officialList.length; a++) {
-        var item = officialList[a]
-        list.push({
-          id: item.activityId || item.id,
-          actId: item.activityId || item.id,
-          activityName: item.name,
-          name: item.name,
-          scorePerUnit: item.scorePerUnit,
-          unit: item.unit,
-          category: item.category,
-          tabKey: item.category,
-          topFilter: item.topFilter,
-          sideFilter: item.sideFilter,
-          description: item.description,
-          presetAction: item.presetAction || '',
-          isOfficial: true,
-          isCustom: false
-        })
-      }
-
-      // 我的自定义活动
-      if (mineRes && mineRes.ok) {
-        var mineList = (mineRes.data && mineRes.data.list) || []
-        for (var b = 0; b < mineList.length; b++) {
-          var mc = mineList[b]
-          if (mc.category !== cat) continue
-          if (side !== 'all' && mc.sideFilter !== side) continue
-          if (kw && kw.trim()) {
-            var kwLower = kw.trim().toLowerCase()
-            if (mc.name.toLowerCase().indexOf(kwLower) === -1 &&
-                (!mc.description || mc.description.toLowerCase().indexOf(kwLower) === -1)) {
-              continue
-            }
-          }
-          list.unshift({
-            id: mc.activityId || mc._id || mc.id,
-            actId: mc.activityId || mc._id || mc.id,
-            activityName: mc.name,
-            name: mc.name,
-            scorePerUnit: mc.scorePerUnit,
-            unit: mc.unit,
-            category: mc.category,
-            tabKey: mc.category,
-            topFilter: mc.topFilter || '',
-            sideFilter: mc.sideFilter || '',
-            description: mc.description || '',
-            isOfficial: false,
-            isCustom: true
-          })
-        }
-      }
-
-      // 应用编辑覆写
-      var edits = self._loadEdits()
-      for (var c = 0; c < list.length; c++) {
-        var edit = edits[list[c].id]
-        if (edit) {
-          if (edit.scorePerUnit !== undefined) list[c].scorePerUnit = edit.scorePerUnit
-          if (edit.unit !== undefined) list[c].unit = edit.unit
-          if (edit.defaultGroup !== undefined) list[c].defaultGroup = edit.defaultGroup
-        }
-      }
-
-      self.setData({ libActivities: self._sortLibByUsage(list) })
-    }).catch(function() {
-      // 云端异常，回退本地
-      self._loadLibFromLocal(cat, kw, side)
-    })
-  },
-
-  /** 本地加载活动库（云端不可用时的回退方案） */
+  /** 本地加载活动库 + 元卡渲染（不再调用云端，走 Alib + 元卡） */
   _loadLibFromLocal: function(cat, kw, side) {
+    var self = this
+
+    // 先同步渲染元卡，避免空白等待
+    var metaCards = self._buildTemplateMetaCards(side)
+    self.setData({ libActivities: metaCards })
+
     var list = []
     if (kw && kw.trim()) {
       list = Alib.searchActivities(kw, cat)
-      // 标记 Alib 来源为官方
-      for (var ai = 0; ai < list.length; ai++) {
-        list[ai].isOfficial = true
-        list[ai].isCustom = false
-      }
       var customAll = []
-      try { customAll = wx.getStorageSync('tiandao_custom_act_' + this._getUid()) || [] } catch(e) {}
+      try { customAll = wx.getStorageSync('tiandao_custom_act_' + self._getUid()) || [] } catch(e) {}
       var kwLower = kw.trim().toLowerCase()
       for (var i = 0; i < customAll.length; i++) {
         var ci = customAll[i]
         if (ci.category === cat) {
           if (ci.name.toLowerCase().indexOf(kwLower) !== -1 ||
               (ci.description && ci.description.toLowerCase().indexOf(kwLower) !== -1)) {
-            ci.isOfficial = false
-            ci.isCustom = true
             list.unshift(ci)
           }
         }
       }
     } else {
       list = Alib.filterActivities(cat, 'all', side)
-      // 标记 Alib 来源为官方
-      for (var aj = 0; aj < list.length; aj++) {
-        list[aj].isOfficial = true
-        list[aj].isCustom = false
-      }
       var customAll2 = []
-      try { customAll2 = wx.getStorageSync('tiandao_custom_act_' + this._getUid()) || [] } catch(e) {}
+      try { customAll2 = wx.getStorageSync('tiandao_custom_act_' + self._getUid()) || [] } catch(e) {}
       var customFiltered = []
       for (var j = 0; j < customAll2.length; j++) {
         var cj = customAll2[j]
         if (cj.category === cat) {
           if (side === 'all' || cj.sideFilter === side) {
-            cj.isOfficial = false
-            cj.isCustom = true
             customFiltered.push(cj)
           }
         }
@@ -738,7 +529,7 @@ Page({
     }
 
     // 应用编辑覆写（含 defaultGroup）
-    var edits = this._loadEdits()
+    var edits = self._loadEdits()
     for (var k = 0; k < list.length; k++) {
       var edit = edits[list[k].id]
       if (edit) {
@@ -748,7 +539,7 @@ Page({
       }
     }
 
-    this.setData({ libActivities: this._sortLibByUsage(list) })
+    self.setData({ libActivities: self._sortLibByUsage(list) })
   },
 
   // ==================== 添加活动到当前时段 ====================
@@ -756,6 +547,8 @@ Page({
   addActivity: function(e) {
     var act = e.currentTarget.dataset.act
     if (!act) return
+    // 仅允许元卡活动加入模板（模板创建器专属逻辑）
+    if (!act._isMetaCard) return
 
     // 日模板：无弹窗直接添加，已存在则累加容量
     if (this.data.templateType === 'daily') {

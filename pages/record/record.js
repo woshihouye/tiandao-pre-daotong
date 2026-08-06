@@ -2,10 +2,9 @@
 
 var app = getApp()
 var activityLib = require('../../utils/activity-library.js')
+var MetaCards = require('../../packageC/utils/meta-cards.js')
 var templateProgress = require('../../utils/template-progress.js')
 var scoreUtil = require('../../utils/score.js')
-var presetLib = require('../../utils/custom-preset.js')
-var publicTemplates = require('../../utils/public-templates.js')
 
 // ========== 分类配置 ==========
 var CATEGORY_TABS = [
@@ -24,16 +23,6 @@ var DEFAULT_SLOTS = [
   { id: 'afternoon', name: '下午', startTime: '14:00', endTime: '18:00' },
   { id: 'night',   name: '晚上',   startTime: '18:00', endTime: '22:00' }
 ]
-
-// preset 骨骼分类 → tab 分类的映射
-// custom-preset.js 的 presets 用了一套骨骼分类体系，这里映射到我们的 tab
-var PRESET_BONE_CATEGORY_MAP = {
-  wu: ['strength', 'endurance', 'skill'],
-  shi: ['nutrition'],
-  wu2: ['mind', 'study'],
-  gong: ['daily_work'],
-  sha: ['bad_habit']
-}
 
 Page({
   data: {
@@ -108,141 +97,138 @@ Page({
     return true
   },
 
-  // ========== 模板加载：custom-preset.js 预设 + public-templates.js 公开模板 ==========
+  // ========== 自建 daily 模板加载（从 storage 读取，按 tab 筛选）==========
   loadTemplates: function (categoryId) {
     var self = this
-    var boneCategories = PRESET_BONE_CATEGORY_MAP[categoryId] || []
+    var ALL_TEMPLATES_CACHE_KEY = 'tiandao_daily_templates'
 
-    // 1. 从 custom-preset.js 读取用户自定义预设
-    var customTemplates = []
-    for (var bc = 0; bc < boneCategories.length; bc++) {
-      try {
-        var catPresets = presetLib.getPresetsByCategory(boneCategories[bc])
-        if (catPresets && catPresets.length > 0) {
-          for (var cp = 0; cp < catPresets.length; cp++) {
-            var preset = catPresets[cp]
-            var presetActivity = activityLib.getActivityById(preset.id)
-            // 如果官方活动库找不到，尝试从已加载的自定义活动中找
-            if (!presetActivity && self._customActivityMap && self._customActivityMap[preset.id]) {
-              presetActivity = self._customActivityMap[preset.id]
-            }
-            var activity = presetActivity || {
-              id: preset.id, name: preset.name || preset.id,
-              unit: '分钟', scorePerUnit: preset.baseScore || 1,
-              icon: preset.icon || '', isNegative: false
-            }
-            customTemplates.push({
-              id: 'preset_' + preset.id,
-              name: preset.name || preset.id,
-              cover: preset.icon || (preset.name ? preset.name[0] : '修'),
-              themeClass: categoryId,
-              tag: '',
-              activities: [{
-                id: activity.id, name: activity.name,
-                unit: activity.unit || '分钟',
-                scorePerUnit: activity.scorePerUnit || 1,
-                icon: activity.icon, isNegative: activity.isNegative || false,
-                _preset: preset
-              }],
-              schedule: [
-                { id: 'all', name: '修行活动', startTime: '', endTime: '', activities: [{
-                  id: activity.id, name: activity.name, unit: activity.unit || '分钟',
-                  scorePerUnit: activity.scorePerUnit || 1, icon: activity.icon,
-                  isNegative: activity.isNegative || false
-                }]}
-              ]
-            })
-          }
-        }
-      } catch (e) {
-        console.warn('加载预设分类失败:', boneCategories[bc], e)
+    // 获取 tab 信息
+    var currentTab = null
+    for (var ti = 0; ti < CATEGORY_TABS.length; ti++) {
+      if (CATEGORY_TABS[ti].id === categoryId) { currentTab = CATEGORY_TABS[ti]; break }
+    }
+    if (!currentTab) {
+      self.setData({ templates: [], currentTemplate: null, allProgress: {}, activityProgress: {} })
+      return
+    }
+
+    // 从 storage 加载所有自建 daily 模板
+    var allDailyTemplates = []
+    try { allDailyTemplates = wx.getStorageSync(ALL_TEMPLATES_CACHE_KEY) || [] } catch(e) {}
+
+    // 按 tab 筛选
+    var filtered = []
+    for (var fi = 0; fi < allDailyTemplates.length; fi++) {
+      var tpl = allDailyTemplates[fi]
+      if (!tpl) continue
+      if (tpl.categoryKey === currentTab.key || tpl.tabId === currentTab.id) {
+        filtered.push(tpl)
       }
     }
 
-    // 2. 从 public-templates.js 读取公开模板
-    var pubTmpls = publicTemplates.getPublicTemplatesByCategory(categoryId)
-    var publicTemplateCards = []
-    for (var pt = 0; pt < pubTmpls.length; pt++) {
-      var pubTpl = pubTmpls[pt]
+    var templates = []
+    for (var i = 0; i < filtered.length; i++) {
+      var tpl = filtered[i]
+
+      // 解析活动（元卡 + 自定义）
       var activities = []
-      for (var ai = 0; ai < pubTpl.activities.length; ai++) {
-        var actId = pubTpl.activities[ai]
-        var act = activityLib.getActivityById(actId)
-        // 如果官方活动库找不到，尝试从已加载的自定义活动中找
-        if (!act && self._customActivityMap && self._customActivityMap[actId]) {
-          act = self._customActivityMap[actId]
-        }
-        if (act) {
-          activities.push({
-            id: act.id, name: act.name,
-            unit: act.unit || '次',
-            scorePerUnit: act.scorePerUnit || 1,
-            icon: act.icon, isNegative: act.isNegative || false
-          })
-        }
+      for (var ai = 0; ai < (tpl.activities || []).length; ai++) {
+        var actItem = tpl.activities[ai]
+        var resolved = self._resolveTemplateActivity(actItem, currentTab.key)
+        if (resolved) activities.push(resolved)
       }
-      if (activities.length > 0) {
-        // 构建时段分配
-        var schedule = []
-        var totalActs = activities.length
-        var slotsToUse = Math.min(totalActs, 5)
-        var actsPerSlot = Math.ceil(totalActs / slotsToUse)
-        for (var si = 0; si < slotsToUse; si++) {
-          var slot = DEFAULT_SLOTS[si]
-          var slotActivities = activities.slice(si * actsPerSlot, Math.min((si + 1) * actsPerSlot, totalActs))
-          schedule.push({
-            id: slot.id,
-            name: slot.name,
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-            activities: slotActivities
-          })
-        }
-        publicTemplateCards.push({
-          id: 'public_' + pubTpl.id,
-          name: pubTpl.name,
-          cover: pubTpl.cover,
-          themeClass: categoryId,
-          tag: pubTpl.tag || '官方',
-          description: pubTpl.description || '',
-          activities: activities,
-          schedule: schedule
+
+      // 构建时段分配（最多 5 个时段）
+      var schedule = []
+      var totalActs = activities.length
+      var slotsToUse = Math.min(totalActs, 5)
+      var actsPerSlot = Math.ceil(totalActs / slotsToUse)
+      for (var si = 0; si < slotsToUse; si++) {
+        var slot = DEFAULT_SLOTS[si]
+        schedule.push({
+          id: slot.id,
+          name: slot.name,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          activities: activities.slice(si * actsPerSlot, Math.min((si + 1) * actsPerSlot, totalActs))
         })
       }
+
+      templates.push({
+        id: tpl.id || ('tpl_' + i),
+        name: tpl.name || '自建模板',
+        cover: tpl.cover || '',
+        themeClass: currentTab.id,
+        tag: '',
+        description: tpl.description || '',
+        activities: activities,
+        schedule: schedule
+      })
     }
 
-    // 3. 合并：公开模板放前面，用户预设放后面
-    var allTemplates = publicTemplateCards.concat(customTemplates)
-
     // 保留所有分类的进度
-    var allProgress = Object.assign({}, this.data.allProgress)
-
-    var currentIndex = 0
-    var currentTemplate = allTemplates.length > 0 ? allTemplates[0] : null
+    var allProgress = Object.assign({}, self.data.allProgress)
+    var currentTemplate = templates.length > 0 ? templates[0] : null
     var activityProgress = currentTemplate ? (allProgress[currentTemplate.id] || {}) : {}
 
-    for (var ti = 0; ti < allTemplates.length; ti++) {
-      var tpl = allTemplates[ti]
-      if (!allProgress[tpl.id]) {
-        allProgress[tpl.id] = {}
-        for (var ai2 = 0; ai2 < tpl.activities.length; ai2++) {
-          allProgress[tpl.id][tpl.activities[ai2].id] = 0
+    for (var ti2 = 0; ti2 < templates.length; ti2++) {
+      var tpl2 = templates[ti2]
+      if (!allProgress[tpl2.id]) {
+        allProgress[tpl2.id] = {}
+        for (var ai2 = 0; ai2 < tpl2.activities.length; ai2++) {
+          allProgress[tpl2.id][tpl2.activities[ai2].id] = 0
         }
       }
     }
 
-    this.setData({
-      templates: allTemplates,
-      currentTemplateIndex: currentIndex,
+    self.setData({
+      templates: templates,
+      currentTemplateIndex: 0,
       currentTemplate: currentTemplate,
       allProgress: allProgress,
       activityProgress: activityProgress
     })
 
-    // 计算每个模板的总进度百分比和预计修为
-    this._updateTemplateProgresses()
+    self._updateTemplateProgresses()
+    self.recalcResult()
+  },
 
-    this.recalcResult()
+  /**
+   * 3.5 解析模板活动项 → 统一 activity 对象
+   * @param {object} actItem - 模板中存储的活动项 { actId, name, unit, scorePerUnit, icon, isNegative }
+   * @param {string} categoryKey - 当前 tab 的 category key (sport/diet/study/work/debuff)
+   */
+  _resolveTemplateActivity: function (actItem, categoryKey) {
+    var actId = actItem.actId || actItem.activityId || actItem.id
+    if (!actId) return null
+
+    // 元卡解析
+    if (actId.indexOf('meta_') === 0) {
+      var metaCardId = actId.replace('meta_', '')
+      var metaCard = MetaCards.META_CARDS[metaCardId]
+      if (!metaCard) return null
+      return {
+        id: actId,
+        actId: actId,
+        name: metaCard.name || actItem.name || '',
+        unit: actItem.unit || '次',
+        scorePerUnit: actItem.scorePerUnit || 1,
+        icon: actItem.icon || '',
+        isNegative: metaCard.category === 'debuff',
+        _metaCard: metaCard
+      }
+    }
+
+    // 自定义活动
+    return {
+      id: actId,
+      actId: actId,
+      name: actItem.name || actItem.activityName || '',
+      unit: actItem.unit || '次',
+      scorePerUnit: actItem.scorePerUnit || 1,
+      icon: actItem.icon || '',
+      isNegative: actItem.isNegative || false
+    }
   },
 
   // ========== Tab 切换 ==========
@@ -680,6 +666,22 @@ Page({
 
         var factor = progress / 100
         var act = activityLib.getActivityById(actId)
+        // 元卡兜底：从 MetaCards 直接解析活动定义
+        if (!act && actId.indexOf('meta_') === 0) {
+          var metaCardId = actId.replace('meta_', '')
+          var metaCard = MetaCards.META_CARDS[metaCardId]
+          if (metaCard) {
+            act = {
+              id: actId,
+              name: metaCard.name || actId,
+              unit: '次',
+              scorePerUnit: metaCard.category === 'debuff' ? -1 : 1,
+              isNegative: metaCard.category === 'debuff',
+              tabKey: metaCard.category || 'sport',
+              _metaCard: metaCard
+            }
+          }
+        }
         // 如果官方活动库找不到，尝试从已加载的自定义活动中找
         if (!act && self._customActivityMap && self._customActivityMap[actId]) {
           act = self._customActivityMap[actId]
