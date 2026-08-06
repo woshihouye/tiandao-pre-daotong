@@ -103,7 +103,10 @@ function sanitize(doc) {
 async function list(openid) {
   if (!openid) return { ok: false, error: '未登录' }
   var res = await db.collection('user_activities')
-    .where({ userId: openid, isCustom: true })
+    .where(_.or([
+      { userId: openid, isCustom: true },
+      { ownerId: openid }
+    ]))
     .orderBy('updatedAt', 'desc')
     .limit(200)
     .get()
@@ -143,7 +146,7 @@ async function copy(openid, params) {
 
   // 检查是否已复制过
   var dupRes = await db.collection('user_activities')
-    .where({ userId: openid, originActivityId: originId }).limit(1).get()
+    .where({ ownerId: openid, originActivityId: originId }).limit(1).get()
   if (dupRes.data && dupRes.data.length) {
     return { ok: false, error: '已复制过该活动', activityId: dupRes.data[0].activityId }
   }
@@ -152,6 +155,7 @@ async function copy(openid, params) {
   var doc = {
     activityId: genId(openid),
     userId: openid,
+    ownerId: openid,
     originActivityId: originId,
     isCustom: true,
     name: newName,
@@ -183,7 +187,7 @@ async function update(openid, params) {
 
   // 校验归属
   var existRes = await db.collection('user_activities')
-    .where({ activityId: activityId, userId: openid }).limit(1).get()
+    .where({ activityId: activityId, ownerId: openid }).limit(1).get()
   if (!existRes.data || existRes.data.length === 0) {
     return { ok: false, error: '无权修改或活动不存在' }
   }
@@ -203,7 +207,7 @@ async function update(openid, params) {
   }
 
   await db.collection('user_activities')
-    .where({ activityId: activityId, userId: openid })
+    .where({ activityId: activityId, ownerId: openid })
     .update({ data: updateData })
 
   return { ok: true }
@@ -216,7 +220,7 @@ async function remove(openid, params) {
   if (!activityId) return { ok: false, error: '缺少 activityId' }
 
   var res = await db.collection('user_activities')
-    .where({ activityId: activityId, userId: openid })
+    .where({ activityId: activityId, ownerId: openid })
     .remove()
 
   return { ok: true, removed: res.stats ? res.stats.removed : 0 }
@@ -230,7 +234,7 @@ async function reclassify(openid, params) {
 
   // 校验归属
   var existRes = await db.collection('user_activities')
-    .where({ activityId: activityId, userId: openid }).limit(1).get()
+    .where({ activityId: activityId, ownerId: openid }).limit(1).get()
   if (!existRes.data || existRes.data.length === 0) {
     return { ok: false, error: '无权修改或活动不存在' }
   }
@@ -252,7 +256,7 @@ async function reclassify(openid, params) {
   if (params.sideFilter !== undefined) upd.sideFilter = params.sideFilter
 
   await db.collection('user_activities')
-    .where({ activityId: activityId, userId: openid })
+    .where({ activityId: activityId, ownerId: openid })
     .update({ data: upd })
 
   return { ok: true }

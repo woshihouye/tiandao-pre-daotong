@@ -339,6 +339,8 @@ async function createCustom(openid, params) {
   doc.activityId = genUserActivityId(openid)
   doc.isSystem = false
   doc.ownerId = openid
+  doc.userId = openid
+  doc.isCustom = true
   doc.ownerName = params.ownerName || ''
   doc.visibility = 'public' // 公开分享
   doc.useCount = 0
