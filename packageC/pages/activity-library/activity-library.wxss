@@ -526,6 +526,11 @@ page { height: 100%; }
   color: #7E22CE;
   border: 1rpx solid #E9D5FF;
 }
+.card-tag.meta {
+  background: #DCFCE7;
+  color: #16A34A;
+  border: 1rpx solid #86EFAC;
+}
 
 /* ========== 卡片操作按钮 ========== */
 .card-actions {

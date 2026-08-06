@@ -117,7 +117,7 @@ async function getLibrary(params) {
   var where = { status: 'active', isSystem: true }
   if (params.category) where.category = params.category
   // 元卡改造：sport / diet 维度不再使用 topFilter/sideFilter，改用 metaCard 或直接返回
-  if ((params.category === 'sport' || params.category === 'diet') && params.metaCard) {
+  if ((params.category === 'sport' || params.category === 'diet' || params.category === 'study' || params.category === 'work' || params.category === 'debuff') && params.metaCard) {
     where['customMeta.metaCard'] = params.metaCard
   } else {
     if (params.topFilter && params.topFilter !== 'all') where.topFilter = params.topFilter
@@ -202,9 +202,52 @@ function getFilterConfigs() {
           { key: 'diet_free', name: 'free卡' }
         ]
       },
-      study: { top: ['all'], side: ['all'] },
-      work: { top: ['all'], side: ['all'] },
-      debuff: { top: ['all'], side: ['all'] }
+      study: {
+        categories: [
+          { key: 'all', name: '全部' },
+          { key: 'knowledge', name: '学知识' },
+          { key: 'skill', name: '练技艺' },
+          { key: 'worldly', name: '见世面' },
+          { key: 'cyber', name: '赛博修行' },
+          { key: 'unknown', name: '不知道' }
+        ],
+        metaCards: [
+          { key: 'input', name: '输入卡' },
+          { key: 'process', name: '处理卡' },
+          { key: 'output', name: '输出卡' }
+        ]
+      },
+      work: {
+        categories: [
+          { key: 'all', name: '全部' },
+          { key: 'kaitian', name: '开天' },
+          { key: 'butian', name: '补天' },
+          { key: 'fun', name: '有意思' },
+          { key: 'boring', name: '不好玩' },
+          { key: 'unknown', name: '不知道' }
+        ],
+        metaCards: [
+          { key: 'plan', name: '谋卡' },
+          { key: 'execute', name: '行卡' },
+          { key: 'talk', name: '谈卡' }
+        ]
+      },
+      debuff: {
+        categories: [
+          { key: 'all', name: '全部' },
+          { key: 'body_hurt', name: '伤身' },
+          { key: 'eat_chaos', name: '乱食' },
+          { key: 'screen_lost', name: '溺屏' },
+          { key: 'inner_demon', name: '内耗' },
+          { key: 'unknown', name: '不知道' }
+        ],
+        metaCards: [
+          { key: 'body_harm', name: '伤身卡' },
+          { key: 'eat_chaos', name: '乱食卡' },
+          { key: 'screen_lost', name: '溺屏卡' },
+          { key: 'inner_demon', name: '内耗卡' }
+        ]
+      }
     }
   }
 }

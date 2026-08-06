@@ -91,6 +91,7 @@
             </view>
             <view wx:if="{{cardMode === 'study'}}" class="grid-card study-card {{act.isNegative ? 'is-negative' : ''}}" data-activity="{{act}}" bindtap="onCardTap">
               <view class="card-tags">
+                <text class="card-tag meta" wx:if="{{act._isMetaCard}}">元</text>
                 <text class="card-tag official" wx:if="{{act.isOfficial}}">官方</text>
                 <text class="card-tag custom" wx:if="{{act.isCustom && !act.isPublic}}">自定义</text>
                 <text class="card-tag public" wx:if="{{act.isPublic}}">公开</text>
@@ -116,6 +117,7 @@
             </view>
             <view wx:elif="{{cardMode === 'food'}}" class="grid-card food-card" data-activity="{{act}}" bindtap="onCardTap">
               <view class="card-tags">
+                <text class="card-tag meta" wx:if="{{act._isMetaCard}}">元</text>
                 <text class="card-tag custom" wx:if="{{act.isCustom}}">自定义</text>
               </view>
               <view class="card-pin {{pinned[act.id] ? 'pinned' : ''}}" data-id="{{act.id}}" catchtap="togglePin">
@@ -126,6 +128,7 @@
             </view>
             <view wx:else class="grid-card {{act.isNegative ? 'is-negative' : ''}}" data-activity="{{act}}" bindtap="onCardTap">
               <view class="card-tags">
+                <text class="card-tag meta" wx:if="{{act._isMetaCard}}">元</text>
                 <text class="card-tag official" wx:if="{{act.isOfficial}}">官方</text>
                 <text class="card-tag custom" wx:if="{{act.isCustom && !act.isPublic}}">自定义</text>
                 <text class="card-tag public" wx:if="{{act.isPublic}}">公开</text>

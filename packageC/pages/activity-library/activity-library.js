@@ -1,7 +1,7 @@
 // 大道之行 · 活动库
 var app = getApp()
 var Alib = require('../../../utils/activity-library.js')
-var MetaCards = require('../../../utils/meta-cards.js')
+var MetaCards = require('../../utils/meta-cards.js')
 
 /** 置顶本地存储 key 前缀 */
 var PIN_STORAGE_PREFIX = 'tiandao_actlib_pin_'
@@ -382,6 +382,36 @@ Page({
         currentSubcategory: 'all',
         currentMetaCard: ''
       })
+    } else if (cat === 'study') {
+      // 悟·修心 元卡改造：使用 categories 侧栏 + metaCards 筛选
+      var studyConfig = Alib.FILTER_CONFIGS.study || { categories: [], metaCards: [] }
+      var studySideFilters = studyConfig.categories || []
+      this.setData({
+        sideFilters: studySideFilters,
+        currentSideFilter: 'all',
+        currentSubcategory: 'all',
+        currentMetaCard: ''
+      })
+    } else if (cat === 'work') {
+      // 工·功业 元卡改造：使用 categories 侧栏 + metaCards 筛选
+      var workConfig = Alib.FILTER_CONFIGS.work || { categories: [], metaCards: [] }
+      var workSideFilters = workConfig.categories || []
+      this.setData({
+        sideFilters: workSideFilters,
+        currentSideFilter: 'all',
+        currentSubcategory: 'all',
+        currentMetaCard: ''
+      })
+    } else if (cat === 'debuff') {
+      // 煞·心魔 元卡改造：使用 categories 侧栏 + metaCards 筛选
+      var debuffConfig = Alib.FILTER_CONFIGS.debuff || { categories: [], metaCards: [] }
+      var debuffSideFilters = debuffConfig.categories || []
+      this.setData({
+        sideFilters: debuffSideFilters,
+        currentSideFilter: 'all',
+        currentSubcategory: 'all',
+        currentMetaCard: ''
+      })
     } else {
       var config = Alib.FILTER_CONFIGS[cat] || { top: [], side: [] }
       var sideFilters = config.side || []
@@ -412,7 +442,7 @@ Page({
 
   tapSideFilter: function(e) {
     var key = e.currentTarget.dataset.key
-    if (this.data.currentCategory === 'sport' || this.data.currentCategory === 'diet') {
+    if (this.data.currentCategory === 'sport' || this.data.currentCategory === 'diet' || this.data.currentCategory === 'study' || this.data.currentCategory === 'work' || this.data.currentCategory === 'debuff') {
       this.setData({ currentSideFilter: key, currentSubcategory: key })
     } else {
       this.setData({ currentSideFilter: key })
@@ -533,6 +563,188 @@ Page({
   },
 
   /**
+   * 构建 study 元卡活动列表（3 张 - 输入/处理/输出）
+   */
+  _buildStudyMetaCardActivities: function() {
+    var cards = MetaCards.META_CARDS
+    var sub = this.data.currentSubcategory || 'all'
+    var mc = this.data.currentMetaCard || ''
+    var arr = []
+
+    // 子集（学知识/练技艺/见世面/赛博修行/不知道）到元卡的映射
+    var goalCardMap = {
+      knowledge: ['input', 'process'],
+      skill: ['process', 'output'],
+      worldly: ['input'],
+      cyber: ['input', 'process', 'output'],
+      unknown: ['output']
+    }
+
+    for (var key in cards) {
+      if (!Object.prototype.hasOwnProperty.call(cards, key)) continue
+      var card = cards[key]
+      if (card.category !== 'study') continue
+
+      if (mc && card.id !== mc) continue
+
+      if (sub !== 'all') {
+        var allowedCards = goalCardMap[sub] || []
+        if (allowedCards.indexOf(card.id) === -1) continue
+      }
+
+      // 构建参数摘要
+      var summary = ''
+      if (card.selectParams) {
+        var names = []
+        for (var i = 0; i < card.selectParams.length; i++) {
+          names.push(card.selectParams[i].name)
+        }
+        summary = names.slice(0, 3).join('·')
+      }
+
+      arr.push({
+        id: 'meta_' + card.id,
+        name: card.name,
+        category: 'study',
+        tabKey: 'study',
+        metaCardId: card.id,
+        description: card.description,
+        unit: '次',
+        scorePerUnit: 1,
+        presetAction: '',
+        isOfficial: false,
+        isCustom: false,
+        isPublic: false,
+        sideFilter: sub !== 'all' ? sub : 'all',
+        _isMetaCard: true,
+        _muscleSummary: summary,
+        ext: {},
+        tags: [],
+        __keys: []
+      })
+    }
+    return arr
+  },
+
+  _buildWorkMetaCardActivities: function() {
+    var cards = MetaCards.META_CARDS
+    var sub = this.data.currentSubcategory || 'all'
+    var mc = this.data.currentMetaCard || ''
+    var arr = []
+
+    // 子集（开天/补天/有意思/不好玩/不知道）到元卡的映射
+    var goalCardMap = {
+      kaitian: ['plan', 'talk'],
+      butian: ['execute', 'talk'],
+      fun: ['plan', 'execute'],
+      boring: ['execute'],
+      unknown: ['talk']
+    }
+
+    for (var key in cards) {
+      if (!Object.prototype.hasOwnProperty.call(cards, key)) continue
+      var card = cards[key]
+      if (card.category !== 'work') continue
+
+      if (mc && card.id !== mc) continue
+
+      if (sub !== 'all') {
+        var allowedCards = goalCardMap[sub] || []
+        if (allowedCards.indexOf(card.id) === -1) continue
+      }
+
+      // 构建参数摘要
+      var summary = ''
+      if (card.selectParams) {
+        var names = []
+        for (var i = 0; i < card.selectParams.length; i++) {
+          names.push(card.selectParams[i].name)
+        }
+        summary = names.slice(0, 3).join('·')
+      }
+
+      arr.push({
+        id: 'meta_' + card.id,
+        name: card.name,
+        category: 'work',
+        tabKey: 'work',
+        metaCardId: card.id,
+        description: card.description,
+        unit: '次',
+        scorePerUnit: 1,
+        presetAction: '',
+        isOfficial: false,
+        isCustom: false,
+        isPublic: false,
+        sideFilter: sub !== 'all' ? sub : 'all',
+        _isMetaCard: true,
+        _muscleSummary: summary,
+        ext: {},
+        tags: [],
+        __keys: []
+      })
+    }
+    return arr
+  },
+
+  _buildDebuffMetaCardActivities: function() {
+    var cards = MetaCards.META_CARDS
+    var sub = this.data.currentSubcategory || 'all'
+    var mc = this.data.currentMetaCard || ''
+    var arr = []
+
+    for (var key in cards) {
+      if (!Object.prototype.hasOwnProperty.call(cards, key)) continue
+      var card = cards[key]
+      if (card.category !== 'debuff') continue
+
+      if (mc && card.id !== mc) continue
+
+      // 子集筛选：伤身/乱食/溺屏/内耗 → 各对应一张元卡
+      if (sub !== 'all') {
+        // body_hurt → body_harm, eat_chaos → eat_chaos, screen_lost → screen_lost, inner_demon → inner_demon
+        if (sub === 'body_hurt' && card.id !== 'body_harm') continue
+        if (sub === 'eat_chaos' && card.id !== 'eat_chaos') continue
+        if (sub === 'screen_lost' && card.id !== 'screen_lost') continue
+        if (sub === 'inner_demon' && card.id !== 'inner_demon') continue
+        if (sub === 'unknown' && card.id !== 'inner_demon') continue
+      }
+
+      // 构建参数摘要
+      var summary = ''
+      if (card.selectParams) {
+        var names = []
+        for (var i = 0; i < card.selectParams.length; i++) {
+          names.push(card.selectParams[i].name)
+        }
+        summary = names.slice(0, 2).join('·')
+      }
+
+      arr.push({
+        id: 'meta_' + card.id,
+        name: card.name,
+        category: 'debuff',
+        tabKey: 'debuff',
+        metaCardId: card.id,
+        description: card.description,
+        unit: '次',
+        scorePerUnit: -1,
+        presetAction: '',
+        isOfficial: false,
+        isCustom: false,
+        isPublic: false,
+        sideFilter: sub !== 'all' ? sub : 'all',
+        _isMetaCard: true,
+        _muscleSummary: summary,
+        ext: {},
+        tags: [],
+        __keys: []
+      })
+    }
+    return arr
+  },
+
+  /**
    * 构建 8 张元卡为普通活动对象，混入 activities 列表统一渲染
    * @returns {Array} 8 个虚拟活动对象
    */
@@ -547,8 +759,8 @@ Page({
       if (!Object.prototype.hasOwnProperty.call(cards, key)) continue
       var card = cards[key]
 
-      // 排除 diet 元卡（diet 卡有 category='diet'，sport 卡无 category 字段）
-      if (card.category === 'diet') continue
+      // 排除 diet/study/work/debuff 元卡（sport 卡无 category 字段）
+      if (card.category === 'diet' || card.category === 'study' || card.category === 'work' || card.category === 'debuff') continue
 
       // 子集筛选
       if (sub !== 'all' && card.subcategory !== sub) continue
@@ -745,6 +957,78 @@ Page({
       self._loadCustomFromCloud(cat, kw, sideF, function(customList) {
         if (currentRequestId !== self._activityRequestId) return
         var merged = dietMetaActs.concat(customList)
+        if (self.data.showMyCustomOnly) {
+          merged = self._groupMyCustom(customList)
+        }
+        self._finalizeListWithMetaCards(merged, cat)
+      })
+      return
+    }
+
+    // 悟·修心 元卡改造：虚拟注入 study 元卡 + 自定义活动
+    if (cat === 'study') {
+      var studyMetaActs = self._buildStudyMetaCardActivities()
+      var kw3 = (self.data.searchKeyword || '').trim()
+
+      if (kw3) {
+        studyMetaActs = studyMetaActs.filter(function(a) {
+          return a.name.indexOf(kw3) !== -1
+        })
+      }
+
+      self._finalizeListWithMetaCards(studyMetaActs, cat)
+
+      self._loadCustomFromCloud(cat, kw, sideF, function(customList) {
+        if (currentRequestId !== self._activityRequestId) return
+        var merged = studyMetaActs.concat(customList)
+        if (self.data.showMyCustomOnly) {
+          merged = self._groupMyCustom(customList)
+        }
+        self._finalizeListWithMetaCards(merged, cat)
+      })
+      return
+    }
+
+    // 工·功业 元卡改造：虚拟注入 work 元卡 + 自定义活动
+    if (cat === 'work') {
+      var workMetaActs = self._buildWorkMetaCardActivities()
+      var kw4 = (self.data.searchKeyword || '').trim()
+
+      if (kw4) {
+        workMetaActs = workMetaActs.filter(function(a) {
+          return a.name.indexOf(kw4) !== -1
+        })
+      }
+
+      self._finalizeListWithMetaCards(workMetaActs, cat)
+
+      self._loadCustomFromCloud(cat, kw, sideF, function(customList) {
+        if (currentRequestId !== self._activityRequestId) return
+        var merged = workMetaActs.concat(customList)
+        if (self.data.showMyCustomOnly) {
+          merged = self._groupMyCustom(customList)
+        }
+        self._finalizeListWithMetaCards(merged, cat)
+      })
+      return
+    }
+
+    // 煞·心魔 元卡改造：虚拟注入 debuff 元卡 + 自定义活动
+    if (cat === 'debuff') {
+      var debuffMetaActs = self._buildDebuffMetaCardActivities()
+      var kw5 = (self.data.searchKeyword || '').trim()
+
+      if (kw5) {
+        debuffMetaActs = debuffMetaActs.filter(function(a) {
+          return a.name.indexOf(kw5) !== -1
+        })
+      }
+
+      self._finalizeListWithMetaCards(debuffMetaActs, cat)
+
+      self._loadCustomFromCloud(cat, kw, sideF, function(customList) {
+        if (currentRequestId !== self._activityRequestId) return
+        var merged = debuffMetaActs.concat(customList)
         if (self.data.showMyCustomOnly) {
           merged = self._groupMyCustom(customList)
         }

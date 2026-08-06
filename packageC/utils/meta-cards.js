@@ -1,4 +1,4 @@
-// 大道之行 · 元卡定义（v1.1 – sport / diet 双维度）
+// 大道之行 · 元卡定义（v1.3 – sport / diet / study / work / debuff 五维度）
 // 元卡 = 动作原型的最小全集。用户通过组合元卡 + 自由命名 + 调参数 → 衍生所有活动。
 
 var META_CARDS = {
@@ -329,6 +329,194 @@ var META_CARDS = {
     cellTypes: ['weight_g', 'calories', 'portion', 'subjective', 'custom'],
     valueType: 'diet_free',
     breakthrough: { type: 'none' }
+  },
+
+  // ========== 悟·修心 子集 ==========
+
+  input: {
+    id: 'input',
+    name: '输入卡',
+    category: 'study',
+    description: '描述信息输入质量，听书/阅读/看视频通用',
+    selectParams: [
+      { id: 'info_quality', name: '信息质量', options: ['垃圾', '碎片', '系统', '经典'], default: '系统' },
+      { id: 'absorb_state', name: '吸收状态', options: ['走神', '一般', '专注', '心流'], default: '专注' },
+      { id: 'media_form', name: '媒介形式', options: ['文字', '音频', '视频', '实景'], default: '文字' }
+    ],
+    defaultCells: [
+      { id: 1, type: 'time', name: '时长', unit: '分钟', weight: 0.7 },
+      { id: 2, type: 'quantity', name: '数量', unit: '页/集/篇', weight: 0.3 }
+    ],
+    cellTypes: ['time', 'quantity', 'custom'],
+    valueType: 'study_input',
+    breakthrough: { type: 'trend', formula: 'weekly_compare' }
+  },
+
+  process: {
+    id: 'process',
+    name: '处理卡',
+    category: 'study',
+    description: '描述信息处理深度，笔记/整理/复盘通用',
+    selectParams: [
+      { id: 'process_depth', name: '处理深度', options: ['浏览', '标记', '笔记', '费曼'], default: '笔记' },
+      { id: 'focus_state', name: '专注状态', options: ['分心', '一般', '专注', '心流'], default: '专注' }
+    ],
+    defaultCells: [
+      { id: 1, type: 'time', name: '时长', unit: '分钟', weight: 0.6 },
+      { id: 2, type: 'quantity', name: '产出量', unit: '条/题', weight: 0.4 }
+    ],
+    cellTypes: ['time', 'quantity', 'custom'],
+    valueType: 'study_process',
+    breakthrough: { type: 'trend', formula: 'weekly_compare' }
+  },
+
+  output: {
+    id: 'output',
+    name: '输出卡',
+    category: 'study',
+    description: '描述知识输出质量，写作/汇报/分享通用',
+    selectParams: [
+      { id: 'output_quality', name: '产出质量', options: ['随感', '整理', '体系', '创新'], default: '整理' },
+      { id: 'completeness', name: '完整程度', options: ['片段', '初稿', '完整', '打磨'], default: '完整' }
+    ],
+    defaultCells: [
+      { id: 1, type: 'time', name: '时长', unit: '分钟', weight: 0.5 },
+      { id: 2, type: 'quantity', name: '产出量', unit: '字/篇', weight: 0.5 }
+    ],
+    cellTypes: ['time', 'quantity', 'custom'],
+    valueType: 'study_output',
+    breakthrough: { type: 'trend', formula: 'weekly_compare' }
+  },
+
+  // ========== 工·功业 子集 ==========
+
+  plan: {
+    id: 'plan',
+    name: '谋卡',
+    category: 'work',
+    description: '项目策划、方案设计、技术调研等前期谋划工作',
+    selectParams: [
+      { id: 'output_form', name: '产出形态', options: ['代码', '文档', '设计', '决策', '关系', '流水'], default: '文档' },
+      { id: 'complexity', name: '复杂度', options: ['流水', '套路', '烧脑', '攻坚'], default: '套路' },
+      { id: 'collaboration', name: '协作度', options: ['独狼', '搭档', '小队', '跨部门'], default: '独狼' },
+      { id: 'innovation', name: '创新度', options: ['抄作业', '改良', '原创', '无人区'], default: '改良' }
+    ],
+    defaultCells: [
+      { id: 1, type: 'time', name: '时长', unit: '分钟', weight: 0.7 },
+      { id: 2, type: 'quantity', name: '产出量', unit: '页/条', weight: 0.3 }
+    ],
+    cellTypes: ['time', 'quantity', 'custom'],
+    valueType: 'work_plan',
+    breakthrough: { type: 'trend', formula: 'weekly_compare' }
+  },
+
+  execute: {
+    id: 'execute',
+    name: '行卡',
+    category: 'work',
+    description: '具体执行、开发编码、测试验收等落地实施工作',
+    selectParams: [
+      { id: 'output_form', name: '产出形态', options: ['代码', '文档', '设计', '决策', '关系', '流水'], default: '代码' },
+      { id: 'complexity', name: '复杂度', options: ['流水', '套路', '烧脑', '攻坚'], default: '套路' },
+      { id: 'collaboration', name: '协作度', options: ['独狼', '搭档', '小队', '跨部门'], default: '独狼' },
+      { id: 'innovation', name: '创新度', options: ['抄作业', '改良', '原创', '无人区'], default: '改良' }
+    ],
+    defaultCells: [
+      { id: 1, type: 'time', name: '时长', unit: '分钟', weight: 0.5 },
+      { id: 2, type: 'quantity', name: '产出量', unit: '行/页/个', weight: 0.5 }
+    ],
+    cellTypes: ['time', 'quantity', 'custom'],
+    valueType: 'work_execute',
+    breakthrough: { type: 'trend', formula: 'weekly_compare' }
+  },
+
+  talk: {
+    id: 'talk',
+    name: '谈卡',
+    category: 'work',
+    description: '沟通对齐、会议讨论、汇报谈判等交流协作工作',
+    selectParams: [
+      { id: 'output_form', name: '产出形态', options: ['代码', '文档', '设计', '决策', '关系', '流水'], default: '决策' },
+      { id: 'comm_nature', name: '沟通性质', options: ['传达', '对齐', '说服', '谈判'], default: '对齐' },
+      { id: 'collaboration', name: '协作度', options: ['独狼', '搭档', '小队', '跨部门'], default: '搭档' }
+    ],
+    defaultCells: [
+      { id: 1, type: 'time', name: '时长', unit: '分钟', weight: 0.6 },
+      { id: 2, type: 'quantity', name: '参与人数', unit: '人', weight: 0.4 }
+    ],
+    cellTypes: ['time', 'quantity', 'custom'],
+    valueType: 'work_talk',
+    breakthrough: { type: 'trend', formula: 'weekly_compare' }
+  },
+
+  // ========== 煞·心魔 子集 ==========
+
+  body_harm: {
+    id: 'body_harm',
+    name: '伤身卡',
+    category: 'debuff',
+    description: '熬垮身子，作息紊乱与身体损耗行为记录',
+    selectParams: [
+      { id: 'severity', name: '严重度', options: ['轻微', '一般', '严重', '爆了'], default: '一般' }
+    ],
+    defaultCells: [
+      { id: 1, type: 'time', name: '时长', unit: '小时/分钟', weight: 0.6 },
+      { id: 2, type: 'count', name: '次数', unit: '次', weight: 0.4 }
+    ],
+    cellTypes: ['time', 'count', 'custom'],
+    valueType: 'debuff_body',
+    breakthrough: { type: 'none' }
+  },
+
+  eat_chaos: {
+    id: 'eat_chaos',
+    name: '乱食卡',
+    category: 'debuff',
+    description: '乱吃一通，饮食失控与暴饮暴食记录',
+    selectParams: [
+      { id: 'severity', name: '严重度', options: ['轻微', '一般', '严重', '暴了'], default: '一般' }
+    ],
+    defaultCells: [
+      { id: 1, type: 'portion', name: '份量', unit: '份/杯', weight: 0.7 },
+      { id: 2, type: 'count', name: '次数', unit: '次', weight: 0.3 }
+    ],
+    cellTypes: ['portion', 'count', 'custom'],
+    valueType: 'debuff_eat',
+    breakthrough: { type: 'none' }
+  },
+
+  screen_lost: {
+    id: 'screen_lost',
+    name: '溺屏卡',
+    category: 'debuff',
+    description: '刷到失神，沉迷屏幕虚度光阴记录',
+    selectParams: [
+      { id: 'severity', name: '严重度', options: ['轻微', '一般', '严重', '废了'], default: '一般' }
+    ],
+    defaultCells: [
+      { id: 1, type: 'time', name: '时长', unit: '分钟', weight: 0.8 },
+      { id: 2, type: 'count', name: '次数', unit: '次', weight: 0.2 }
+    ],
+    cellTypes: ['time', 'count', 'custom'],
+    valueType: 'debuff_screen',
+    breakthrough: { type: 'none' }
+  },
+
+  inner_demon: {
+    id: 'inner_demon',
+    name: '内耗卡',
+    category: 'debuff',
+    description: '心魔缠身，情绪内耗与拖延怠惰记录',
+    selectParams: [
+      { id: 'severity', name: '严重度', options: ['轻微', '一般', '严重', '崩了'], default: '一般' }
+    ],
+    defaultCells: [
+      { id: 1, type: 'count', name: '次数', unit: '次', weight: 0.7 },
+      { id: 2, type: 'time', name: '时长', unit: '分钟', weight: 0.3 }
+    ],
+    cellTypes: ['count', 'time', 'custom'],
+    valueType: 'debuff_inner',
+    breakthrough: { type: 'none' }
   }
 }
 
@@ -338,7 +526,10 @@ var SUBCATEGORIES = {
   core:      { name: '核心', cards: ['hold', 'curl'],          desc: '腰腹核心训练' },
   cardio:    { name: '有氧', cards: ['steady_cardio', 'interval_cardio'], desc: '心肺耐力训练' },
   unknown:   { name: '不知道', cards: ['unknown'],              desc: '自由定义' },
-  diet:      { name: '饮食', cards: ['daily', 'precision', 'diet_free'], desc: '' }
+  diet:      { name: '饮食', cards: ['daily', 'precision', 'diet_free'], desc: '' },
+  study:     { name: '修心', cards: ['input', 'process', 'output'], desc: '' },
+  work:      { name: '功业', cards: ['plan', 'execute', 'talk'], desc: '' },
+  debuff:    { name: '心魔', cards: ['body_harm', 'eat_chaos', 'screen_lost', 'inner_demon'], desc: '' }
 }
 
 // ========== 价值计算公式 ==========

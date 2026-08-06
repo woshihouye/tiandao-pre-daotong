@@ -3,7 +3,7 @@
 // 支持三种模式: default(默认), metaCard(元卡创建), isNew(复制)
 
 var app = getApp()
-var metaCards = require('../../../utils/meta-cards.js')
+var metaCards = require('../../utils/meta-cards.js')
 
 // 分类选项
 var CATEGORY_OPTIONS = [
@@ -24,6 +24,7 @@ var CELL_TYPES = [
   { type: 'sets', name: '组数' },
   { type: 'time', name: '时长' },
   { type: 'distance', name: '距离' },
+  { type: 'quantity', name: '数量' },
   { type: 'weight_g', name: '重量(g)' },
   { type: 'calories', name: '卡路里' },
   { type: 'portion', name: '份量' },
@@ -226,7 +227,8 @@ Page({
       cardId = 'push'
     }
 
-    var categoryIdx = metaCardInfo.category === 'diet' ? 1 : 0
+    var catIdxMap = { sport: 0, diet: 1, study: 2, work: 3, debuff: 4 }
+    var categoryIdx = catIdxMap[metaCardInfo.category] || 0
 
     this.setData({
       metaCardInfo: metaCardInfo,
