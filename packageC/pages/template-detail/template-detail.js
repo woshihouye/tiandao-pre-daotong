@@ -98,6 +98,11 @@ Page({
     try {
       const template = getTemplateById(this.templateId, getLocalCustomTemplates())
       if (!template || template.category === 'custom_entry') {
+        // 云端模板兜底：广场进入的官方模板本地不存在，走云端加载模板本体
+        if (this.data.fromPlaza && this.data.cloudSourceId) {
+          this.loadCloudDetail(true)
+          return
+        }
         app.showSystemToast('模板不存在')
         return
       }
@@ -332,22 +337,51 @@ Page({
     })
   },
 
-  // >>> 加载云端模板详情
-  loadCloudDetail: function() {
+  // >>> 加载云端模板详情（loadBody=true 时同时加载模板本体，用于广场进入的官方模板）
+  loadCloudDetail: function(loadBody) {
     var that = this
     if (!fetchTemplateDetail) return
     fetchTemplateDetail(this.data.cloudSourceId).then(function(res) {
+      var t = res.template
+      if (loadBody && t) {
+        var doneMap = (that.readTodayCheckin(t.id) || {}).tasks || {}
+        var taskStates = (t.tasks || []).map(function(task) {
+          return Object.assign({}, task, { done: !!doneMap[task.id] })
+        })
+        var current = app.getCurrentTemplate ? app.getCurrentTemplate() : null
+        var profile = (app.globalData && app.globalData.userProfile) || {}
+        var totalCultivation = Number(profile.totalCultivation || 0)
+        var realm = getTemplateRealmByScore(totalCultivation, t.realmNames)
+        var todayScore = Number((that.readTodayCheckin(t.id) || {}).totalScore || 0)
+        var dailyCap = Number(t.dailyCap || 40)
+        that.setData({
+          template: t,
+          isActive: !!(current && current.id === t.id),
+          todayScore: todayScore,
+          dailyCap: dailyCap,
+          remainScore: Math.max(0, dailyCap - todayScore),
+          realm: realm,
+          taskStates: taskStates,
+          streakDays: Number(profile.streakDays || 0),
+          canEdit: false
+        })
+        wx.setNavigationBarTitle({ title: t.name || '人生模板' })
+      }
       that.setData({
-        likeCount: res.likeCount || (res.template && res.template.likeCount) || 0,
-        favCount: res.favCount || (res.template && res.template.favCount) || 0,
-        commentCount: res.commentCount || (res.template && res.template.commentCount) || 0,
-        importCount: res.importCount || (res.template && res.template.importCount) || 0,
+        likeCount: res.likeCount || (t && t.likeCount) || 0,
+        favCount: res.favCount || (t && t.favCount) || 0,
+        commentCount: res.commentCount || (t && t.commentCount) || 0,
+        importCount: res.importCount || (t && t.importCount) || 0,
         isLiked: res.isLiked || false,
         isFavorited: res.isFavorited || false,
-        creatorName: (res.template && res.template.creatorName) || '',
-        isOfficial: (res.template && res.template.isOfficial) || false
+        creatorName: (t && t.creatorName) || '',
+        isOfficial: !!(t && t.isOfficial)
       })
-    }).catch(function() {})
+    }).catch(function() {
+      if (loadBody) {
+        app.showSystemToast('模板加载失败')
+      }
+    })
   },
 
   // >>> 导入云端模板为我的辅修

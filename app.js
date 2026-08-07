@@ -1156,7 +1156,13 @@ App({
       if (profile && profile._id) {
         const db = this.getDb()
         if (db) {
-          await db.collection('users').doc(profile._id).update({ data: profilePatch })
+          // 云端 currentTemplate/mainTemplate 可能为 null，update 递归合并嵌套对象会报错 → 用 command.set 整体赋值
+          var patchData = Object.assign({}, profilePatch)
+          if (main && db.command) {
+            patchData.mainTemplate = db.command.set(main)
+            patchData.currentTemplate = db.command.set(main)
+          }
+          await db.collection('users').doc(profile._id).update({ data: patchData })
         }
       }
       this.syncUserProfile(profilePatch)

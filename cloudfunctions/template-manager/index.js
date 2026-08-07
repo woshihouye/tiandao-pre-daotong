@@ -21,11 +21,11 @@ async function getUserInteractions(userId, templateId) {
 
 /** 更新模板热度分：likeCount*2 + favCount*3 + importCount*5 + commentCount*2 */
 async function updateHotScore(templateId) {
-  var t = await db.collection('public_templates').doc(templateId).get();
-  var s = t.data || {};
+  var t = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  var s = t.data[0] || {};
   var score = (s.likeCount || 0) * 2 + (s.favCount || 0) * 3
             + (s.importCount || 0) * 5 + (s.commentCount || 0) * 2;
-  await db.collection('public_templates').doc(templateId).update({
+  await db.collection('public_templates').where({ id: templateId }).update({
     data: { hotScore: score }
   });
 }
@@ -229,9 +229,9 @@ async function getTemplateDetail(event) {
   var userId = event.userId || '';
   if (!templateId) return { ok: false, error: '缺少 templateId 参数' };
 
-  var templateRes = await db.collection('public_templates').doc(templateId).get();
-  if (!templateRes.data) return { ok: false, error: '模板不存在' };
-  var template = templateRes.data;
+  var templateRes = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  if (!templateRes.data || !templateRes.data.length) return { ok: false, error: '模板不存在' };
+  var template = templateRes.data[0];
 
   // 可见性检查
   if (!checkVisibility(template, userId)) {
@@ -1057,7 +1057,7 @@ async function likeTemplate(event) {
   var liked = false;
   if (existing.data && existing.data.length > 0) {
     await db.collection('template_likes').doc(existing.data[0]._id).remove();
-    await db.collection('public_templates').doc(templateId).update({
+    await db.collection('public_templates').where({ id: templateId }).update({
       data: { likeCount: _.inc(-1) }
     });
     liked = false;
@@ -1065,15 +1065,15 @@ async function likeTemplate(event) {
     await db.collection('template_likes').add({
       data: { templateId: templateId, userId: userId, createdAt: new Date() }
     });
-    await db.collection('public_templates').doc(templateId).update({
+    await db.collection('public_templates').where({ id: templateId }).update({
       data: { likeCount: _.inc(1) }
     });
     liked = true;
   }
 
   await updateHotScore(templateId);
-  var t = await db.collection('public_templates').doc(templateId).get();
-  return { ok: true, liked: liked, likeCount: t.data.likeCount || 0 };
+  var t = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  return { ok: true, liked: liked, likeCount: t.data[0] ? (t.data[0].likeCount || 0) : 0 };
 }
 
 async function favoriteTemplate(event) {
@@ -1087,7 +1087,7 @@ async function favoriteTemplate(event) {
   var favorited = false;
   if (existing.data && existing.data.length > 0) {
     await db.collection('template_favorites').doc(existing.data[0]._id).remove();
-    await db.collection('public_templates').doc(templateId).update({
+    await db.collection('public_templates').where({ id: templateId }).update({
       data: { favCount: _.inc(-1) }
     });
     favorited = false;
@@ -1095,15 +1095,15 @@ async function favoriteTemplate(event) {
     await db.collection('template_favorites').add({
       data: { templateId: templateId, userId: userId, createdAt: new Date() }
     });
-    await db.collection('public_templates').doc(templateId).update({
+    await db.collection('public_templates').where({ id: templateId }).update({
       data: { favCount: _.inc(1) }
     });
     favorited = true;
   }
 
   await updateHotScore(templateId);
-  var t = await db.collection('public_templates').doc(templateId).get();
-  return { ok: true, favorited: favorited, favCount: t.data.favCount || 0 };
+  var t = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  return { ok: true, favorited: favorited, favCount: t.data[0] ? (t.data[0].favCount || 0) : 0 };
 }
 
 async function commentTemplate(event) {
@@ -1118,13 +1118,13 @@ async function commentTemplate(event) {
   }
 
   // 检查模板评论权限
-  var tplRes = await db.collection('public_templates').doc(templateId).get();
-  if (!tplRes.data) return { ok: false, error: '模板不存在' };
-  if (!checkCommentPerm(tplRes.data, userId)) {
+  var tplRes = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  if (!tplRes.data || !tplRes.data.length) return { ok: false, error: '模板不存在' };
+  if (!checkCommentPerm(tplRes.data[0], userId)) {
     return { ok: false, error: '此模板已关闭评论' };
   }
   // 检查黑名单
-  var blockList = tplRes.data.blacklist || [];
+  var blockList = tplRes.data[0].blacklist || [];
   if (blockList.indexOf(userId) >= 0) {
     return { ok: false, error: '您已被禁止评论此模板' };
   }
@@ -1135,7 +1135,7 @@ async function commentTemplate(event) {
   };
 
   var addRes = await db.collection('template_comments').add({ data: comment });
-  await db.collection('public_templates').doc(templateId).update({
+  await db.collection('public_templates').where({ id: templateId }).update({
     data: { commentCount: _.inc(1) }
   });
   await updateHotScore(templateId);
@@ -1161,7 +1161,7 @@ async function addCommentEvent(event) {
   });
 
   // 更新评论计数
-  await db.collection('public_templates').doc(templateId).update({
+  await db.collection('public_templates').where({ id: templateId }).update({
     data: { commentCount: _.inc(1), updatedAt: new Date() }
   });
 
@@ -1201,14 +1201,14 @@ async function deleteComment(event) {
 
   var comment = commentRes.data;
   // 评论作者或模板创建者都可以删除
-  var tplRes = await db.collection('public_templates').doc(comment.templateId).get();
-  var isCreator = tplRes.data && tplRes.data.creatorId === userId;
+  var tplRes = await db.collection('public_templates').where({ id: comment.templateId }).limit(1).get();
+  var isCreator = tplRes.data[0] && tplRes.data[0].creatorId === userId;
   if (comment.userId !== userId && !isCreator) {
     return { ok: false, error: '无权删除此评论' };
   }
 
   await db.collection('template_comments').doc(commentId).remove();
-  await db.collection('public_templates').doc(comment.templateId).update({
+  await db.collection('public_templates').where({ id: comment.templateId }).update({
     data: { commentCount: _.inc(-1) }
   });
   await updateHotScore(comment.templateId);
@@ -1220,7 +1220,7 @@ async function importTemplate(event) {
   var templateId = event.templateId;
   if (!templateId) return { ok: false, error: '缺少 templateId 参数' };
 
-  await db.collection('public_templates').doc(templateId).update({
+  await db.collection('public_templates').where({ id: templateId }).update({
     data: { importCount: _.inc(1) }
   });
   await updateHotScore(templateId);
@@ -1241,8 +1241,8 @@ async function publishTemplate(event) {
 
   if (templateId) {
     try {
-      var existRes = await db.collection('public_templates').doc(templateId).get();
-      if (existRes.data && existRes.data.creatorId === userId) {
+      var existRes = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+      if (existRes.data[0] && existRes.data[0].creatorId === userId) {
         isUpdate = true;
       }
     } catch (e) { /* 不存在则新增 */ }
@@ -1284,7 +1284,7 @@ async function publishTemplate(event) {
   };
 
   if (isUpdate) {
-    await db.collection('public_templates').doc(templateId).update({ data: templateData });
+    await db.collection('public_templates').where({ id: templateId }).update({ data: templateData });
     return { ok: true, templateId: templateId, message: '模板已更新' };
   }
 
@@ -1320,11 +1320,11 @@ async function unpublishTemplate(event) {
   var userId = event.userId;
   if (!templateId || !userId) return { ok: false, error: '缺少必要参数' };
 
-  var tplRes = await db.collection('public_templates').doc(templateId).get();
-  if (!tplRes.data) return { ok: false, error: '模板不存在' };
-  if (tplRes.data.creatorId !== userId) return { ok: false, error: '无权下架他人模板' };
+  var tplRes = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  if (!tplRes.data || !tplRes.data.length) return { ok: false, error: '模板不存在' };
+  if (tplRes.data[0].creatorId !== userId) return { ok: false, error: '无权下架他人模板' };
 
-  await db.collection('public_templates').doc(templateId).update({
+  await db.collection('public_templates').where({ id: templateId }).update({
     data: { isPublic: false, status: 'unpublished', updatedAt: new Date() }
   });
   return { ok: true, message: '模板已下架' };
@@ -1335,15 +1335,15 @@ async function deleteTemplate(event) {
   var userId = event.userId;
   if (!templateId || !userId) return { ok: false, error: '缺少必要参数' };
 
-  var tplRes = await db.collection('public_templates').doc(templateId).get();
-  if (!tplRes.data) return { ok: false, error: '模板不存在' };
-  if (tplRes.data.creatorId !== userId) return { ok: false, error: '无权删除他人模板' };
+  var tplRes = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  if (!tplRes.data || !tplRes.data.length) return { ok: false, error: '模板不存在' };
+  if (tplRes.data[0].creatorId !== userId) return { ok: false, error: '无权删除他人模板' };
 
   // 清理关联数据
   await db.collection('template_likes').where({ templateId: templateId }).remove().catch(function(){});
   await db.collection('template_favorites').where({ templateId: templateId }).remove().catch(function(){});
   await db.collection('template_comments').where({ templateId: templateId }).remove().catch(function(){});
-  await db.collection('public_templates').doc(templateId).remove();
+  await db.collection('public_templates').where({ id: templateId }).remove();
 
   return { ok: true, message: '模板已删除' };
 }
@@ -1528,15 +1528,15 @@ async function addToBlacklist(event) {
   var targetUserId = event.targetUserId;
   if (!templateId || !userId || !targetUserId) return { ok: false, error: '缺少必要参数' };
 
-  var tplRes = await db.collection('public_templates').doc(templateId).get();
-  if (!tplRes.data) return { ok: false, error: '模板不存在' };
-  if (tplRes.data.creatorId !== userId) return { ok: false, error: '无权操作' };
+  var tplRes = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  if (!tplRes.data || !tplRes.data.length) return { ok: false, error: '模板不存在' };
+  if (tplRes.data[0].creatorId !== userId) return { ok: false, error: '无权操作' };
 
-  var blockList = tplRes.data.blacklist || [];
+  var blockList = tplRes.data[0].blacklist || [];
   if (blockList.indexOf(targetUserId) >= 0) return { ok: true, message: '已存在' };
   blockList.push(targetUserId);
 
-  await db.collection('public_templates').doc(templateId).update({
+  await db.collection('public_templates').where({ id: templateId }).update({
     data: { blacklist: blockList }
   });
   return { ok: true, message: '已加入黑名单' };
@@ -1548,12 +1548,12 @@ async function removeFromBlacklist(event) {
   var targetUserId = event.targetUserId;
   if (!templateId || !userId || !targetUserId) return { ok: false, error: '缺少必要参数' };
 
-  var tplRes = await db.collection('public_templates').doc(templateId).get();
-  if (!tplRes.data) return { ok: false, error: '模板不存在' };
-  if (tplRes.data.creatorId !== userId) return { ok: false, error: '无权操作' };
+  var tplRes = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  if (!tplRes.data || !tplRes.data.length) return { ok: false, error: '模板不存在' };
+  if (tplRes.data[0].creatorId !== userId) return { ok: false, error: '无权操作' };
 
-  var blockList = (tplRes.data.blacklist || []).filter(function(id) { return id !== targetUserId; });
-  await db.collection('public_templates').doc(templateId).update({
+  var blockList = (tplRes.data[0].blacklist || []).filter(function(id) { return id !== targetUserId; });
+  await db.collection('public_templates').where({ id: templateId }).update({
     data: { blacklist: blockList }
   });
   return { ok: true, message: '已移除黑名单' };
@@ -1565,15 +1565,15 @@ async function addToWhitelist(event) {
   var targetUserId = event.targetUserId;
   if (!templateId || !userId || !targetUserId) return { ok: false, error: '缺少必要参数' };
 
-  var tplRes = await db.collection('public_templates').doc(templateId).get();
-  if (!tplRes.data) return { ok: false, error: '模板不存在' };
-  if (tplRes.data.creatorId !== userId) return { ok: false, error: '无权操作' };
+  var tplRes = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  if (!tplRes.data || !tplRes.data.length) return { ok: false, error: '模板不存在' };
+  if (tplRes.data[0].creatorId !== userId) return { ok: false, error: '无权操作' };
 
-  var wl = tplRes.data.whitelist || [];
+  var wl = tplRes.data[0].whitelist || [];
   if (wl.indexOf(targetUserId) >= 0) return { ok: true, message: '已存在' };
   wl.push(targetUserId);
 
-  await db.collection('public_templates').doc(templateId).update({
+  await db.collection('public_templates').where({ id: templateId }).update({
     data: { whitelist: wl }
   });
   return { ok: true, message: '已加入白名单' };
@@ -1585,12 +1585,12 @@ async function removeFromWhitelist(event) {
   var targetUserId = event.targetUserId;
   if (!templateId || !userId || !targetUserId) return { ok: false, error: '缺少必要参数' };
 
-  var tplRes = await db.collection('public_templates').doc(templateId).get();
-  if (!tplRes.data) return { ok: false, error: '模板不存在' };
-  if (tplRes.data.creatorId !== userId) return { ok: false, error: '无权操作' };
+  var tplRes = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  if (!tplRes.data || !tplRes.data.length) return { ok: false, error: '模板不存在' };
+  if (tplRes.data[0].creatorId !== userId) return { ok: false, error: '无权操作' };
 
-  var wl = (tplRes.data.whitelist || []).filter(function(id) { return id !== targetUserId; });
-  await db.collection('public_templates').doc(templateId).update({
+  var wl = (tplRes.data[0].whitelist || []).filter(function(id) { return id !== targetUserId; });
+  await db.collection('public_templates').where({ id: templateId }).update({
     data: { whitelist: wl }
   });
   return { ok: true, message: '已移除白名单' };
