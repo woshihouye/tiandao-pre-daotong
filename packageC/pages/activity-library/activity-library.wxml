@@ -42,6 +42,11 @@
     <text class="filter-my-custom-label">只看我的自定义</text>
   </view>
 
+  <!-- 恢复系统默认卡 -->
+  <view class="restore-default-bar" bindtap="onRestoreDefaultCards">
+    <text class="restore-default-text">↺ 恢复系统默认卡</text>
+  </view>
+
 
   <!-- 模板搜索结果 -->
   <view class="search-template-results" wx:if="{{metaCardSearchResults.length > 0}}">

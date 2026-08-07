@@ -1,7 +1,8 @@
 // 大道之行 · 活动库
 var app = getApp()
 var Alib = require('../../../utils/activity-library.js')
-var MetaCards = require('../../utils/meta-cards.js')
+var MetaCards = require('../../../utils/meta-cards.js')
+var DefaultTemplates = require('../../../utils/default-templates.js')
 
 /** 置顶本地存储 key 前缀 */
 var PIN_STORAGE_PREFIX = 'tiandao_actlib_pin_'
@@ -250,6 +251,8 @@ Page({
     this._initFilters()
     this._reloadActivities()
     this._migrateLegacyCustomActivities()
+    // 首次进入：初始化默认活动卡（云端，幂等）→ 完成后初始化默认模板（本地）
+    this._initDefaultActivities()
   },
 
   onShow: function() {
@@ -2110,6 +2113,60 @@ Page({
         self.setData({ showEditModal: false })
         self._reloadActivities()
         wx.showToast({ title: '已本地删除', icon: 'success' })
+      }
+    })
+  },
+
+  /** 默认活动卡初始化：云函数幂等写入；成功后初始化默认模板并刷新列表 */
+  _initDefaultActivities: function() {
+    var self = this
+    wx.cloud.callFunction({
+      name: 'user-activity',
+      data: { action: 'initDefaults' },
+      success: function(res) {
+        var r = res.result
+        if (r && r.ok) {
+          // 默认卡初始化状态仅用于卡本身，不阻塞模板
+          if (r.initialized) {
+            self._reloadActivities()
+          }
+          // 默认模板：只要云函数返回 ok，无论是否有卡，都尝试初始化
+          self._initDefaultTemplates()
+        }
+      },
+      fail: function() { /* 静默失败，下次进入再试 */ }
+    })
+  },
+
+  /** 默认模板初始化：本地 storage 幂等写入（无模板且无标记才写） */
+  _initDefaultTemplates: function() {
+    DefaultTemplates.ensureDefaultTemplates(this._getUid())
+  },
+
+  /** 手动恢复系统默认卡：调云函数补写缺失的默认卡（用户主动触发，已删除的会补回） */
+  onRestoreDefaultCards: function() {
+    var self = this
+    wx.showModal({
+      title: '恢复系统默认卡',
+      content: '将补全 24 张系统默认活动卡（与你已有的自建卡不冲突，可随时删除）。确定恢复？',
+      confirmText: '恢复',
+      success: function(res) {
+        if (!res.confirm) return
+        wx.cloud.callFunction({
+          name: 'user-activity',
+          data: { action: 'restoreDefaultCards' },
+          success: function(res2) {
+            if (res2.result && res2.result.ok) {
+              wx.showToast({ title: '已恢复 ' + (res2.result.written || 0) + ' 张默认卡', icon: 'success' })
+              self._reloadActivities()
+            } else {
+              wx.showToast({ title: (res2.result && res2.result.error) || '恢复失败', icon: 'none' })
+            }
+          },
+          fail: function() {
+            wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' })
+          }
+        })
       }
     })
   },

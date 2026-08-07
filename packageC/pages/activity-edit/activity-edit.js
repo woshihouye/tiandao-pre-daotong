@@ -3,7 +3,7 @@
 // 支持三种模式: default(默认), metaCard(元卡创建), isNew(复制)
 
 var app = getApp()
-var metaCards = require('../../utils/meta-cards.js')
+var metaCards = require('../../../utils/meta-cards.js')
 
 // 分类选项
 var CATEGORY_OPTIONS = [

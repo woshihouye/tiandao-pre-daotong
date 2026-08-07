@@ -1,7 +1,7 @@
 // 自建模板配置页
 var app = getApp()
 var Alib = require('../../../utils/activity-library.js')
-var MetaCards = require('../../utils/meta-cards.js')
+var MetaCards = require('../../../utils/meta-cards.js')
 
 /** 存储 key */
 var CUSTOM_TEMPLATES_KEY = 'tiandao_custom_templates_'

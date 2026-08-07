@@ -2,7 +2,8 @@
 
 var app = getApp()
 var activityLib = require('../../utils/activity-library.js')
-var MetaCards = require('../../packageC/utils/meta-cards.js')
+var MetaCards = require('../../utils/meta-cards.js')
+var DefaultTemplates = require('../../utils/default-templates.js')
 var templateProgress = require('../../utils/template-progress.js')
 var scoreUtil = require('../../utils/score.js')
 
@@ -100,7 +101,10 @@ Page({
   // ========== 自建 daily 模板加载（从 storage 读取，按 tab 筛选）==========
   loadTemplates: function (categoryId) {
     var self = this
-    var ALL_TEMPLATES_CACHE_KEY = 'tiandao_daily_templates'
+    // 兜底：storage 无模板且无标记时写入默认模板（幂等；活动库未触发时这里补上）
+    DefaultTemplates.ensureDefaultTemplates((app.globalData && app.globalData.userId) || 'default')
+    var CUSTOM_TMPL_KEY = 'tiandao_custom_templates_'
+    var uid = (app.globalData && app.globalData.userId) || 'default'
 
     // 获取 tab 信息
     var currentTab = null
@@ -112,28 +116,40 @@ Page({
       return
     }
 
-    // 从 storage 加载所有自建 daily 模板
+    // 从 storage 加载自建 daily 模板（统一 key：tiandao_custom_templates_<uid>，timeSlots 结构）
     var allDailyTemplates = []
-    try { allDailyTemplates = wx.getStorageSync(ALL_TEMPLATES_CACHE_KEY) || [] } catch(e) {}
+    try { allDailyTemplates = wx.getStorageSync(CUSTOM_TMPL_KEY + uid) || [] } catch(e) {}
 
-    // 按 tab 筛选
+    // 筛选：type=daily + categoryKey 匹配（categoryKey 在后续 timeSlots 展开后推断）
     var filtered = []
     for (var fi = 0; fi < allDailyTemplates.length; fi++) {
       var tpl = allDailyTemplates[fi]
       if (!tpl) continue
-      if (tpl.categoryKey === currentTab.key || tpl.tabId === currentTab.id) {
-        filtered.push(tpl)
-      }
+      if (tpl.type && tpl.type !== 'daily') continue
+      filtered.push(tpl)
     }
 
     var templates = []
     for (var i = 0; i < filtered.length; i++) {
       var tpl = filtered[i]
 
-      // 解析活动（元卡 + 自定义）
+      // 解析活动：timeSlots 结构展开为平铺数组（builder 自建模板与默认模板同构）
+      var rawActs = []
+      if (Array.isArray(tpl.activities)) {
+        rawActs = tpl.activities
+      } else if (tpl.timeSlots && Array.isArray(tpl.timeSlots)) {
+        for (var si = 0; si < tpl.timeSlots.length; si++) {
+          var slotActs = (tpl.timeSlots[si] && tpl.timeSlots[si].activities) || []
+          rawActs = rawActs.concat(slotActs)
+        }
+      }
+      // categoryKey 推断：模板显式字段 > 首个活动维度 > 默认当前 tab
+      var tplCategoryKey = tpl.categoryKey || (rawActs[0] && (rawActs[0].tabKey || rawActs[0].category)) || currentTab.key
+      if (tplCategoryKey !== currentTab.key) continue
+
       var activities = []
-      for (var ai = 0; ai < (tpl.activities || []).length; ai++) {
-        var actItem = tpl.activities[ai]
+      for (var ai = 0; ai < rawActs.length; ai++) {
+        var actItem = rawActs[ai]
         var resolved = self._resolveTemplateActivity(actItem, currentTab.key)
         if (resolved) activities.push(resolved)
       }
@@ -202,6 +218,11 @@ Page({
     var actId = actItem.actId || actItem.activityId || actItem.id
     if (!actId) return null
 
+    // 容量（builder capacity 结构 → 兼容旧平铺结构）
+    var cap = actItem.capacity || {}
+    var capValue = cap.value != null ? cap.value : (actItem.value != null ? actItem.value : 1)
+    var capUnit = cap.unit || actItem.unit || '次'
+
     // 元卡解析
     if (actId.indexOf('meta_') === 0) {
       var metaCardId = actId.replace('meta_', '')
@@ -210,9 +231,10 @@ Page({
       return {
         id: actId,
         actId: actId,
-        name: metaCard.name || actItem.name || '',
-        unit: actItem.unit || '次',
-        scorePerUnit: actItem.scorePerUnit || 1,
+        name: metaCard.name || actItem.activityName || actItem.name || '',
+        unit: capUnit,
+        scorePerUnit: actItem.scorePerUnit || (metaCard.category === 'debuff' ? -1 : 1),
+        capacityValue: capValue,
         icon: actItem.icon || '',
         isNegative: metaCard.category === 'debuff',
         _metaCard: metaCard
@@ -223,9 +245,10 @@ Page({
     return {
       id: actId,
       actId: actId,
-      name: actItem.name || actItem.activityName || '',
-      unit: actItem.unit || '次',
+      name: actItem.activityName || actItem.name || '',
+      unit: capUnit,
       scorePerUnit: actItem.scorePerUnit || 1,
+      capacityValue: capValue,
       icon: actItem.icon || '',
       isNegative: actItem.isNegative || false
     }
