@@ -57,12 +57,21 @@ function ensureDefaultTemplates(uid) {
   var key = 'tiandao_custom_templates_' + uid
   var markKey = 'tiandao_dft_tmpl_inited_' + uid
   try {
-    if (wx.getStorageSync(markKey)) return false
-    var existing = wx.getStorageSync(key) || []
-    if (existing.length > 0) {
+    var raw = wx.getStorageSync(key)
+    var marked = wx.getStorageSync(markKey)
+    if (Array.isArray(raw)) {
+      // 已有数据（含空数组=用户删光）：有标记则不动；无标记且有数据则补标记
+      if (marked) return false
+      if (raw.length > 0) {
+        wx.setStorageSync(markKey, true)
+        return false
+      }
+      // 空数组且无标记：罕见异常态，补写
+      wx.setStorageSync(key, DEFAULT_TEMPLATES)
       wx.setStorageSync(markKey, true)
-      return false
+      return true
     }
+    // key 不存在（getStorageSync 返回 ''）或数据异常：无论标记如何都补写（修复标记残留）
     wx.setStorageSync(key, DEFAULT_TEMPLATES)
     wx.setStorageSync(markKey, true)
     return true

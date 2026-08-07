@@ -85,8 +85,11 @@ Page({
     // 清除标记，避免重复切换
     app.globalData.recordInitialTab = null
 
-    // 如果已经是当前 tab 则跳过
-    if (this.data.activeTab === tabId) return true
+    // 如果已经是当前 tab 则跳过（但仍需加载模板：onLoad 因返回 true 不会调用 loadTemplates）
+    if (this.data.activeTab === tabId) {
+      this.loadTemplates(tab.id)
+      return true
+    }
 
     this.setData({
       activeTab: tab.id,
