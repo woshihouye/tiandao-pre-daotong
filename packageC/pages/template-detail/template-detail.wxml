@@ -82,27 +82,23 @@
       <view class="ghost-btn" bindtap="shareTemplate">分享</view>
       <view class="ghost-btn" wx:if="{{canEdit}}" bindtap="editTemplate">编辑</view>
       <view class="ghost-btn" wx:if="{{template.id === 'thin_muscle'}}" bindtap="openAdvanced">进阶炼体</view>
-      <view class="ghost-btn" wx:if="{{template.extras.weeklyPlanReward}}" bindtap="claimWeekPlan">周计划奖励</view>
     </view>
   </view>
 
   <view class="section card">
     <view class="section-title">每日功课</view>
-    <view class="section-sub">剩余可获 {{remainScore}} 修为 · 点击完成即写入总修为</view>
+    <view class="section-sub">剩余可获 {{remainScore}} 修为</view>
     <view class="task-list">
       <view
-        class="task-item {{item.done ? 'done' : ''}}"
+        class="task-item"
         wx:for="{{taskStates}}"
         wx:key="id"
-        bindtap="completeTask"
-        data-id="{{item.id}}"
       >
         <view class="task-main">
           <view class="task-name">{{item.name}}</view>
           <view class="task-desc">{{item.desc}}</view>
         </view>
         <view class="task-reward">+{{item.reward}}</view>
-        <view class="task-state">{{item.done ? '已成' : '修行'}}</view>
       </view>
     </view>
   </view>
@@ -151,7 +147,7 @@
         <text class="interact-label">导入</text>
       </view>
     </view>
-    <button class="btn btn-primary" style="margin-top:24rpx" bindtap="importToMyTemplates">📥 导入为我的辅修小道</button>
+    <button class="btn btn-primary copy-btn" style="margin-top:24rpx" bindtap="copyToMyTemplates" disabled="{{copied}}">{{copied ? '已复制' : '复制为我的模板'}}</button>
   </view>
 
   <!-- >>> 评论输入框 -->

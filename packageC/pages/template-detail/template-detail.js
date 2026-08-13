@@ -1,16 +1,12 @@
-// 人生模板详情页：任务打卡 + 启用模板 + addScore 结算
+// 人生模板详情页：模板内容展示 + 启用模板 + 复制为我的模板
 const app = getApp()
 const {
   getTemplateById,
   getLocalCustomTemplates,
-  settleTemplateTaskReward,
-  calcTemplateExtraReward,
   getTemplateRealmByScore,
   resolveTemplateId,
   buildShareCode,
-  publishTemplateToPlaza,
   fetchTemplateDetail,
-  importCloudTemplate,
   toggleLikeTemplate,
   toggleFavoriteTemplate,
   postComment,
@@ -20,12 +16,6 @@ const {
 } = require('../../../utils/life-template.js')
 
 const eliteModule = require('../../../utils/elite-template.js')
-
-const CHECKIN_STORAGE = 'tiandao_template_checkin'
-
-function getTodayDate() {
-  return app.getTodayDate ? app.getTodayDate() : new Date().toISOString().slice(0, 10)
-}
 
 Page({
   data: {
@@ -42,6 +32,7 @@ Page({
     canEdit: false,
     fromPlaza: false,
     cloudSourceId: '',
+    copied: false,
     // >>> 互动数据
     likeCount: 0,
     favCount: 0,
@@ -112,10 +103,9 @@ Page({
       const profile = (app.globalData && app.globalData.userProfile) || {}
       const totalCultivation = Number(profile.totalCultivation || 0)
       const realm = getTemplateRealmByScore(totalCultivation, template.realmNames)
-      const checkin = this.readTodayCheckin(template.id)
-      const todayScore = Number(checkin.totalScore || 0)
+      const todayScore = Number((app.globalData && app.globalData.todayScore) || 0)
       const dailyCap = Number(template.dailyCap || 40)
-      const streakDays = Number(profile.streakDays || checkin.streakDays || 0)
+      const streakDays = Number(profile.streakDays || 0)
 
       let buffTip = ''
       if (template.extras && template.extras.streakBuffDays) {
@@ -128,11 +118,7 @@ Page({
         buffTip = `完成周计划可额外 +${template.extras.weeklyPlanReward} 修为`
       }
 
-      const doneMap = checkin.tasks || {}
-      const taskStates = (template.tasks || []).map((task) => ({
-        ...task,
-        done: !!doneMap[task.id]
-      }))
+      const taskStates = (template.tasks || []).map((task) => ({ ...task }))
 
       this.setData({
         template,
@@ -202,28 +188,6 @@ Page({
     }
   },
 
-  readTodayCheckin(templateId) {
-    try {
-      const all = wx.getStorageSync(CHECKIN_STORAGE) || {}
-      const today = getTodayDate()
-      const key = `${templateId}_${today}`
-      return all[key] || { date: today, tasks: {}, totalScore: 0 }
-    } catch (error) {
-      return { date: getTodayDate(), tasks: {}, totalScore: 0 }
-    }
-  },
-
-  writeTodayCheckin(templateId, data) {
-    try {
-      const all = wx.getStorageSync(CHECKIN_STORAGE) || {}
-      const today = getTodayDate()
-      all[`${templateId}_${today}`] = { ...data, date: today }
-      wx.setStorageSync(CHECKIN_STORAGE, all)
-    } catch (error) {
-      console.error('写入打卡缓存失败', error)
-    }
-  },
-
   async activateTemplate() {
     const template = this.data.template
     if (!template) return
@@ -234,88 +198,6 @@ Page({
     } catch (error) {
       console.error(error)
       app.showSystemToast('启用模板失败')
-    }
-  },
-
-  // >>> 任务打卡：统一走 addScore
-  async completeTask(e) {
-    const taskId = e.currentTarget.dataset.id
-    const template = this.data.template
-    const task = (template.tasks || []).find((item) => item.id === taskId)
-    if (!template || !task) return
-
-    const checkin = this.readTodayCheckin(template.id)
-    if (checkin.tasks && checkin.tasks[taskId]) {
-      app.showSystemToast('今日已完成此功课')
-      return
-    }
-
-    if (!this.data.isActive) {
-      const modal = await app.showSystemModal(`先启用「${template.name}」再修行？`, '启用并修行')
-      if (!modal.confirm) return
-      await this.activateTemplate()
-    }
-
-    try {
-      const settle = settleTemplateTaskReward(template, task, {
-        todayUsed: Number(checkin.totalScore || 0),
-        streakDays: this.data.streakDays
-      })
-
-      if (settle.score <= 0) {
-        app.showSystemToast('今日模板修为已达上限')
-        return
-      }
-
-      // 积分统一走全局 addScore
-      if (app.addScore) {
-        await app.addScore(settle.score, { lastCheckInDate: getTodayDate() })
-      }
-
-      checkin.tasks = checkin.tasks || {}
-      checkin.tasks[taskId] = true
-      checkin.totalScore = Number(checkin.totalScore || 0) + settle.score
-      this.writeTodayCheckin(template.id, checkin)
-
-      // 学霸连续满7天额外奖励
-      const doneCount = Object.keys(checkin.tasks).length
-      const totalTasks = (template.tasks || []).length
-      if (doneCount >= totalTasks && template.extras && template.extras.streakRewardDays) {
-        const nextStreak = this.data.streakDays + 1
-        if (nextStreak > 0 && nextStreak % template.extras.streakRewardDays === 0) {
-          const extra = calcTemplateExtraReward(template, { justReachedStreakMultiple: true })
-          if (extra > 0 && app.addScore) {
-            await app.addScore(extra)
-            app.showSystemToast(`连续修行奖励 +${extra} 修为`, 'success')
-          }
-        }
-      }
-
-      const tip = settle.buffApplied
-        ? `功课完成 +${settle.score}（含养颜buff）`
-        : `功课完成 +${settle.score} 修为`
-      app.showSystemToast(tip, 'success')
-      this.loadPage()
-    } catch (error) {
-      console.error('任务打卡失败', error)
-      app.showSystemToast('修行失败，请稍后再试')
-    }
-  },
-
-  // >>> 打工人：周计划奖励
-  async claimWeekPlan() {
-    const template = this.data.template
-    if (!template || !template.extras || !template.extras.weeklyPlanReward) return
-    const key = `week_plan_${template.id}_${getTodayDate().slice(0, 7)}`
-    if (wx.getStorageSync(key)) {
-      app.showSystemToast('本周奖励已领取')
-      return
-    }
-    const extra = calcTemplateExtraReward(template, { weekPlanCompleted: true })
-    if (extra > 0 && app.addScore) {
-      await app.addScore(extra)
-      wx.setStorageSync(key, true)
-      app.showSystemToast(`周计划完成 +${extra} 修为`, 'success')
     }
   },
 
@@ -344,15 +226,14 @@ Page({
     fetchTemplateDetail(this.data.cloudSourceId).then(function(res) {
       var t = res.template
       if (loadBody && t) {
-        var doneMap = (that.readTodayCheckin(t.id) || {}).tasks || {}
         var taskStates = (t.tasks || []).map(function(task) {
-          return Object.assign({}, task, { done: !!doneMap[task.id] })
+          return Object.assign({}, task)
         })
         var current = app.getCurrentTemplate ? app.getCurrentTemplate() : null
         var profile = (app.globalData && app.globalData.userProfile) || {}
         var totalCultivation = Number(profile.totalCultivation || 0)
         var realm = getTemplateRealmByScore(totalCultivation, t.realmNames)
-        var todayScore = Number((that.readTodayCheckin(t.id) || {}).totalScore || 0)
+        var todayScore = Number((app.globalData && app.globalData.todayScore) || 0)
         var dailyCap = Number(t.dailyCap || 40)
         that.setData({
           template: t,
@@ -384,30 +265,67 @@ Page({
     })
   },
 
-  // >>> 导入云端模板为我的辅修
-  importToMyTemplates: function() {
+  // >>> 复制云端模板为我的 daily 模板
+  copyToMyTemplates: function() {
     var that = this
-    var template = this.data.template
-    if (!template) return
+    var t = this.data.template
+    if (!t) return
+    if (this.data.copied) return
     wx.showModal({
-      title: '导入道则',
-      content: '将「' + template.name + '」导入为你的辅修小道？',
-      success: function(modalRes) {
-        if (!modalRes.confirm) return
-        var imported = importCloudTemplate(template, that.data.cloudSourceId)
-        if (imported) {
-          // 设为辅修
-          if (app.toggleSideTemplate) {
-            app.toggleSideTemplate(imported)
-          }
-          app.showSystemToast('「' + imported.name + '」已导入为你的辅修小道', 'success')
-          // 触发事件通知其他页面刷新
-          if (app.emitAppEvent) {
-            app.emitAppEvent('template-imported', { template: imported })
-          }
-        }
+      title: '复制为我的模板',
+      content: '将「' + t.name + '」复制为你的模板？复制后可自由编辑。',
+      success: function(res) {
+        if (!res.confirm) return
+        var daily = that.convertTasksToDaily(t)
+        var uid = ((getApp().globalData && getApp().globalData.userId) || 'default')
+        var list = wx.getStorageSync('tiandao_custom_templates_' + uid) || []
+        var baseName = t.name || '模板'
+        var exists = list.filter(function(x) { return x.name && x.name.indexOf(baseName) === 0 })
+        daily.name = baseName + '（副本' + (exists.length + 1) + '）'
+        list.push(daily)
+        wx.setStorageSync('tiandao_custom_templates_' + uid, list)
+        wx.showToast({ title: '已复制为你的模板', icon: 'success' })
+        that.setData({ copied: true })
       }
     })
+  },
+
+  // >>> 云端模板 tasks → 我的 daily 模板（字段补齐：scorePerUnit/baseScore/type/isOfficial/_isMetaCard）
+  convertTasksToDaily: function(t) {
+    var now = Date.now()
+    var activities = (t.tasks || []).map(function(task) {
+      return {
+        actId: 'cpy_' + task.id + '_' + now,
+        activityName: task.name || '任务',
+        scorePerUnit: task.scorePerUnit != null ? task.scorePerUnit : 1,
+        baseScore: task.baseScore != null ? task.baseScore : 1,
+        capacity: task.capacity || { value: 1, unit: '次' },
+        type: task.type || 'custom',
+        tabKey: task.tabKey || '',
+        category: task.category || '',
+        isOfficial: false,
+        _isMetaCard: false
+      }
+    })
+    return {
+      id: 'custom_' + now + '_' + Math.random().toString(36).slice(2, 6),
+      name: (t.name || '模板'),
+      type: 'daily',
+      categoryKey: '',
+      timeSlots: [
+        { id: 'whole', name: '全天', activities: activities }
+      ],
+      sourceId: t.id || '',
+      sourceName: t.name || '',
+      sourceType: 'cloud',
+      createdAt: now,
+      updatedAt: now
+    }
+  },
+
+  // >>> 导入云端模板：与复制合并为同一动作
+  importToMyTemplates: function() {
+    this.copyToMyTemplates()
   },
 
   // >>> 互动：点赞

@@ -46,6 +46,7 @@
           <text class="card-progress {{item.totalProgress > 40 ? 'light-text' : ''}}">{{item.totalProgress || 0}}%</text>
           <text class="card-score {{item.totalProgress > 60 ? 'light-text' : ''}}">预计修为 {{item.estimatedScore || '+0'}}</text>
           <text class="card-hint {{item.totalProgress > 60 ? 'light-text' : ''}}">点击进入精准记录</text>
+          <view class="tpl-copy-btn" catchtap="copyTemplate" data-id="{{item.id}}">复制</view>
         </view>
       </view>
     </swiper-item>

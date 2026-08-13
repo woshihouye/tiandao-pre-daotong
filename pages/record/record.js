@@ -257,6 +257,67 @@ Page({
     }
   },
 
+  // ========== 复制模板 ==========
+
+  /** 复制默认/已有模板为自己的新模板（与元卡创建活动同心智） */
+  copyTemplate: function(e) {
+    var app = getApp()
+    var tplId = e.currentTarget.dataset.id
+    var uid = (app.globalData && app.globalData.userId) || 'default'
+    var key = 'tiandao_custom_templates_' + uid
+    var list = wx.getStorageSync(key) || []
+    var found = null
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].id === tplId) { found = list[i]; break }
+    }
+    if (!found) return
+    var now = Date.now()
+    var copy = JSON.parse(JSON.stringify(found))
+    copy.id = 'custom_' + now + '_' + Math.random().toString(36).slice(2, 6)
+    copy.sourceType = (found.id && found.id.indexOf('dflt_') === 0) ? 'default' : 'custom'
+    copy.createdAt = now
+    copy.updatedAt = now
+    // ★ 默认/自建模板已是 daily(timeSlots) 结构——深拷贝后做字段补齐，不盲目 tasks→daily 转换
+    copy.type = 'daily'
+    if (Array.isArray(copy.timeSlots) && copy.timeSlots.length) {
+      copy.timeSlots.forEach(function(slot) {
+        (slot.activities || []).forEach(function(act) {
+          act.actId = act.actId || ('cpy_' + now + '_' + Math.floor(Math.random() * 10000))
+          act.scorePerUnit = act.scorePerUnit != null ? act.scorePerUnit : 1    // ★ 缺省 1 禁 0
+          act.baseScore = act.baseScore != null ? act.baseScore : 1             // ★ 缺省 1 禁 0
+          act.type = act.type || 'custom'
+          act.isOfficial = !!act.isOfficial
+          act._isMetaCard = !!act._isMetaCard
+        })
+      })
+    } else {
+      // 兜底：found 若为 tasks 结构（异常数据），转 daily 单时段（与改动一 1b 等价转换）
+      var activities = ((found.tasks || []).map(function(task) {
+        return {
+          actId: 'cpy_' + task.id + '_' + now,
+          activityName: task.name || '任务',
+          scorePerUnit: task.scorePerUnit != null ? task.scorePerUnit : 1,
+          baseScore: task.baseScore != null ? task.baseScore : 1,
+          capacity: task.capacity || { value: 1, unit: '次' },
+          type: task.type || 'custom',
+          tabKey: task.tabKey || '',
+          category: task.category || '',
+          isOfficial: false,
+          _isMetaCard: false
+        }
+      }))
+      copy.timeSlots = [{ id: 'whole', name: '全天', activities: activities }]
+    }
+    var baseName = found.name || '模板'
+    var exists = list.filter(function(x) { return x.name && x.name.indexOf(baseName) === 0 })
+    copy.name = baseName + '（副本' + (exists.length + 1) + '）'   // 重名保护
+    list.push(copy)
+    wx.setStorageSync(key, list)
+    wx.showToast({ title: '已创建副本，可自由编辑', icon: 'success' })
+    this.loadTemplates(this.data.activeTab)
+    // 注意：复制出的模板为全新 custom_ id，不会影响当前正在使用的模板（快照制）
+  },
+
   // ========== Tab 切换 ==========
   onTabTap: function (e) {
     var tabKey = e.currentTarget.dataset.tab
