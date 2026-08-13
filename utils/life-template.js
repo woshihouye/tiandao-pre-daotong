@@ -1,5 +1,5 @@
-// 人生模板体系：大道主修 · 修为系数
-// 仅保留大道体系，小道模板已移除
+// 人生模板体系：模板数据层（已废弃大道主修/辅修/阵营/境界体系）
+// 模板无主修/辅修，均为可复制内容；「大道」仅作广场分类标题
 
 const CUSTOM_TASK_MAX_REWARD = 3
 const CUSTOM_DAILY_CAP_MAX = 45
@@ -7,146 +7,6 @@ const PUBLIC_TEMPLATE_STORAGE = 'tiandao_public_templates'
 const CUSTOM_TEMPLATE_STORAGE = 'tiandao_custom_templates'
 const CHECKIN_STORAGE = 'tiandao_template_checkin'
 const TEMPLATE_STATE_STORAGE = 'tiandao_template_levels'
-
-/** 阵营 */
-const CAMP = {
-  MAIN: 'main', // 大道 · 证道主修
-  SIDE: 'side' // 小道 · 旁门辅修
-}
-
-/**
- * 阵营加成规则
- * baseBonus: 1 级基础加成；maxBonus: 5 级满额加成；debuff: 未达标惩罚
- */
-const CAMP_BONUS_RULES = {
-  main: { baseBonus: 0.1, maxBonus: 0.2, debuff: -0.15, label: '大道' },
-  side: { baseBonus: 0.04, maxBonus: 0.08, debuff: -0.04, label: '小道' }
-}
-
-/** 总系数封顶 / 兜底 */
-const COEFF_CAPS = { maxBonus: 0.5, minDebuff: -0.3 }
-
-/**
- * 预设模板（仅含大道主修3条）
- */
-const PRESET_TEMPLATES = {
-  // —— 大道 · 证道主修 ——
-  thin_muscle: {
-    id: 'thin_muscle',
-    name: '力之大道',
-    camp: CAMP.MAIN,
-    category: 'preset',
-    cover: '力',
-    themeClass: 'theme-fresh',
-    cultivationSystem: 'body',
-    goal: '增肌减脂、养成运动习惯',
-    subtitle: '炼体修行、塑形筑基',
-    description: '面向健身塑形人群，以炼体炼气双修打下肌肌根基。',
-    tags: ['大道', '体修', '塑形', '力'],
-    dailyCap: 60,
-    baseScore: 45,
-    founderName: '天工炼体司',
-    realmNames: ['炼体境', '锻骨境', '玉髓境', '金身境'],
-    isGrandDao: true,
-    gongfaCount: 0,
-    tasks: [
-      { id: 'tm_strength', name: '力量训练30分钟', reward: 15, path: 'lianti', desc: '炼体类' },
-      { id: 'tm_cardio', name: '有氧训练20分钟', reward: 10, path: 'lianqi', desc: '炼气类' },
-      { id: 'tm_diet', name: '控制饮食（戒高油高糖）', reward: 5, path: 'diet', desc: '丹食' },
-      { id: 'tm_water', name: '喝够2L水', reward: 2, path: 'richang', desc: '日常功课' }
-    ],
-    extras: {}
-  },
-  gong: {
-    id: 'gong',
-    name: '工之大道',
-    camp: CAMP.MAIN,
-    category: 'preset',
-    cover: '工',
-    themeClass: 'theme-dusk',
-    cultivationSystem: 'worldly',
-    goal: '产出修行、创造价值',
-    subtitle: '产出修行、创造价值',
-    description: '面向所有价值产出场景，不限于上班，以炼心入世打磨自身能力，打下立身根基。',
-    tags: ['大道', '工作', '产出'],
-    dailyCap: 45,
-    baseScore: 38,
-    founderName: '天工造物司',
-    realmNames: ['执事境', '主事境', '掌事境', '宗匠境'],
-    isGrandDao: true,
-    gongfaCount: 0,
-    tasks: [
-      { id: 'gong_core', name: '完成当日核心产出目标', reward: 8, path: 'xiuxin', desc: '产出' },
-      { id: 'gong_review', name: '当日产出复盘总结', reward: 3, path: 'xiuxin', desc: '复盘' },
-      { id: 'gong_focus', name: '无效摸鱼时长<1小时', reward: 5, path: 'xiuxin', desc: '专注' },
-      { id: 'gong_side', name: '额外产出/副业推进', reward: 5, path: 'xiuxin', desc: '副业' },
-      { id: 'gong_sleep', name: '早睡养精力', reward: 3, path: 'richang', desc: '日常' }
-    ],
-    extras: {}
-  },
-  wu: {
-    id: 'wu',
-    name: '习之大道',
-    camp: CAMP.MAIN,
-    category: 'preset',
-    cover: '悟',
-    themeClass: 'theme-light-fixed',
-    cultivationSystem: 'traditional',
-    goal: '修心悟道、自我提升',
-    subtitle: '修心悟道、自我提升',
-    description: '面向所有自我成长场景，不限于上学，以明心见性提升认知，打下悟道根基。',
-    tags: ['大道', '学习', '提升'],
-    dailyCap: 50,
-    baseScore: 40,
-    founderName: '观心悟道阁',
-    realmNames: ['闻道境', '见道境', '明道境', '得道境'],
-    isGrandDao: true,
-    gongfaCount: 0,
-    tasks: [
-      { id: 'wu_focus', name: '专注学习/提升2小时', reward: 10, path: 'xiuxin', desc: '修心' },
-      { id: 'wu_review', name: '当日所学复盘吸收', reward: 4, path: 'xiuxin', desc: '复盘' },
-      { id: 'wu_input', name: '新知输入（看书/课程）', reward: 3, path: 'xiuxin', desc: '输入' },
-      { id: 'wu_practice', name: '练习巩固所学', reward: 4, path: 'xiuxin', desc: '巩固' },
-      { id: 'wu_early', name: '早起学习', reward: 2, path: 'richang', desc: '日常' }
-    ],
-    extras: {}
-  },
-}
-
-/**
- * 功法模板（归于各大道之下）
- * grandDao: 归属的大道 ID（thin_muscle/gong/wu）
- * camp: SIDE（功法均为辅修性质，但归属大道统一管理）
- */
-const GONGFA_TEMPLATES = {}
-
-/**
- * 获取所有大道列表（isGrandDao: true 的模板）
- */
-function getGrandDaoList() {
-  return Object.values(PRESET_TEMPLATES)
-    .filter(function(item) { return item.isGrandDao === true })
-    .map(function(item) { return clone(item) })
-}
-
-/**
- * 获取指定大道下的所有功法
- * @param {string} grandDaoId - 大道 ID
- */
-function getGongfaByGrandDao(grandDaoId) {
-  return Object.values(GONGFA_TEMPLATES)
-    .filter(function(item) { return item.grandDao === grandDaoId })
-    .map(function(item) { return clone(item) })
-}
-
-/**
- * 根据 ID 获取功法模板
- */
-function getGongfaById(gongfaId) {
-  if (!gongfaId) return null
-  var tmpl = GONGFA_TEMPLATES[gongfaId]
-  return tmpl ? clone(tmpl) : null
-}
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value))
@@ -157,31 +17,15 @@ function safeNumber(value, fallback = 0) {
   return Number.isFinite(num) ? num : fallback
 }
 
-function getPresetList() {
-  return Object.values(PRESET_TEMPLATES)
-    .filter((item) => item.category !== 'custom_entry')
-    .map((item) => clone(item))
-}
-
-function getMainPresets() {
-  return getPresetList().filter((item) => item.camp === CAMP.MAIN)
-}
-
 function getTemplateById(templateId, customList = []) {
   try {
-    if (!templateId) return clone(PRESET_TEMPLATES.thin_muscle)
-    if (PRESET_TEMPLATES[templateId] && PRESET_TEMPLATES[templateId].category !== 'custom_entry') {
-      return clone(PRESET_TEMPLATES[templateId])
-    }
-    if (GONGFA_TEMPLATES[templateId]) {
-      return clone(GONGFA_TEMPLATES[templateId])
-    }
+    if (!templateId) return null
     const customs = Array.isArray(customList) ? customList : getLocalCustomTemplates()
     const found = customs.find((item) => item && item.id === templateId)
     return found ? clone(found) : null
   } catch (error) {
     console.error('读取模板失败', error)
-    return clone(PRESET_TEMPLATES.thin_muscle)
+    return null
   }
 }
 
@@ -194,24 +38,10 @@ function resolveTemplateId(rawId) {
   return rawId || ''
 }
 
-/** 按等级计算阵营加成（1→base，5→max） */
-function getLevelBonusRate(camp, level = 1) {
-  const rule = CAMP_BONUS_RULES[camp] || CAMP_BONUS_RULES.side
-  const lv = Math.max(1, Math.min(5, Math.floor(safeNumber(level, 1))))
-  const span = rule.maxBonus - rule.baseBonus
-  return rule.baseBonus + (span * (lv - 1)) / 4
-}
-
-function getCampDebuffRate(camp) {
-  const rule = CAMP_BONUS_RULES[camp] || CAMP_BONUS_RULES.side
-  return rule.debuff
-}
-
 function createEmptyCustomTemplate(overrides = {}) {
   return {
     id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
     name: '我的人生模板',
-    camp: CAMP.SIDE,
     category: 'custom',
     cover: '自',
     themeClass: 'theme-light-fixed',
@@ -265,7 +95,6 @@ function sanitizeCustomTemplate(input = {}) {
       ...input,
       id: input.id || base.id,
       name,
-      camp: CAMP.SIDE,
       dailyCap,
       baseScore: 38,
       realmNames,
@@ -346,7 +175,6 @@ function importPublicTemplate(shareCode) {
     name: `${source.name}·摹本`,
     founderName: '本座（导入）',
     shareCode: '',
-    camp: CAMP.SIDE,
     sourceShareCode: source.shareCode,
     sourceId: source.id
   })
@@ -397,44 +225,6 @@ function getTemplateDayProgress(template) {
   return done / tasks.length
 }
 
-/**
- * 构建可持久化的选中模板快照
- */
-function buildSelectedTemplatePayload(template, level = 1) {
-  if (!template) return null
-  return {
-    id: template.id,
-    name: template.name,
-    camp: template.camp || CAMP.SIDE,
-    cover: template.cover,
-    cultivationSystem: template.cultivationSystem,
-    dailyCap: template.dailyCap,
-    baseScore: template.baseScore,
-    realmNames: template.realmNames || [],
-    realmDescs: template.realmDescs || [],
-    slogan: template.slogan || '',
-    themeClass: template.themeClass || 'theme-light-fixed',
-    category: template.category || 'preset',
-    subcategory: template.subcategory || '',
-    industry: template.industry || '',
-    goal: template.goal || '',
-    subtitle: template.subtitle || template.goal || '',
-    description: template.description || '',
-    tags: template.tags || [],
-    founderName: template.founderName || '',
-    tasks: template.tasks || [],
-    level: Math.max(1, Math.min(5, Math.floor(safeNumber(level, template.level || 1)))),
-    highStreak: safeNumber(template.highStreak, 0),
-    lowStreak: safeNumber(template.lowStreak, 0),
-    updatedAt: Date.now()
-  }
-}
-
-/** @deprecated 兼容旧调用 */
-function buildCurrentTemplatePayload(template) {
-  return buildSelectedTemplatePayload(template)
-}
-
 function settleTemplateTaskReward(template, task, options = {}) {
   try {
     const dailyCap = Math.max(1, safeNumber(template && template.dailyCap, 40))
@@ -457,118 +247,6 @@ function settleTemplateTaskReward(template, task, options = {}) {
 
 function calcTemplateExtraReward() {
   return 0
-}
-
-function getTemplateRealmByScore(score = 0, realmNames = [], baseScore = 38) {
-  try {
-    const names = Array.isArray(realmNames) && realmNames.length
-      ? realmNames
-      : ['炼精化气', '炼气化神', '炼神还虚', '炼虚合道']
-    const safeScore = Math.max(0, safeNumber(score, 0))
-    const safeBase = Math.max(1, safeNumber(baseScore, 38))
-    const multipliers = [3, 7, 15, 30]
-    const thresholds = []
-    let cursor = 0
-    for (let i = 0; i < 4; i++) {
-      const perStage = Math.max(1, Math.round(safeBase * multipliers[i]))
-      thresholds.push({ minScore: cursor, perStage, stages: 9 })
-      cursor += perStage * 9
-    }
-    for (let i = thresholds.length - 1; i >= 0; i--) {
-      const realm = thresholds[i]
-      if (safeScore >= realm.minScore) {
-        const progressInRealm = safeScore - realm.minScore
-        const stage = Math.min(realm.stages, Math.floor(progressInRealm / realm.perStage) + 1)
-        const nextStageScore = realm.minScore + stage * realm.perStage
-        return {
-          name: names[Math.min(i, names.length - 1)] || names[0],
-          stage,
-          remaining: Math.max(0, nextStageScore - safeScore),
-          progressInRealm,
-          perStage: realm.perStage,
-          index: i
-        }
-      }
-    }
-    return { name: names[0], stage: 1, remaining: thresholds[0].perStage, progressInRealm: 0, perStage: thresholds[0].perStage, index: 0 }
-  } catch (error) {
-    return { name: '炼精化气', stage: 1, remaining: 33, progressInRealm: 0, perStage: 33, index: 0 }
-  }
-}
-
-/**
- * 根据完成进度计算单个模板对系数的贡献
- * >=80% 满额加成；50%~80% 半额；<50% 全额 debuff
- */
-function calcTemplateCoeffContribution(template) {
-  const camp = template.camp === CAMP.MAIN ? CAMP.MAIN : CAMP.SIDE
-  const level = Math.max(1, Math.min(5, Math.floor(safeNumber(template.level, 1))))
-  const progress = getTemplateDayProgress(template)
-  const fullBonus = getLevelBonusRate(camp, level)
-  const debuff = getCampDebuffRate(camp)
-  const campLabel = CAMP_BONUS_RULES[camp].label
-
-  if (progress >= 0.8) {
-    return {
-      templateId: template.id,
-      name: template.name,
-      camp,
-      campLabel,
-      progress,
-      rate: fullBonus,
-      type: 'bonus',
-      label: `${template.name}·满额道行 +${Math.round(fullBonus * 100)}%`
-    }
-  }
-  if (progress >= 0.5) {
-    const half = fullBonus / 2
-    return {
-      templateId: template.id,
-      name: template.name,
-      camp,
-      campLabel,
-      progress,
-      rate: half,
-      type: 'bonus',
-      label: `${template.name}·半额道行 +${Math.round(half * 100)}%`
-    }
-  }
-  return {
-    templateId: template.id,
-    name: template.name,
-    camp,
-    campLabel,
-    progress,
-    rate: debuff,
-    type: 'debuff',
-    label: `${template.name}·心魔 debuff ${Math.round(debuff * 100)}%`
-  }
-}
-
-/**
- * 合并选中模板的系数（未封顶原始值）
- */
-function aggregateCoeffParts(mainTemplate, sideTemplates = []) {
-  const parts = []
-  if (mainTemplate && mainTemplate.id) {
-    const full = getTemplateById(mainTemplate.id) || mainTemplate
-    parts.push(calcTemplateCoeffContribution({ ...full, ...mainTemplate, tasks: full.tasks || mainTemplate.tasks || [] }))
-  }
-  ;(sideTemplates || []).forEach((item) => {
-    if (!item || !item.id) return
-    const full = getTemplateById(item.id) || item
-    parts.push(calcTemplateCoeffContribution({ ...full, ...item, tasks: full.tasks || item.tasks || [] }))
-  })
-  return parts
-}
-
-function clampTotalCoeff(rawRate) {
-  const capped = Math.max(COEFF_CAPS.minDebuff, Math.min(COEFF_CAPS.maxBonus, rawRate))
-  return {
-    rate: capped,
-    coeff: 1 + capped,
-    capped: capped !== rawRate
-  }
 }
 
 /**
@@ -671,7 +349,6 @@ function importCloudTemplate(templateData, sourceTemplateId) {
     name: (templateData.name || '未知道则') + '·摹本',
     founderName: '本座（导入）',
     shareCode: '',
-    camp: CAMP.SIDE,
     sourceId: templateData.id,
     cover: templateData.cover || '道',
     cultivationSystem: templateData.cultivationSystem || 'traditional',
@@ -865,21 +542,9 @@ function removeFromWhitelist(templateId, targetUserId) {
 module.exports = {
   CUSTOM_TASK_MAX_REWARD,
   CUSTOM_DAILY_CAP_MAX,
-  CAMP,
-  CAMP_BONUS_RULES,
-  COEFF_CAPS,
-  PRESET_TEMPLATES,
-  GONGFA_TEMPLATES,
   CHECKIN_STORAGE,
-  getPresetList,
-  getMainPresets,
   getTemplateById,
   resolveTemplateId,
-  getGrandDaoList,
-  getGongfaByGrandDao,
-  getGongfaById,
-  getLevelBonusRate,
-  getCampDebuffRate,
   createEmptyCustomTemplate,
   sanitizeCustomTemplate,
   getLocalCustomTemplates,
@@ -894,14 +559,8 @@ module.exports = {
   readTodayCheckin,
   writeTodayCheckin,
   getTemplateDayProgress,
-  buildSelectedTemplatePayload,
-  buildCurrentTemplatePayload,
   settleTemplateTaskReward,
   calcTemplateExtraReward,
-  getTemplateRealmByScore,
-  calcTemplateCoeffContribution,
-  aggregateCoeffParts,
-  clampTotalCoeff,
   applyTemplateLevelProgress,
 
   // >>> v2.1: 云端模板广场接口

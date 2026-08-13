@@ -23,9 +23,6 @@ const STORAGE_KEYS = {
   userId: 'tiandao_user_id',
   cultivationSystem: 'tiandao_cultivation_system',
   bodyProfile: 'tiandao_body_profile',
-  currentTemplate: 'tiandao_current_template',
-  mainTemplate: 'tiandao_main_template',
-  sideTemplates: 'tiandao_side_templates',
   // >>> 单日已获正分 / 已扣分缓存，供上限与扣分下限校验
   dailyScoreLedger: 'tiandao_daily_score_ledger',
   // >>> 历史录入记忆快照，按类型缓存最近一次录入值
@@ -126,7 +123,6 @@ const BONUS_RULES = {
   streak_7: 0.05,
   streak_30: 0.1,
   streak_100: 0.15,
-  system_match: 0.2,
   total_cap: 0.35,
   merit_cap: 0.07,               // 功德加成单独上限 7%
   title_cap: 0.15,               // 称号加成分项上限（不变）
@@ -359,10 +355,6 @@ App({
     userProfile: null,
     // >>> 历史录入记忆快照
     lastRecordSnapshot: {},
-    // >>> 多选模板：证道主修(1) + 旁门辅修(多)
-    currentTemplate: null,
-    mainTemplate: null,
-    sideTemplates: [],
     // >>> 公平积分配置挂载，便于调试与页面只读
     scoreBalance: {
       TEMPLATE_DAILY_BASE_SCORE,
@@ -396,9 +388,6 @@ App({
           }, INIT_TIMEOUT_MS)
         })
       ])
-
-      // >>> 每日首次启动时刷新模板等级（不依赖打卡行为）
-      this._dailyStartupRefresh().catch(() => {})
 
       return profile
     } catch (error) {
@@ -466,21 +455,6 @@ App({
     })
   },
 
-  /**
-   * >>> 每日首次启动时刷新模板等级
-   * 仅在当天未执行过时触发，避免重复计算
-   */
-  async _dailyStartupRefresh() {
-    const today = this.getTodayDate()
-    const lastRefreshKey = 'tiandao_daily_template_refresh'
-    try {
-      const lastDate = wx.getStorageSync(lastRefreshKey) || ''
-      if (lastDate === today) return
-      await this.refreshTemplateLevelsAfterCheckin()
-      wx.setStorageSync(lastRefreshKey, today)
-    } catch (_) { /* 静默失败，不影响主流程 */ }
-  },
-
   waitForInit() {
     return (this.initPromise || Promise.resolve(this.createDefaultUserProfile()))
       .catch((error) => {
@@ -521,10 +495,6 @@ App({
       lastCheckInDate: '',
       learningTemplateId: '',
       learningTemplateName: '',
-      // >>> 人生模板：主修 + 辅修
-      currentTemplate: this.globalData.currentTemplate || wx.getStorageSync(STORAGE_KEYS.currentTemplate) || null,
-      mainTemplate: this.globalData.mainTemplate || wx.getStorageSync(STORAGE_KEYS.mainTemplate) || null,
-      sideTemplates: this.globalData.sideTemplates || wx.getStorageSync(STORAGE_KEYS.sideTemplates) || [],
       dailyMatch: 0,
       weeklyMatch: 0,
       totalProgress: 0,
@@ -532,7 +502,6 @@ App({
       sectId: '',
       sectName: '',
       sectRole: '',
-      mainTemplateBonus: false,
       // >>> 历史录入记忆快照，初始为空对象
       lastRecordSnapshot: this.globalData.lastRecordSnapshot || wx.getStorageSync(STORAGE_KEYS.lastRecordSnapshot) || {},
       cultivationSystem,
@@ -816,8 +785,7 @@ App({
    */
   getTemplateDailyBalance() {
     const systemKey = this.getCultivationSystem()
-    const template = this.getCurrentTemplate()
-    return getBalanceConfig(systemKey, template)
+    return getBalanceConfig(systemKey, null)
   },
 
   /**
@@ -841,7 +809,7 @@ App({
   getRealmByScore(score = 0) {
     const safeScore = Math.max(0, Number(score) || 0)
     const systemKey = this.getCultivationSystem()
-    const template = this.getMainTemplate() || this.getCurrentTemplate()
+    const template = null
     const realmConfig = this.getRealmConfigForSystem(systemKey, template)
 
     let names = REALM_NAME_MAP[systemKey] || REALM_NAME_MAP.traditional
@@ -918,9 +886,6 @@ App({
       const profile = this.globalData.userProfile || {}
       const streakDays = Number(profile.streakDays || 0)
       let bonusRate = this.getStreakBonusRate(streakDays)
-      if (hasSystemBonus) {
-        bonusRate += BONUS_RULES.system_match
-      }
       bonusRate = Math.min(bonusRate, BONUS_RULES.total_cap)
 
       return Math.max(0, Math.floor(raw * (1 + bonusRate)))
@@ -984,7 +949,7 @@ App({
       var ledger = this.getDailyScoreLedger()
       var systemKey = this.getCultivationSystem()
       // 映射体系 key 到统一引擎的 systemKey
-      var mappedKey = resolveBalanceSystemKey(systemKey, this.getMainTemplate() || this.getCurrentTemplate())
+      var mappedKey = resolveBalanceSystemKey(systemKey, null)
       return unifiedScore.getRemainingCap(
         mappedKey,
         Number(opts && opts.todayMainGained) || ledger.gained || 0,
@@ -1043,72 +1008,57 @@ App({
     }
   },
 
-  getCurrentTemplate() {
-    // 兼容旧调用：优先返回主修大道模板
-    return this.getMainTemplate()
-      || this.globalData.currentTemplate
-      || (this.globalData.userProfile && this.globalData.userProfile.currentTemplate)
-      || wx.getStorageSync(STORAGE_KEYS.currentTemplate)
-      || null
-  },
-
-  getMainTemplate() {
-    return this.globalData.mainTemplate
-      || (this.globalData.userProfile && this.globalData.userProfile.mainTemplate)
-      || wx.getStorageSync(STORAGE_KEYS.mainTemplate)
-      || null
-  },
-
-  getSideTemplates() {
-    const list = this.globalData.sideTemplates
-      || (this.globalData.userProfile && this.globalData.userProfile.sideTemplates)
-      || wx.getStorageSync(STORAGE_KEYS.sideTemplates)
-      || []
-    return Array.isArray(list) ? list : []
-  },
-
   /**
-   * >>> 新增：计算当日修行系数
-   * 最终修为 = 基础分 × coeff；总加成最高 +50%，总 debuff 最低 -30%
+   * >>> 计算当日修行系数（根骨 + 连击 + 称号stub）
+   * 最终修为 = 基础分 × (1 + 根骨加成 + 连击加成 + 称号stub)，再经 total_cap 封顶
    */
   calcTodayCultivationCoeff() {
     try {
-      const {
-        aggregateCoeffParts,
-        clampTotalCoeff,
-        getTemplateById,
-        getLocalCustomTemplates
-      } = require('./utils/life-template.js')
+      const profile = this.globalData.userProfile || {}
+      const streakDays = Number(profile.streakDays || 0)
 
-      const main = this.getMainTemplate()
-      const sides = this.getSideTemplates()
-      const customs = getLocalCustomTemplates()
+      const bonusItems = []
+      let rawRate = 0
 
-      const hydrate = (snap) => {
-        if (!snap || !snap.id) return null
-        const full = getTemplateById(snap.id, customs) || snap
-        return {
-          ...full,
-          ...snap,
-          tasks: (full && full.tasks && full.tasks.length) ? full.tasks : (snap.tasks || [])
-        }
+      // 根骨加成（综合根骨 → 全局修为加成 0~15%，来自 utils/root-bone.js）
+      var boneRate = 0
+      try {
+        var rootBone = require('./utils/root-bone.js')
+        var boneComp = rootBone.calculateComposite()
+        boneRate = (boneComp && boneComp.globalBonusRate) || 0
+      } catch (e) {
+        // catch 仅降级为 0 加成，不告警
+      }
+      if (boneRate > 0) {
+        rawRate += boneRate
+        bonusItems.push({ label: '根骨加成 +' + Math.round(boneRate * 100) + '%', rate: boneRate, type: 'bonus' })
       }
 
-      const parts = aggregateCoeffParts(hydrate(main), sides.map(hydrate).filter(Boolean))
-      const rawRate = parts.reduce((sum, item) => sum + Number(item.rate || 0), 0)
-      const clamped = clampTotalCoeff(rawRate)
-      const bonusItems = parts.filter((item) => item.type === 'bonus')
-      const debuffItems = parts.filter((item) => item.type === 'debuff')
+      // 连击加成
+      const streakRate = this.getStreakBonusRate(streakDays)
+      if (streakRate > 0) {
+        rawRate += streakRate
+        bonusItems.push({ label: '连击加成 +' + Math.round(streakRate * 100) + '%', rate: streakRate, type: 'bonus' })
+      }
+
+      // 称号修行词条接入点（任务 3 填实现）——stub 阶段返回 0
+      const titleBuffRate = this.getEquippedTitleBuff ? this.getEquippedTitleBuff('cultivation') : 0
+      if (titleBuffRate > 0) {
+        rawRate += titleBuffRate
+        bonusItems.push({ label: '称号词条 +' + Math.round(titleBuffRate * 100) + '%', rate: titleBuffRate, type: 'bonus' })
+      }
+
+      const rate = Math.min(rawRate, BONUS_RULES.total_cap)
 
       return {
-        coeff: clamped.coeff,
-        rate: clamped.rate,
-        capped: clamped.capped,
-        parts,
+        coeff: 1 + rate,
+        rate,
+        capped: rate !== rawRate,
+        parts: bonusItems,
         bonusItems,
-        debuffItems,
-        bonusText: bonusItems.map((item) => item.label),
-        debuffText: debuffItems.map((item) => item.label)
+        debuffItems: [],
+        bonusText: bonusItems.map(function(item) { return item.label }),
+        debuffText: []
       }
     } catch (error) {
       console.error('calcTodayCultivationCoeff 失败', error)
@@ -1125,194 +1075,8 @@ App({
     }
   },
 
-  /**
-   * >>> 持久化主修/辅修到本地 + 云端 users
-   */
-  async persistTemplateSelection(mainTemplate, sideTemplates = [], options = {}) {
-    const syncSystem = options.syncSystem !== false
-    const main = mainTemplate || null
-    const sides = Array.isArray(sideTemplates) ? sideTemplates : []
-
-    wx.setStorageSync(STORAGE_KEYS.mainTemplate, main)
-    wx.setStorageSync(STORAGE_KEYS.sideTemplates, sides)
-    // 兼容旧字段：currentTemplate 指向主修
-    wx.setStorageSync(STORAGE_KEYS.currentTemplate, main)
-
-    this.globalData.mainTemplate = main
-    this.globalData.sideTemplates = sides
-    this.globalData.currentTemplate = main
-
-    const profilePatch = {
-      mainTemplate: main,
-      sideTemplates: sides,
-      currentTemplate: main,
-      learningTemplateId: main ? main.id : '',
-      learningTemplateName: main ? main.name : '',
-      updatedAt: Date.now()
-    }
-
-    try {
-      const profile = await this.ensureUserProfile()
-      if (profile && profile._id) {
-        const db = this.getDb()
-        if (db) {
-          // 云端 currentTemplate/mainTemplate 可能为 null，update 递归合并嵌套对象会报错 → 用 command.set 整体赋值
-          var patchData = Object.assign({}, profilePatch)
-          if (main && db.command) {
-            patchData.mainTemplate = db.command.set(main)
-            patchData.currentTemplate = db.command.set(main)
-          }
-          await db.collection('users').doc(profile._id).update({ data: patchData })
-        }
-      }
-      this.syncUserProfile(profilePatch)
-    } catch (error) {
-      console.error('同步多选模板失败', error)
-      this.syncUserProfile(profilePatch)
-    }
-
-    if (syncSystem && main && main.cultivationSystem) {
-      await this.setCultivationSystem(main.cultivationSystem)
-    }
-
-    this.emitAppEvent('life-template-changed', {
-      mainTemplate: main,
-      sideTemplates: sides
-    })
-    this.refreshCultivationPages('life-template-changed')
-    return { mainTemplate: main, sideTemplates: sides }
-  },
-
-  /**
-   * >>> 设置证道主修（大道单选，直接替换，清空旧模板当日打卡）
-   */
-  async setMainTemplate(template, options = {}) {
-    const { buildSelectedTemplatePayload, CAMP, writeTodayCheckin } = require('./utils/life-template.js')
-    if (!template || template.camp === 'side') {
-      // 允许强制：若传入小道则拒绝
-      if (template && template.camp === CAMP.SIDE) {
-        this.showSystemToast('小道不可设为主修')
-        return null
-      }
-    }
-    const payload = buildSelectedTemplatePayload(template, template.level || 1)
-    if (!payload) return null
-    payload.camp = CAMP.MAIN
-
-    // >>> 切换主修时清空旧模板当日打卡状态，避免串扰
-    const oldMain = this.getMainTemplate()
-    if (oldMain && oldMain.id && oldMain.id !== payload.id) {
-      try {
-        writeTodayCheckin(oldMain.id, { tasks: {}, totalScore: 0 })
-      } catch (_) { /* 静默清理 */ }
-    }
-
-    return this.persistTemplateSelection(payload, this.getSideTemplates(), options)
-  },
-
-  /**
-   * >>> 切换旁门辅修（小道多选，最多 3 个）
-   */
-  async toggleSideTemplate(template) {
-    const { buildSelectedTemplatePayload, CAMP } = require('./utils/life-template.js')
-    const MAX_SIDE_TEMPLATES = 3
-    if (!template || !template.id) return null
-    if (template.camp === CAMP.MAIN) {
-      this.showSystemToast('大道请在证道主修区选择')
-      return null
-    }
-
-    const payload = buildSelectedTemplatePayload(template, template.level || 1)
-    payload.camp = CAMP.SIDE
-    const sides = [...this.getSideTemplates()]
-    const index = sides.findIndex((item) => item.id === payload.id)
-    if (index >= 0) {
-      sides.splice(index, 1)
-    } else {
-      if (sides.length >= MAX_SIDE_TEMPLATES) {
-        this.showSystemToast(`旁门辅修最多${MAX_SIDE_TEMPLATES}个，请先移除一个`)
-        return null
-      }
-      sides.push(payload)
-    }
-    return this.persistTemplateSelection(this.getMainTemplate(), sides, { syncSystem: false })
-  },
-
-  /**
-   * >>> 兼容旧接口：切换人生模板 = 设为主修
-   */
-  async switchLifeTemplate(template, options = {}) {
-    return this.setMainTemplate(template, options)
-  },
-
-  /**
-   * >>> 合并所有选中模板的每日任务（按阵营分组）
-   */
-  getMergedDailyTasks() {
-    const { getTemplateById, getLocalCustomTemplates, readTodayCheckin, CAMP } = require('./utils/life-template.js')
-    const customs = getLocalCustomTemplates()
-    const groups = []
-
-    const pushGroup = (snap, campLabel) => {
-      if (!snap || !snap.id) return
-      const full = getTemplateById(snap.id, customs) || snap
-      const tasks = full.tasks || snap.tasks || []
-      const checkin = readTodayCheckin(snap.id)
-      const doneMap = checkin.tasks || {}
-      groups.push({
-        templateId: snap.id,
-        templateName: snap.name || full.name,
-        camp: snap.camp || full.camp,
-        campLabel,
-        level: snap.level || 1,
-        tasks: tasks.map((task) => ({
-          ...task,
-          templateId: snap.id,
-          done: !!doneMap[task.id]
-        }))
-      })
-    }
-
-    const main = this.getMainTemplate()
-    if (main) pushGroup(main, '证道主修')
-    this.getSideTemplates().forEach((item) => pushGroup(item, '旁门辅修'))
-    return groups
-  },
-
-  /**
-   * >>> 日终刷新模板等级（可在打卡后调用）
-   */
-  async refreshTemplateLevelsAfterCheckin() {
-    const {
-      getTemplateDayProgress,
-      applyTemplateLevelProgress,
-      getTemplateById,
-      getLocalCustomTemplates
-    } = require('./utils/life-template.js')
-
-    const customs = getLocalCustomTemplates()
-    let main = this.getMainTemplate()
-    let sides = this.getSideTemplates()
-    let changed = false
-
-    const bump = (snap) => {
-      if (!snap) return snap
-      const full = getTemplateById(snap.id, customs) || snap
-      const progress = getTemplateDayProgress({ ...full, ...snap, tasks: full.tasks || [] })
-      const next = applyTemplateLevelProgress({ ...snap, tasks: full.tasks || [] }, progress)
-      if (next.level !== snap.level || next.highStreak !== snap.highStreak || next.lowStreak !== snap.lowStreak) {
-        changed = true
-      }
-      return next
-    }
-
-    if (main) main = bump(main)
-    sides = sides.map(bump)
-    if (changed) {
-      await this.persistTemplateSelection(main, sides, { syncSystem: false })
-    }
-    return { mainTemplate: main, sideTemplates: sides }
-  },
+  /** 称号修行词条合计（stub——任务 3「三榜称号」填真实实现） */
+  getEquippedTitleBuff: function() { return 0 },
 
   getThemeByScore(score = 0) {
     const target = this.globalData.themeTargetScore || 20
@@ -1899,22 +1663,6 @@ App({
             cultivationSystem: this.normalizeCultivationSystem(sourceProfile.cultivationSystem || localCultivationSystem)
           }
 
-          // >>> 恢复多选模板快照
-          if (sourceProfile.mainTemplate) {
-            this.globalData.mainTemplate = sourceProfile.mainTemplate
-            wx.setStorageSync(STORAGE_KEYS.mainTemplate, sourceProfile.mainTemplate)
-            this.globalData.currentTemplate = sourceProfile.mainTemplate
-            wx.setStorageSync(STORAGE_KEYS.currentTemplate, sourceProfile.mainTemplate)
-          } else if (sourceProfile.currentTemplate) {
-            this.globalData.currentTemplate = sourceProfile.currentTemplate
-            this.globalData.mainTemplate = sourceProfile.currentTemplate
-            wx.setStorageSync(STORAGE_KEYS.currentTemplate, sourceProfile.currentTemplate)
-            wx.setStorageSync(STORAGE_KEYS.mainTemplate, sourceProfile.currentTemplate)
-          }
-          if (Array.isArray(sourceProfile.sideTemplates)) {
-            this.globalData.sideTemplates = sourceProfile.sideTemplates
-            wx.setStorageSync(STORAGE_KEYS.sideTemplates, sourceProfile.sideTemplates)
-          }
           // >>> 恢复签名诗
           if (sourceProfile.signaturePoem) {
             this.globalData.signaturePoem = sourceProfile.signaturePoem
@@ -1993,11 +1741,6 @@ App({
       nextProfile.cultivationSystem = this.normalizeCultivationSystem(partialProfile.cultivationSystem)
       this.globalData.cultivationSystem = nextProfile.cultivationSystem
       wx.setStorageSync(STORAGE_KEYS.cultivationSystem, nextProfile.cultivationSystem)
-    }
-
-    if (partialProfile.currentTemplate) {
-      this.globalData.currentTemplate = partialProfile.currentTemplate
-      wx.setStorageSync(STORAGE_KEYS.currentTemplate, partialProfile.currentTemplate)
     }
 
     // >>> 同步历史录入记忆快照
@@ -3038,8 +2781,6 @@ App({
     try {
       var profile = this.globalData.userProfile || {}
       var totalCultivation = Number(profile.totalCultivation || 0)
-      var mainTemplate = this.getMainTemplate ? this.getMainTemplate() : null
-      var realmNames = (mainTemplate && mainTemplate.realmNames) || ['炼气','筑基','金丹','元婴']
       var realm = this.getRealmByScore ? this.getRealmByScore(totalCultivation) : null
       var realmName = (realm && realm.name) || '炼气'
       
@@ -3076,8 +2817,6 @@ App({
               streakDays: user.streakDays || 0,
               signaturePoem: user.signaturePoem || '',
               cultivationSystem: user.cultivationSystem || 'traditional',
-              mainTemplate: user.mainTemplate || null,
-              sideTemplates: user.sideTemplates || [],
               bodyProfile: user.bodyProfile || {},
               createdAt: user.createdAt || 0,
               updatedAt: user.updatedAt || 0,
@@ -3221,27 +2960,32 @@ App({
 
     var systemKey = this.getCultivationSystem()
     var balanceConfig = getBalanceConfig(systemKey)
-    var realmConfig = buildRealmConfigByBaseScore(balanceConfig.baseScore)
     var totalCultivation = Number(profile.totalCultivation || 0)
 
-    // 查找当前境界
-    var currentRealm = null
-    var realmNames = REALM_NAME_MAP[systemKey] || REALM_NAME_MAP.traditional
-    for (var i = 0; i < realmConfig.length; i++) {
-      if (totalCultivation >= realmConfig[i].minScore && totalCultivation <= realmConfig[i].maxScore) {
-        currentRealm = {
-          index: i,
-          name: realmNames[i] || realmConfig[i].id,
-          stages: realmConfig[i].stages,
-          perStage: realmConfig[i].perStage,
-          minScore: realmConfig[i].minScore,
-          maxScore: realmConfig[i].maxScore,
-          progress: totalCultivation - realmConfig[i].minScore,
-          remaining: realmConfig[i].maxScore === Infinity ? 0 : realmConfig[i].maxScore - totalCultivation,
-          progressPercent: realmConfig[i].maxScore === Infinity ? 100 : Math.min(100, Math.round((totalCultivation - realmConfig[i].minScore) / (realmConfig[i].maxScore - realmConfig[i].minScore) * 100))
-        }
-        break
-      }
+    // 修行阶段（大阶段 + 小阶段，纯展示）——由 cultivation-config.js 配置化产出
+    var cultivationCfg = require('./utils/cultivation-config.js')
+    var stageInfo = cultivationCfg.getCultivationStage(totalCultivation)
+    var stagesCfg = cultivationCfg.stages
+    var subTotal = Math.max(1, cultivationCfg.subStagesPerStage || 9)
+    var stageIdx = stageInfo.stageIndex
+    var curStage = stagesCfg[stageIdx] || stagesCfg[0]
+    var nextStage = stagesCfg[stageIdx + 1] || null
+    var span = nextStage ? (nextStage.min - curStage.min) : (curStage.min > 0 ? curStage.min : 1000)
+    var minScore = curStage.min
+    var maxScore = nextStage ? (nextStage.min - 1) : Infinity
+    var perStage = Math.max(1, Math.round(span / subTotal))
+
+    // currentRealm 兼容别名：字段名与子字段形状保持不变（AI 依赖），name 取新 4 大阶段名
+    var currentRealm = {
+      index: stageIdx,
+      name: curStage.name,
+      stages: subTotal,
+      perStage: perStage,
+      minScore: minScore,
+      maxScore: maxScore,
+      progress: totalCultivation - minScore,
+      remaining: maxScore === Infinity ? 0 : maxScore - totalCultivation,
+      progressPercent: maxScore === Infinity ? 100 : Math.min(100, Math.round((totalCultivation - minScore) / (maxScore - minScore) * 100))
     }
 
     return {
@@ -3252,10 +2996,9 @@ App({
       dailyLimit: balanceConfig.dailyLimit,
       nextLimitRealm: balanceConfig.nextLimitRealm,
       currentRealm: currentRealm,
+      currentStage: stageInfo,
       systemKey: systemKey,
-      bodyProfile: profile.bodyProfile || {},
-      mainTemplate: profile.mainTemplate || null,
-      sideTemplates: profile.sideTemplates || []
+      bodyProfile: profile.bodyProfile || {}
     }
   },
 

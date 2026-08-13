@@ -76,8 +76,6 @@
   </block>
 
   <view class="actions card">
-    <button class="btn btn-primary" bindtap="activateTemplate" wx:if="{{!isActive}}">启用此模板</button>
-    <view class="active-tag" wx:else>当前修习中</view>
     <view class="action-row">
       <view class="ghost-btn" bindtap="shareTemplate">分享</view>
       <view class="ghost-btn" wx:if="{{canEdit}}" bindtap="editTemplate">编辑</view>

@@ -190,19 +190,6 @@ Page({
     }
   },
 
-  async saveAndActivate() {
-    this.saveTemplate()
-    const form = sanitizeCustomTemplate(this.data.form)
-    const saved = upsertCustomTemplate(form)
-    await app.switchLifeTemplate(saved, { syncSystem: true })
-    app.showSystemToast(`已启用「${saved.name}」`, 'success')
-    setTimeout(() => {
-      wx.redirectTo({
-        url: `/packageC/pages/template-detail/template-detail?id=${saved.id}`
-      })
-    }, 400)
-  },
-
   // >>> 发布到模板广场并生成分享码
   publishAndShare() {
     const saved = upsertCustomTemplate(sanitizeCustomTemplate(this.data.form))

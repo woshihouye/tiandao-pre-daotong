@@ -3,7 +3,6 @@ const app = getApp()
 const {
   getTemplateById,
   getLocalCustomTemplates,
-  getTemplateRealmByScore,
   resolveTemplateId,
   buildShareCode,
   fetchTemplateDetail,
@@ -21,7 +20,6 @@ Page({
   data: {
     template: null,
     themeClass: 'theme-light-fixed',
-    isActive: false,
     todayScore: 0,
     dailyCap: 0,
     remainScore: 0,
@@ -98,11 +96,10 @@ Page({
         return
       }
 
-      const current = app.getCurrentTemplate ? app.getCurrentTemplate() : null
-      const isActive = !!(current && current.id === template.id)
       const profile = (app.globalData && app.globalData.userProfile) || {}
       const totalCultivation = Number(profile.totalCultivation || 0)
-      const realm = getTemplateRealmByScore(totalCultivation, template.realmNames)
+      const stageInfo = require('../../../utils/cultivation-config.js').getCultivationStage(totalCultivation)
+      const realm = { name: stageInfo.stage.name, stage: stageInfo.subStageIndex + 1, remaining: 0 }
       const todayScore = Number((app.globalData && app.globalData.todayScore) || 0)
       const dailyCap = Number(template.dailyCap || 40)
       const streakDays = Number(profile.streakDays || 0)
@@ -122,7 +119,6 @@ Page({
 
       this.setData({
         template,
-        isActive,
         todayScore,
         dailyCap,
         remainScore: Math.max(0, dailyCap - todayScore),
@@ -188,19 +184,6 @@ Page({
     }
   },
 
-  async activateTemplate() {
-    const template = this.data.template
-    if (!template) return
-    try {
-      await app.switchLifeTemplate(template, { syncSystem: true })
-      app.showSystemToast(`已启用「${template.name}」并同步修炼体系`, 'success')
-      this.loadPage()
-    } catch (error) {
-      console.error(error)
-      app.showSystemToast('启用模板失败')
-    }
-  },
-
   editTemplate() {
     wx.navigateTo({
       url: `/packageC/pages/template-edit/template-edit?id=${this.templateId}`
@@ -229,15 +212,14 @@ Page({
         var taskStates = (t.tasks || []).map(function(task) {
           return Object.assign({}, task)
         })
-        var current = app.getCurrentTemplate ? app.getCurrentTemplate() : null
         var profile = (app.globalData && app.globalData.userProfile) || {}
         var totalCultivation = Number(profile.totalCultivation || 0)
-        var realm = getTemplateRealmByScore(totalCultivation, t.realmNames)
+        var stageInfo = require('../../../utils/cultivation-config.js').getCultivationStage(totalCultivation)
+        var realm = { name: stageInfo.stage.name, stage: stageInfo.subStageIndex + 1, remaining: 0 }
         var todayScore = Number((app.globalData && app.globalData.todayScore) || 0)
         var dailyCap = Number(t.dailyCap || 40)
         that.setData({
           template: t,
-          isActive: !!(current && current.id === t.id),
           todayScore: todayScore,
           dailyCap: dailyCap,
           remainScore: Math.max(0, dailyCap - todayScore),

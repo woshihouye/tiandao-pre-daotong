@@ -11,7 +11,6 @@
   <!-- 模板标签切换 -->
   <view class="tab-bar">
     <view class="tab-item {{activeTab === 'mytmpl' ? 'active' : ''}}" data-tab="mytmpl" bindtap="switchTab">我的模板</view>
-    <view class="tab-item {{activeTab === 'preset' ? 'active' : ''}}" data-tab="preset" bindtap="switchTab">大道模板</view>
     <view class="tab-item {{activeTab === 'plaza' ? 'active' : ''}}" data-tab="plaza" bindtap="switchTab">模板广场</view>
   </view>
 
@@ -50,101 +49,19 @@
 
   </view>
 
-  <!-- ===== 大道模板 ===== -->
-  <view wx:if="{{activeTab === 'preset'}}">
-
-  <!-- ===== 大道·证道主修 ===== -->
-  <view class="section-banner main-banner">
-    <view class="banner-icon">☀️</view>
-    <view class="banner-text">
-      <view class="banner-title">大道 · 证道主修</view>
-      <view class="banner-desc">择一而终，日修不辍，此为立身之本</view>
-    </view>
-    <view class="banner-count">{{mainPresets.length}}道</view>
-  </view>
-  <view class="template-list">
-    <view
-      class="template-card card {{item.active ? 'is-active' : ''}}"
-      wx:for="{{mainPresets}}"
-      wx:key="id"
-      bindtap="goToGrandDao"
-      data-id="{{item.id}}"
-    >
-      <view class="template-emblem">
-        <view class="cover-badge main-cover">{{item.cover}}</view>
-        <view class="grade-stars" wx:if="{{item.active}}">修习中</view>
-      </view>
-      <view class="template-main">
-        <view class="template-header">
-          <view class="template-name">{{item.name}}</view>
-          <view class="template-stats">{{item.goal}}</view>
-        </view>
-        <view class="template-desc text-secondary">{{item.description}}</view>
-        <view class="template-tags">
-          <view class="tag tag-main" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</view>
-        </view>
-        <view class="grand-dao-footer">
-          <view class="gongfa-count" wx:if="{{item.gongfaCount > 0}}">{{item.gongfaCount}}部功法</view>
-          <view class="gongfa-count empty" wx:else>暂无功法</view>
-          <view class="grand-dao-arrow">→</view>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  </view>
-
   <!-- 云端模板广场 -->
   <view class="plaza-section" wx:if="{{activeTab === 'plaza'}}">
-    <!-- 筛选栏 -->
+    <!-- 排序筛选（template-config.js） -->
     <view class="plaza-filters">
       <view class="filter-group">
-        <view class="filter-item {{cloudSortBy === 'hot' ? 'active' : ''}}" data-sort="hot" bindtap="changeSort">热门</view>
-        <view class="filter-item {{cloudSortBy === 'new' ? 'active' : ''}}" data-sort="new" bindtap="changeSort">最新</view>
-        <view class="filter-item {{cloudSortBy === 'imports' ? 'active' : ''}}" data-sort="imports" bindtap="changeSort">最多导入</view>
-        <view class="filter-item {{cloudSortBy === 'beginner' ? 'active' : ''}}" data-sort="beginner" bindtap="changeSort">新手入门</view>
-      </view>
-      <view class="filter-group">
-        <view class="filter-item {{cloudType === 'all' ? 'active' : ''}}" data-type="all" bindtap="changeType">全部</view>
-        <view class="filter-item {{cloudType === 'official' ? 'active' : ''}}" data-type="official" bindtap="changeType">官方</view>
-        <view class="filter-item {{cloudType === 'user' ? 'active' : ''}}" data-type="user" bindtap="changeType">道友</view>
+        <view class="filter-item {{cloudSortKey === item.key ? 'active' : ''}}" wx:for="{{sortTabs}}" wx:key="key" data-key="{{item.key}}" bindtap="changeSort">{{item.label}}</view>
       </view>
     </view>
 
-    <!-- 分类筛选栏 -->
+    <!-- 分类筛选栏（6 大道则） -->
     <view class="plaza-cat-bar">
-      <view class="cat-item {{cloudCategory === '' ? 'active' : ''}}" data-category="" bindtap="changeCategory">全部道则</view>
-      <view class="cat-item {{cloudCategory === 'preset' ? 'active' : ''}}" data-category="preset" bindtap="changeCategory">生活修行</view>
-      <view class="cat-item {{cloudCategory === 'career' ? 'active' : ''}}" data-category="career" bindtap="changeCategory">行业成长</view>
-      <view class="cat-item {{cloudCategory === 'learning' ? 'active' : ''}}" data-category="learning" bindtap="changeCategory">学习精进</view>
-      <view class="cat-item {{cloudCategory === 'fitness' ? 'active' : ''}}" data-category="fitness" bindtap="changeCategory">运动健康</view>
-    </view>
-
-    <!-- 子分类筛选（按分类动态展示） -->
-    <view class="plaza-industry-bar" wx:if="{{cloudCategory}}">
-      <view class="ind-item {{cloudSubcategory === '' ? 'active' : ''}}" data-subcategory="" bindtap="changeSubcategory">全部</view>
-      <block wx:if="{{cloudCategory === 'career'}}">
-        <view class="ind-item {{cloudSubcategory === '互联网' ? 'active' : ''}}" data-subcategory="互联网" bindtap="changeSubcategory">互联网</view>
-        <view class="ind-item {{cloudSubcategory === '财会' ? 'active' : ''}}" data-subcategory="财会" bindtap="changeSubcategory">财会</view>
-        <view class="ind-item {{cloudSubcategory === '设计' ? 'active' : ''}}" data-subcategory="设计" bindtap="changeSubcategory">设计</view>
-        <view class="ind-item {{cloudSubcategory === '销售' ? 'active' : ''}}" data-subcategory="销售" bindtap="changeSubcategory">销售</view>
-        <view class="ind-item {{cloudSubcategory === '教育' ? 'active' : ''}}" data-subcategory="教育" bindtap="changeSubcategory">教育</view>
-        <view class="ind-item {{cloudSubcategory === '管理' ? 'active' : ''}}" data-subcategory="管理" bindtap="changeSubcategory">管理</view>
-      </block>
-      <block wx:if="{{cloudCategory === 'learning'}}">
-        <view class="ind-item {{cloudSubcategory === '考研' ? 'active' : ''}}" data-subcategory="考研" bindtap="changeSubcategory">考研</view>
-        <view class="ind-item {{cloudSubcategory === '中高考' ? 'active' : ''}}" data-subcategory="中高考" bindtap="changeSubcategory">中高考</view>
-        <view class="ind-item {{cloudSubcategory === '科研' ? 'active' : ''}}" data-subcategory="科研" bindtap="changeSubcategory">科研</view>
-        <view class="ind-item {{cloudSubcategory === '编程' ? 'active' : ''}}" data-subcategory="编程" bindtap="changeSubcategory">编程</view>
-        <view class="ind-item {{cloudSubcategory === '语言' ? 'active' : ''}}" data-subcategory="语言" bindtap="changeSubcategory">语言</view>
-      </block>
-      <block wx:if="{{cloudCategory === 'fitness'}}">
-        <view class="ind-item {{cloudSubcategory === '跑步' ? 'active' : ''}}" data-subcategory="跑步" bindtap="changeSubcategory">跑步</view>
-        <view class="ind-item {{cloudSubcategory === '增肌' ? 'active' : ''}}" data-subcategory="增肌" bindtap="changeSubcategory">增肌</view>
-        <view class="ind-item {{cloudSubcategory === '塑形' ? 'active' : ''}}" data-subcategory="塑形" bindtap="changeSubcategory">塑形</view>
-        <view class="ind-item {{cloudSubcategory === '养生' ? 'active' : ''}}" data-subcategory="养生" bindtap="changeSubcategory">养生</view>
-        <view class="ind-item {{cloudSubcategory === '竞技' ? 'active' : ''}}" data-subcategory="竞技" bindtap="changeSubcategory">竞技</view>
-      </block>
+      <view class="cat-item {{cloudCategory === '' ? 'active' : ''}}" data-category="" bindtap="changeCategory">全部</view>
+      <view class="cat-item {{cloudCategory === item.key ? 'active' : ''}}" wx:for="{{categoryTabs}}" wx:key="key" data-category="{{item.key}}" bindtap="changeCategory">{{item.label}}</view>
     </view>
 
     <!-- 搜索框 -->

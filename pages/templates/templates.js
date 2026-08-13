@@ -1,29 +1,30 @@
 // 人生模板列表页 — v2 云端广场
 var app = getApp()
 var lifeTemplate = require('../../utils/life-template.js')
-var { getGrandDaoList, getGongfaByGrandDao } = require('../../utils/life-template.js')
+var templateConfig = require('../../utils/template-config.js')
 
 /** 自定义模板存储 key */
 var CUSTOM_TMPL_KEY = 'tiandao_custom_templates_'
 
 Page({
   data: {
-    currentId: '',
-    // 大道模板：仅含大道主修（3条）
-    mainPresets: [],
     // 云端广场
     cloudTemplates: [],
     cloudTotal: 0,
     cloudHasMore: true,
     cloudPage: 1,
     cloudLoading: false,
-    cloudSortBy: 'hot',
+    cloudSortBy: 'new',
+    cloudSortKey: 'new',
     cloudType: 'all',
     cloudCategory: '',
     cloudSubcategory: '',
     cloudKeyword: '',
+    // 广场筛选配置（template-config.js）
+    sortTabs: templateConfig.sortTabs,
+    categoryTabs: templateConfig.categoryTabs,
     // 标签页切换
-    activeTab: 'preset', // 'mytmpl' | 'preset' | 'plaza'
+    activeTab: 'mytmpl', // 'mytmpl' | 'plaza'
     // 自建模板
     customTemplates: [],
     customTemplatesFiltered: [],
@@ -36,7 +37,6 @@ Page({
 
   onShow: function() {
     this.applyTheme()
-    this.refreshList()
     this.loadCustomTemplates()
     if (this.data.activeTab === 'plaza') {
       this.loadCloudTemplates(true)
@@ -46,38 +46,6 @@ Page({
   applyTheme: function() {
     var tc = app.resolveThemeClass ? app.resolveThemeClass(0) : 'theme-light-fixed'
     this.setData({ themeClass: tc })
-  },
-
-  refreshList: function() {
-    try {
-      var current = app.getCurrentTemplate ? app.getCurrentTemplate() : null
-      var currentId = lifeTemplate.resolveTemplateId(current && current.id)
-      
-      var allPresets = lifeTemplate.getPresetList()
-      
-      var mapPreset = function(item) {
-        return { 
-          name: item.name, id: item.id, cover: item.cover, camp: item.camp, 
-          tags: item.tags, goal: item.goal, subtitle: item.subtitle,
-          active: item.id === currentId, cultivationSystem: item.cultivationSystem,
-          dailyCap: item.dailyCap, baseScore: item.baseScore, 
-          realmNames: item.realmNames, description: item.description,
-          category: item.category, industry: item.industry, subcategory: item.subcategory,
-          slogan: item.slogan, themeClass: item.themeClass, founderName: item.founderName,
-          isOfficial: item.isOfficial, isGrandDao: item.isGrandDao, gongfaCount: item.gongfaCount || 0
-        }
-      }
-      
-      // 仅大道主修作为预设展示
-      var mainPresets = allPresets.filter(function(t) { return t.camp === 'main' }).map(mapPreset)
-      
-      this.setData({ 
-        currentId: currentId, 
-        mainPresets: mainPresets
-      })
-    } catch (error) {
-      console.error('刷新模板列表失败', error)
-    }
   },
 
   // ==================== 自建模板 ====================
@@ -256,6 +224,7 @@ Page({
   // >>> 标签切换
   switchTab: function(e) {
     var tab = e.currentTarget.dataset.tab
+    if (tab !== 'mytmpl' && tab !== 'plaza') return
     this.setData({ activeTab: tab })
     if (tab === 'plaza') {
       this.loadCloudTemplates(true)
@@ -317,26 +286,21 @@ Page({
   },
 
   changeSort: function(e) {
-    var sort = e.currentTarget.dataset.sort
-    this.setData({ cloudSortBy: sort, cloudPage: 1 })
-    this.loadCloudTemplates(true)
-  },
-
-  changeType: function(e) {
-    var type = e.currentTarget.dataset.type
-    this.setData({ cloudType: type, cloudPage: 1 })
+    var key = e.currentTarget.dataset.key
+    var tab = (this.data.sortTabs || []).find(function(t) { return t.key === key })
+    if (!tab) return
+    this.setData({
+      cloudSortKey: key,
+      cloudSortBy: tab.sortBy || 'hot',
+      cloudType: tab.type || 'all',
+      cloudPage: 1
+    })
     this.loadCloudTemplates(true)
   },
 
   changeCategory: function(e) {
     var cat = e.currentTarget.dataset.category
     this.setData({ cloudCategory: cat, cloudSubcategory: '', cloudPage: 1 })
-    this.loadCloudTemplates(true)
-  },
-
-  changeSubcategory: function(e) {
-    var sub = e.currentTarget.dataset.subcategory
-    this.setData({ cloudSubcategory: sub, cloudPage: 1 })
     this.loadCloudTemplates(true)
   },
 
@@ -357,11 +321,6 @@ Page({
       return
     }
     wx.navigateTo({ url: '/packageC/pages/template-detail/template-detail?id=' + id })
-  },
-
-  goToGrandDao: function(e) {
-    var id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: '/packageC/pages/grand-dao/grand-dao?id=' + id })
   },
 
   openCloudTemplate: function(e) {
