@@ -102,6 +102,7 @@
       <view class="my-empty-btn" bindtap="switchTab" data-tab="plaza">逛广场</view>
       <view class="my-empty-btn green" bindtap="openTypeSheet">+ 自建模板</view>
     </view>
+  </view>
 
   <!-- 自建模板区域 -->
   <view class="custom-tmpl-section" wx:if="{{hasCustomTemplates}}">
@@ -135,7 +136,6 @@
     </view>
   </view>
 
-  </view>
   </view>
 
   <!-- ===== 大道模板 ===== -->
