@@ -231,6 +231,7 @@ page { height: 100%; background: #f7f8fa; }
 .lib-grid-area { flex: 1; }
 .lib-grid { display: flex; flex-wrap: wrap; align-content: flex-start; }
 .lib-card {
+  position: relative;
   width: calc((100% - 24rpx) / 3); margin: 0 12rpx 12rpx 0;
   padding: 16rpx 10rpx 12rpx; border-radius: 14rpx; box-sizing: border-box;
   background: #fff; border: 1rpx solid #eee;
@@ -252,6 +253,21 @@ page { height: 100%; background: #f7f8fa; }
   width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   margin-bottom: 4rpx;
 }
+.lib-card-tag {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  font-size: 18rpx;
+  line-height: 1;
+  padding: 4rpx 8rpx;
+  border-radius: 6rpx;
+  color: #fff;
+}
+.tag-meta { background: #6b7280; }
+.tag-official { background: #2563eb; }
+.tag-custom { background: #16a34a; }
+.tag-public { background: #d97706; }
+.tag-ref { background: #dc2626; }
 
 /* ===== 底部保存 ===== */
 .save-bar {

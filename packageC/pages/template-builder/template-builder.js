@@ -723,10 +723,25 @@ Page({
     for (var i = 0; i < slots.length; i++) {
       var acts = slots[i].activities || []
       for (var j = 0; j < acts.length; j++) {
-        refs.push(Object.assign({}, acts[j], {
+        var a = acts[j] || {}
+        refs.push({
+          id: a.actId || a.id,
+          activityId: a.activityId || a.actId || a.id,
+          name: a.activityName || a.name || '未命名活动',
+          scorePerUnit: a.scorePerUnit != null ? a.scorePerUnit : 1,
+          baseScore: a.baseScore != null ? a.baseScore : 1,
+          unit: (a.capacity && a.capacity.unit) || a.unit || '次',
+          category: a.category || a.tabKey || '',
+          tabKey: a.tabKey || a.category || '',
+          capacity: a.capacity || { value: 1, unit: '次' },
+          type: a.type || 'custom',
+          isOfficial: false,
+          isCustom: false,
+          isPublic: false,
+          _isMetaCard: false,
           sourceType: 'referenced',
           refFromTemplate: this.data.currentTemplateId || ''
-        }))
+        })
       }
     }
     return refs
@@ -774,8 +789,6 @@ Page({
   addActivity: function(e) {
     var act = e.currentTarget.dataset.act
     if (!act) return
-    // 仅允许元卡活动加入模板（模板创建器专属逻辑）
-    if (!act._isMetaCard) return
 
     // 日模板：无弹窗直接添加，已存在则累加容量
     if (this.data.templateType === 'daily') {
