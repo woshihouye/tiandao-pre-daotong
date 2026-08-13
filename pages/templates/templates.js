@@ -1,7 +1,7 @@
 // 人生模板列表页 — v2 云端广场
 var app = getApp()
 var lifeTemplate = require('../../utils/life-template.js')
-var { getTemplateById, getTemplateRealmByScore, getGrandDaoList, getGongfaByGrandDao } = require('../../utils/life-template.js')
+var { getGrandDaoList, getGongfaByGrandDao } = require('../../utils/life-template.js')
 
 /** 自定义模板存储 key */
 var CUSTOM_TMPL_KEY = 'tiandao_custom_templates_'
@@ -24,13 +24,6 @@ Page({
     cloudKeyword: '',
     // 标签页切换
     activeTab: 'preset', // 'mytmpl' | 'preset' | 'plaza'
-    // 我的模板（已选 + 进度）
-    hasMyTemplates: false,
-    totalCultivation: 0,
-    myDetail: null,
-    myRealm: null,
-    mySideDetails: [],
-    starIndexes: [0, 1, 2, 3, 4],
     // 自建模板
     customTemplates: [],
     customTemplatesFiltered: [],
@@ -44,7 +37,6 @@ Page({
   onShow: function() {
     this.applyTheme()
     this.refreshList()
-    this.loadMyTemplates()
     this.loadCustomTemplates()
     if (this.data.activeTab === 'plaza') {
       this.loadCloudTemplates(true)
@@ -86,71 +78,6 @@ Page({
     } catch (error) {
       console.error('刷新模板列表失败', error)
     }
-  },
-
-  // >>> 我的模板（已选 + 进度摘要）
-  loadMyTemplates: function() {
-    var that = this
-    var profile = (app.globalData && app.globalData.userProfile) || {}
-    var totalCultivation = Number(profile.totalCultivation || 0)
-
-    var mainSnap = app.getMainTemplate ? app.getMainTemplate() : null
-    var sideSnaps = app.getSideTemplates ? app.getSideTemplates() : []
-
-    var myDetail = null
-    var myRealm = null
-
-    if (mainSnap && mainSnap.id) {
-      var m = getTemplateById(mainSnap.id) || mainSnap
-      var mlv = Math.max(1, Math.min(5, mainSnap.level || (m.level || 1)))
-      if (m.realmNames && m.realmNames.length) {
-        myRealm = getTemplateRealmByScore(totalCultivation, m.realmNames, m.baseScore || 38) || null
-      }
-      myDetail = {
-        name: m.name || '未知道则',
-        cover: m.cover || '道',
-        goal: m.goal || '',
-        level: mlv,
-        levelPct: mlv * 20
-      }
-    }
-
-    var mySideDetails = []
-    for (var i = 0; i < sideSnaps.length; i++) {
-      var snap = sideSnaps[i]
-      if (!snap || !snap.id) continue
-      var full = getTemplateById(snap.id)
-      var tmpl = full || snap
-      var lv = Math.max(1, Math.min(5, snap.level || (tmpl.level || 1)))
-      var rlm = null
-      var rlmPct = 11
-      if (tmpl.realmNames && tmpl.realmNames.length) {
-        rlm = getTemplateRealmByScore(totalCultivation, tmpl.realmNames, tmpl.baseScore || 38) || null
-        if (rlm) rlmPct = Math.min(100, Math.round((rlm.stage / 9) * 100))
-      }
-      mySideDetails.push({
-        id: snap.id,
-        name: tmpl.name || '未知道则',
-        cover: tmpl.cover || '道',
-        goal: tmpl.goal || '',
-        level: lv,
-        levelPct: lv * 20,
-        realm: rlm,
-        realmPct: rlmPct
-      })
-    }
-
-    that.setData({
-      totalCultivation: totalCultivation,
-      myDetail: myDetail,
-      myRealm: myRealm,
-      mySideDetails: mySideDetails,
-      hasMyTemplates: !!myDetail
-    })
-  },
-
-  goToMyTemplateDetail: function() {
-    wx.navigateTo({ url: '/packageC/pages/my-templates/my-templates' })
   },
 
   // ==================== 自建模板 ====================
