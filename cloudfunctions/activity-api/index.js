@@ -477,38 +477,35 @@ async function searchActivities(params) {
 // ==================== initOfficialActivities ====================
 /** 从官方活动映射表创建/补齐官方活动卡（幂等；仅管理员/控制台调用） */
 async function initOfficialActivities(event) {
-  // ★ 权限校验：仅管理员白名单或云开发控制台调用，拒绝普通用户
   var wxContext = cloud.getWXContext()
-  var adminWhitelist = ['olWJR3YhOlK1IDJZZlGhuCZjRrpw']   // 管理员 openid 白名单
+  var adminWhitelist = ['olWJR3YhOlK1IDJZZlGhuCZjRrpw']
   if (adminWhitelist.indexOf(wxContext.OPENID) === -1 && event.adminToken !== 'tiandao-init-2026') {
     return { ok: false, error: '无权限' }
   }
-  var map = require('./official-activity-map.js')   // 云函数内置映射表副本
-  var created = 0, skipped = 0
-  for (var i = 0; i < map.length; i++) {
-    var m = map[i]
-    var exist = await db.collection('activities').where({ activityId: m.key }).limit(1).get()
-    if (exist.data && exist.data[0]) { skipped++; continue }
-    await db.collection('activities').add({
-      data: {
-        activityId: m.key,
-        name: m.name,
-        category: m.category,
-        metaCardId: m.metaCardId,
-        unit: m.unit,
-        scorePerUnit: m.scorePerUnit,
-        isOfficial: true,
-        isSystem: true,
-        sideFilter: 'all',
-        topFilter: 'all',
-        status: 'active',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    })
-    created++
+  var map = require('./official-activity-map.js')
+  // 1. 批量查询已存在的 activityId（一次查询替代106次串行查询）
+  var keys = map.map(function(m) { return m.key })
+  var existRes = await db.collection('activities').where({ activityId: _.in(keys) }).limit(1000).get()
+  var existKeys = {}
+  ;(existRes.data || []).forEach(function(a) { existKeys[a.activityId] = true })
+  // 2. 过滤出需要新增的缺失活动
+  var toAdd = map.filter(function(m) { return !existKeys[m.key] })
+  // 3. 分批并行新增（每批20条，控制并发量避免触发数据库限制）
+  var BATCH = 20
+  for (var i = 0; i < toAdd.length; i += BATCH) {
+    var batch = toAdd.slice(i, i + BATCH)
+    await Promise.all(batch.map(function(m) {
+      return db.collection('activities').add({
+        data: {
+          activityId: m.key, name: m.name, category: m.category, metaCardId: m.metaCardId,
+          unit: m.unit, scorePerUnit: m.scorePerUnit, isOfficial: true, isSystem: true,
+          sideFilter: 'all', topFilter: 'all', status: 'active',
+          createdAt: new Date(), updatedAt: new Date()
+        }
+      })
+    }))
   }
-  return { ok: true, created: created, skipped: skipped }
+  return { ok: true, created: toAdd.length, skipped: map.length - toAdd.length }
 }
 
 // ==================== 入口 ====================
