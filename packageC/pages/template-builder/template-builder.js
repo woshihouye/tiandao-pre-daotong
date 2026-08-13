@@ -51,6 +51,7 @@ Page({
     // 日模板
     timeSlots: [],
     currentSlotId: 'dawn',
+    editMode: false,
 
     // 周模板
     weekDays: WEEK_DAYS,
@@ -72,6 +73,7 @@ Page({
     // 活动库
     categories: Alib.CATEGORIES,
     currentCategory: 'sport',
+    libSortType: 'default',
     libSideFilters: [],
     currentLibSide: 'all',
     libActivities: [],
@@ -353,6 +355,31 @@ Page({
     this._loadLibFromCloud(cat, kw, side)
   },
 
+  changeLibSort: function() {
+    var self = this
+    wx.showActionSheet({
+      itemList: ['默认排序', '修为值从高到低', '修为值从低到高', '按名称'],
+      success: function(res) {
+        var map = { 0: 'default', 1: 'score_desc', 2: 'score_asc', 3: 'name' }
+        self.setData({ libSortType: map[res.tapIndex] })
+        self.applyLibSort()
+      }
+    })
+  },
+
+  applyLibSort: function() {
+    var list = (this.data.libActivities || []).slice()
+    var type = this.data.libSortType
+    if (type === 'score_desc') {
+      list.sort(function(a, b) { return (Number(b.scorePerUnit) || 0) - (Number(a.scorePerUnit) || 0) })
+    } else if (type === 'score_asc') {
+      list.sort(function(a, b) { return (Number(a.scorePerUnit) || 0) - (Number(b.scorePerUnit) || 0) })
+    } else if (type === 'name') {
+      list.sort(function(a, b) { return (a.name || '').localeCompare(b.name || '') })
+    }
+    this.setData({ libActivities: list })
+  },
+
   /**
    * 构建元卡活动列表项（字段白名单：仅允许 id/actId/activityName/name/category/tabKey/sideFilter/description/scorePerUnit/unit/_isMetaCard）
    * @param {string} sideFilter - 当前侧栏筛选 key
@@ -542,6 +569,7 @@ Page({
     }
 
     self.setData({ libActivities: self._sortLibByUsage(list) })
+    self.applyLibSort()
   },
 
   /**
@@ -708,6 +736,7 @@ Page({
       list = self._mergeReferenced(list, refs)
 
       self.setData({ libActivities: self._sortLibByUsage(list) })
+      self.applyLibSort()
     }).catch(function() {
       self._loadLibFromLocal(cat, kw, side)
     })
@@ -782,6 +811,76 @@ Page({
       if (!dup) merged.push(ref)
     }
     return merged
+  },
+
+  // ==================== 活动库编辑体系 ====================
+
+  toggleEditMode: function() {
+    this.setData({ editMode: !this.data.editMode })
+  },
+
+  onLibCardTap: function(e) {
+    if (this.data.editMode) {
+      this.editLibActivity(e)
+    } else {
+      this.addActivity(e)
+    }
+  },
+
+  editLibActivity: function(e) {
+    var act = e.currentTarget.dataset.act
+    if (!act) return
+
+    // 元卡 → 创建衍生活动
+    if (act._isMetaCard) {
+      var metaCardId = act.metaCardId || act.id
+      if (metaCardId) {
+        wx.navigateTo({ url: '/packageC/pages/activity-edit/activity-edit?metaCard=' + metaCardId })
+      }
+      return
+    }
+
+    // 公开活动 → 克隆
+    if (act.isPublic) {
+      var self = this
+      wx.showModal({
+        title: '克隆活动',
+        content: '确定要将「' + act.name + '」克隆为我的自定义活动吗？',
+        success: function(res) {
+          if (res.confirm) {
+            wx.cloud.callFunction({
+              name: 'activity-api',
+              data: { action: 'cloneActivity', params: { activityId: act.id } },
+              success: function() {
+                self._loadLibActivities()
+                wx.showToast({ title: '克隆成功', icon: 'success' })
+              },
+              fail: function() { wx.showToast({ title: '克隆失败，请重试', icon: 'none' }) }
+            })
+          }
+        }
+      })
+      return
+    }
+
+    // 官方活动 → 复制后编辑
+    if (act.isOfficial) {
+      var copyData = encodeURIComponent(JSON.stringify({
+        id: act.id, name: act.name, category: act.category,
+        unit: act.unit, scorePerUnit: act.scorePerUnit,
+        description: act.description || '', icon: act.presetAction || ''
+      }))
+      wx.navigateTo({ url: '/packageC/pages/activity-edit/activity-edit?isNew=true&data=' + copyData })
+      return
+    }
+
+    // 用户自定义 → 编辑
+    var editData = encodeURIComponent(JSON.stringify({
+      id: act.id, name: act.name, category: act.category,
+      unit: act.unit, scorePerUnit: act.scorePerUnit,
+      description: act.description || '', icon: act.icon || ''
+    }))
+    wx.navigateTo({ url: '/packageC/pages/activity-edit/activity-edit?isNew=false&data=' + editData })
   },
 
   // ==================== 添加活动到当前时段 ====================

@@ -208,6 +208,15 @@ page { height: 100%; background: #f7f8fa; }
 }
 .divider-line { flex: 1; height: 1rpx; background: #e5e7eb; }
 .divider-text { font-size: 22rpx; color: #9ca3af; flex-shrink: 0; }
+.lib-edit-toggle {
+  font-size: 26rpx; color: #10B981;
+  padding: 6rpx 16rpx;
+}
+.lib-edit-toggle.active { color: #6b7280; }
+.lib-sort-toggle {
+  font-size: 26rpx; color: #10B981;
+  padding: 6rpx 16rpx;
+}
 
 /* ===== 活动库（下半屏） ===== */
 .cat-tabs { padding: 0 16rpx 8rpx; white-space: nowrap; display: flex; flex-direction: row; }
@@ -248,6 +257,12 @@ page { height: 100%; background: #f7f8fa; }
 }
 .lib-card:nth-child(3n) { margin-right: 0; }
 .lib-card.is-negative { background: rgba(239,68,68,0.03); border-color: rgba(239,68,68,0.1); }
+.lib-card.edit-mode { border: 2rpx dashed #10B981; }
+.lib-card-edit-badge {
+  position: absolute; top: 4rpx; right: 4rpx;
+  font-size: 20rpx; color: #ffffff; background: #10B981;
+  padding: 2rpx 8rpx; border-radius: 6rpx;
+}
 
 .lib-card-icon-wrap {
   width: 60rpx; height: 60rpx; border-radius: 50%;

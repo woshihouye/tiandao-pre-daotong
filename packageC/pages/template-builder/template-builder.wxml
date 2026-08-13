@@ -166,6 +166,8 @@
   <view class="section-divider">
     <view class="divider-line"></view>
     <text class="divider-text">活动库</text>
+    <text class="lib-sort-toggle" bindtap="changeLibSort">排序</text>
+    <text class="lib-edit-toggle {{editMode ? 'active' : ''}}" bindtap="toggleEditMode">{{editMode ? '完成' : '编辑'}}</text>
     <view class="divider-line"></view>
   </view>
 
@@ -200,9 +202,10 @@
       <view class="lib-grid">
         <view
           wx:for="{{libActivities}}" wx:key="id"
-          class="lib-card {{item.isNegative ? 'is-negative' : ''}}"
-          data-act="{{item}}" bindtap="addActivity"
+          class="lib-card {{item.isNegative ? 'is-negative' : ''}} {{editMode ? 'edit-mode' : ''}}"
+          data-act="{{item}}" bindtap="onLibCardTap" bindlongpress="editLibActivity"
         >
+          <view class="lib-card-edit-badge" wx:if="{{editMode}}">编辑</view>
           <view class="lib-card-icon-wrap">
             <text class="lib-card-icon">{{item.name.charAt(0)}}</text>
           </view>
