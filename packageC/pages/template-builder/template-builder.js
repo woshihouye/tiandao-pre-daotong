@@ -45,6 +45,8 @@ Page({
     templateId: '',
     templateName: '',
     templateType: 'daily',
+    currentTemplateId: '',
+    currentTemplateSlots: [],
 
     // 日模板
     timeSlots: [],
@@ -347,8 +349,8 @@ Page({
     var kw = this.data.libKeyword
     var side = this.data.currentLibSide
 
-    // 统一流程：元卡渲染 → 回退本地活动库
-    this._loadLibFromLocal(cat, kw, side)
+    // 统一流程：元卡渲染 + 云端加载（官方 → 我的 → 公开）+ 引用卡
+    this._loadLibFromCloud(cat, kw, side)
   },
 
   /**
@@ -540,6 +542,231 @@ Page({
     }
 
     self.setData({ libActivities: self._sortLibByUsage(list) })
+  },
+
+  /**
+   * 云端加载活动库（与 activity-library.js 的 _loadFromCloud 字段映射逐字段一致）
+   * 顺序固定：① 官方 getLibrary → ② 我的 getMine → ③ 全服公开 getPublicCustom
+   */
+  _loadLibFromCloud: function(cat, kw, side) {
+    var self = this
+
+    // 先同步渲染元卡，避免空白等待
+    var metaCards = self._buildTemplateMetaCards(side)
+    self.setData({ libActivities: metaCards })
+
+    // 并行调用三个云函数
+    var promises = [
+      // 1. 官方活动（分页拉全量）
+      new Promise(function(resolve) {
+        self._fetchAllPages('getLibrary', { category: cat, topFilter: 'all', sideFilter: side, keyword: kw || undefined }, 100).then(function(list) {
+          resolve({ ok: list ? true : false, data: { list: list || [], total: (list || []).length } })
+        })
+      }),
+      // 2. 我的自定义
+      new Promise(function(resolve) {
+        wx.cloud.callFunction({
+          name: 'activity-api',
+          data: { action: 'getMine' },
+          success: function(res) { resolve(res.result) },
+          fail: function() { resolve(null) }
+        })
+      }),
+      // 3. 全服公开自定义（仅在非搜索时加载）
+      new Promise(function(resolve) {
+        if (kw && kw.trim()) { resolve(null); return }
+        self._fetchAllPages('getPublicCustom', { category: cat }, 50).then(function(list) {
+          resolve({ ok: true, data: { list: list || [], total: (list || []).length } })
+        })
+      })
+    ]
+
+    Promise.all(promises).then(function(results) {
+      var officialRes = results[0]
+      var mineRes = results[1]
+      var publicRes = results[2]
+
+      // 判断云端是否可用
+      var cloudOk = officialRes && officialRes.ok
+      if (!cloudOk) {
+        self._loadLibFromLocal(cat, kw, side)
+        return
+      }
+
+      var blankCards = []
+      var officialCards = []
+      var blankId = cat === 'diet' ? 'blank_diet' : ('blank_' + cat)
+
+      // 1. 官方活动：映射字段（拆分空白卡）
+      var officialList = (officialRes.data && officialRes.data.list) || []
+      for (var i = 0; i < officialList.length; i++) {
+        var item = officialList[i]
+        var mapped = {
+          id: item.activityId,
+          name: item.name,
+          scorePerUnit: item.scorePerUnit,
+          unit: item.unit,
+          category: item.category,
+          tabKey: item.category,
+          topFilter: item.topFilter,
+          sideFilter: item.sideFilter,
+          description: item.description,
+          presetAction: item.presetAction,
+          isOfficial: true,
+          isCustom: false
+        }
+        if (mapped.id === blankId) {
+          blankCards.push(mapped)
+        } else {
+          officialCards.push(mapped)
+        }
+      }
+
+      // 2. 我的自定义：分类筛选 + 合并
+      var mineCards = []
+      var mineList = (mineRes && mineRes.ok && mineRes.data && mineRes.data.list) || []
+      for (var j = 0; j < mineList.length; j++) {
+        var mc = mineList[j]
+        if (mc.category !== cat) continue
+        if (side !== 'all' && mc.sideFilter !== side) continue
+        if (kw && kw.trim()) {
+          var kwLower = kw.trim().toLowerCase()
+          if (mc.name.toLowerCase().indexOf(kwLower) === -1 &&
+              (!mc.description || mc.description.toLowerCase().indexOf(kwLower) === -1)) {
+            continue
+          }
+        }
+        mineCards.push({
+          id: mc.activityId || mc._id || mc.id,
+          name: mc.name,
+          scorePerUnit: mc.scorePerUnit,
+          unit: mc.unit,
+          category: mc.category,
+          tabKey: mc.category,
+          topFilter: mc.topFilter || '',
+          sideFilter: mc.sideFilter || '',
+          description: mc.description || '',
+          isOfficial: false,
+          isCustom: true,
+          presetAction: '',
+          categoryName: mc.categoryName || '',
+          ext: mc.ext || {},
+          tags: mc.tags || [],
+          icon: mc.icon || '',
+          customMeta: mc.customMeta || null
+        })
+      }
+
+      // 3. 全服公开自定义：分类筛选 + 合并
+      var publicCards = []
+      if (publicRes && publicRes.ok) {
+        var pubList = (publicRes.data && publicRes.data.list) || []
+        for (var k = 0; k < pubList.length; k++) {
+          var pc = pubList[k]
+          if (pc.category !== cat) continue
+          if (side !== 'all' && pc.sideFilter !== side) continue
+          publicCards.push({
+            id: pc.activityId || pc._id || pc.id,
+            name: pc.name,
+            scorePerUnit: pc.scorePerUnit,
+            unit: pc.unit,
+            category: pc.category,
+            tabKey: pc.category,
+            topFilter: pc.topFilter || '',
+            sideFilter: pc.sideFilter || '',
+            description: pc.description || '',
+            isOfficial: false,
+            isCustom: true,
+            isPublic: true,
+            ownerName: pc.ownerName || '',
+            presetAction: '',
+            categoryName: pc.categoryName || '',
+            ext: pc.ext || {},
+            tags: pc.tags || [],
+            icon: pc.icon || '',
+            customMeta: pc.customMeta || null
+          })
+        }
+      }
+
+      // 合并顺序：元卡 + 空白卡 + 官方 + 我的 + 公开
+      var list = metaCards.concat(blankCards).concat(officialCards).concat(mineCards).concat(publicCards)
+
+      // 应用编辑覆写（本地覆写仍然生效）
+      var edits = self._loadEdits()
+      for (var ei = 0; ei < list.length; ei++) {
+        var edit = edits[list[ei].id]
+        if (edit) {
+          if (edit.scorePerUnit !== undefined) list[ei].scorePerUnit = edit.scorePerUnit
+          if (edit.unit !== undefined) list[ei].unit = edit.unit
+          if (edit.defaultGroup !== undefined) list[ei].defaultGroup = edit.defaultGroup
+        }
+      }
+
+      // 引用卡（置底去重）
+      var refs = self._loadReferencedActivities()
+      list = self._mergeReferenced(list, refs)
+
+      self.setData({ libActivities: self._sortLibByUsage(list) })
+    }).catch(function() {
+      self._loadLibFromLocal(cat, kw, side)
+    })
+  },
+
+  /**
+   * 引用活动卡：编辑模板时，将当前模板 timeSlots 里已用活动合并进活动库
+   * 标记 sourceType: 'referenced' + refFromTemplate（来源模板 id）
+   */
+  _loadReferencedActivities: function() {
+    var refs = []
+    var slots = this.data.currentTemplateSlots || []
+    for (var i = 0; i < slots.length; i++) {
+      var acts = slots[i].activities || []
+      for (var j = 0; j < acts.length; j++) {
+        refs.push(Object.assign({}, acts[j], {
+          sourceType: 'referenced',
+          refFromTemplate: this.data.currentTemplateId || ''
+        }))
+      }
+    }
+    return refs
+  },
+
+  /**
+   * 引用卡去重合并（置底）：
+   * - activityId 优先匹配；无 activityId 时按 metaCardId + name 组合判定
+   * - 与元卡（metaCardId）/官方（activityId）/我的（activityId）/公开（activityId）任一匹配则不追加
+   */
+  _mergeReferenced: function(list, refs) {
+    var merged = list.slice()
+    for (var i = 0; i < refs.length; i++) {
+      var ref = refs[i]
+      var refId = ref.activityId || ref.actId || ref.id
+      var refMeta = ref.metaCardId || ''
+      var refName = ref.name || ref.activityName || ''
+
+      var dup = false
+      for (var j = 0; j < merged.length; j++) {
+        var it = merged[j]
+        // ① 元卡：metaCardId 匹配（元卡 id 形如 meta_<metaCardId>）
+        if (refMeta && it._isMetaCard) {
+          var metaId = (it.id || '').replace('meta_', '')
+          if (metaId === refMeta) { dup = true; break }
+        }
+        // ②③④ 官方/我的/公开：activityId（或 actId/id）匹配
+        if (refId && (it.id === refId || it.activityId === refId || it.actId === refId)) {
+          dup = true
+          break
+        }
+        // 兜底：metaCardId + name 组合
+        if (!refId && refMeta && refName && it.metaCardId === refMeta && (it.name === refName || it.activityName === refName)) {
+          dup = true
+          break
+        }
+      }
+      if (!dup) merged.push(ref)
+    }
+    return merged
   },
 
   // ==================== 添加活动到当前时段 ====================
@@ -1119,6 +1346,28 @@ Page({
         scoreTarget: String(found.scoreTarget || '')
       })
     }
+
+    // 归一化当前模板时段活动，供引用活动卡加载（sourceType: 'referenced'）
+    var refSlots = []
+    if (found.type === 'daily') {
+      refSlots = found.timeSlots || []
+    } else if (found.type === 'weekly') {
+      var wd = found.weekData || {}
+      for (var dk in wd) {
+        if (!Object.prototype.hasOwnProperty.call(wd, dk)) continue
+        var periods = wd[dk] || {}
+        for (var pk in periods) {
+          if (!Object.prototype.hasOwnProperty.call(periods, pk)) continue
+          refSlots.push({ id: dk + '_' + pk, activities: periods[pk] || [] })
+        }
+      }
+    } else if (found.type === 'pool') {
+      refSlots = [{ id: 'pool', activities: found.poolActivities || [] }]
+    }
+    this.setData({
+      currentTemplateId: found.id,
+      currentTemplateSlots: refSlots
+    })
 
     this._initLibSideFilters()
     this._loadLibActivities()

@@ -474,6 +474,43 @@ async function searchActivities(params) {
   return { ok: true, data: { list: list.slice(0, limit), total: list.length } }
 }
 
+// ==================== initOfficialActivities ====================
+/** 从官方活动映射表创建/补齐官方活动卡（幂等；仅管理员/控制台调用） */
+async function initOfficialActivities(event) {
+  // ★ 权限校验：仅管理员白名单或云开发控制台调用，拒绝普通用户
+  var wxContext = cloud.getWXContext()
+  var adminWhitelist = ['olWJR3YhOlK1IDJZZlGhuCZjRrpw']   // 管理员 openid 白名单
+  if (adminWhitelist.indexOf(wxContext.OPENID) === -1 && event.adminToken !== 'tiandao-init-2026') {
+    return { ok: false, error: '无权限' }
+  }
+  var map = require('./official-activity-map.js')   // 云函数内置映射表副本
+  var created = 0, skipped = 0
+  for (var i = 0; i < map.length; i++) {
+    var m = map[i]
+    var exist = await db.collection('activities').where({ activityId: m.key }).limit(1).get()
+    if (exist.data && exist.data[0]) { skipped++; continue }
+    await db.collection('activities').add({
+      data: {
+        activityId: m.key,
+        name: m.name,
+        category: m.category,
+        metaCardId: m.metaCardId,
+        unit: m.unit,
+        scorePerUnit: m.scorePerUnit,
+        isOfficial: true,
+        isSystem: true,
+        sideFilter: 'all',
+        topFilter: 'all',
+        status: 'active',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    })
+    created++
+  }
+  return { ok: true, created: created, skipped: skipped }
+}
+
 // ==================== 入口 ====================
 
 exports.main = async function(event, context) {
@@ -493,6 +530,7 @@ exports.main = async function(event, context) {
       case 'updateCustom':    return await updateCustom(openid, params)
       case 'deleteCustom':    return await deleteCustom(openid, params)
       case 'cloneActivity':   return await cloneActivity(openid, params)
+      case 'initOfficialActivities': return await initOfficialActivities(event)
       default: return { ok: false, error: 'unknown action: ' + action }
     }
   } catch (e) {
