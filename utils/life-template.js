@@ -4,7 +4,6 @@
 const CUSTOM_TASK_MAX_REWARD = 3
 const CUSTOM_DAILY_CAP_MAX = 45
 const PUBLIC_TEMPLATE_STORAGE = 'tiandao_public_templates'
-const CUSTOM_TEMPLATE_STORAGE = 'tiandao_custom_templates'
 const CHECKIN_STORAGE = 'tiandao_template_checkin'
 const TEMPLATE_STATE_STORAGE = 'tiandao_template_levels'
 
@@ -112,9 +111,15 @@ function sanitizeCustomTemplate(input = {}) {
   }
 }
 
+function getCustomTemplateStorageKey() {
+  var app = getApp()
+  var uid = (app && app.globalData && app.globalData.userId) || 'default'
+  return 'tiandao_custom_templates_' + uid
+}
+
 function getLocalCustomTemplates() {
   try {
-    const list = wx.getStorageSync(CUSTOM_TEMPLATE_STORAGE)
+    const list = wx.getStorageSync(getCustomTemplateStorageKey())
     return Array.isArray(list) ? list : []
   } catch (error) {
     return []
@@ -123,7 +128,7 @@ function getLocalCustomTemplates() {
 
 function saveLocalCustomTemplates(list = []) {
   try {
-    wx.setStorageSync(CUSTOM_TEMPLATE_STORAGE, list)
+    wx.setStorageSync(getCustomTemplateStorageKey(), list)
     return true
   } catch (error) {
     return false
