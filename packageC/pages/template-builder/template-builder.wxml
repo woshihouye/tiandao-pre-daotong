@@ -22,9 +22,10 @@
       <text class="section-label">时段安排</text>
       <text class="preset-btn" bindtap="fillPreset">一键填充推荐作息</text>
     </view>
-    <scroll-view scroll-y class="slot-rows">
+    <scroll-view scroll-y scroll-into-view="{{currentSlotId ? 'slot-' + currentSlotId : ''}}" scroll-with-animation class="slot-rows">
       <view
         wx:for="{{timeSlots}}" wx:for-item="slot" wx:key="id"
+        id="slot-{{slot.id}}"
         class="slot-row {{currentSlotId === slot.id ? 'selected' : ''}}"
         data-id="{{slot.id}}" bindtap="selectSlot"
       >
@@ -34,10 +35,10 @@
         </view>
         <!-- 中间 flex:1：活动卡片 + 时间轴轨道 -->
         <view class="slot-mid">
-          <!-- 活动卡片（按次数比例分配宽度，填满时段区域） -->
-          <view class="slot-cards-area" wx:if="{{slot.activities.length > 0}}">
-            <view class="slot-act-wrap">
-              <view wx:for="{{slot.activities}}" wx:for-item="act" wx:key="actId" class="act-card" style="flex: {{act.capacity.value}} 1 0%;">
+          <!-- 活动卡横向滚动（不折叠，始终可见） -->
+          <scroll-view scroll-x class="slot-act-scroll" enhanced show-scrollbar="{{false}}">
+            <view class="slot-act-wrap" wx:if="{{slot.activities.length > 0}}">
+              <view wx:for="{{slot.activities}}" wx:for-item="act" wx:key="actId" class="act-card">
                 <text class="act-del" catchtap="deleteAct" data-slot="{{slot.id}}" data-index="{{index}}">✕</text>
                 <text class="act-name">{{act.activityName}}</text>
                 <view class="act-ctrl">
@@ -47,9 +48,8 @@
                 </view>
               </view>
             </view>
-          </view>
-          <!-- 空状态 -->
-          <text class="slot-empty" wx:else>点击下方活动库添加活动</text>
+            <text class="slot-empty" wx:else>点击下方活动库添加活动</text>
+          </scroll-view>
           <!-- 时间轴轨道（点击时间文字直接唤起原生时间选择器） -->
           <view class="timeline-track">
             <view class="timeline-line"></view>
