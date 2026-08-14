@@ -47,7 +47,8 @@ Page({
     workCount: 0,
     debuffCount: 0,
     energyValue: '--',
-    moodEmoji: '--'
+    moodEmoji: '--',
+    showReviewEntry: false
   },
 
   onLoad: function() {
@@ -97,6 +98,7 @@ Page({
 
   onShow: function() {
     this.loadAll()
+    this.loadReviewEntry()
   },
 
   onUnload: function() {
@@ -124,6 +126,25 @@ Page({
     this.loadSignaturePoem()
     this.loadTemplateInfo()
     this.loadSpiritSummary()
+  },
+
+  // 审核中心入口判定：仅管理员（admins 集合 openid）可见，前端不传/不读 adminToken
+  loadReviewEntry: function() {
+    var that = this
+    wx.cloud.callFunction({
+      name: 'activity-review',
+      data: { action: 'listActivityApplications' },
+      success: function(res) {
+        if (res.result && res.result.ok) {
+          that.setData({ showReviewEntry: true })
+        } else {
+          that.setData({ showReviewEntry: false })
+        }
+      },
+      fail: function() {
+        that.setData({ showReviewEntry: false })
+      }
+    })
   },
 
   // ============ 模块1-3: 核心数据加载 ============
@@ -433,6 +454,7 @@ Page({
   goToLeaderboard: function() { wx.navigateTo({ url: '/packageA/pages/leaderboard/leaderboard' }) },
   goToResetCultivation: function() { wx.navigateTo({ url: '/packageA/pages/reset-cultivation/reset-cultivation' }) },
   goToCustomerService: function() { wx.navigateTo({ url: '/packageD/pages/customer-svc/customer-svc' }) },
+  goToReviewCenter: function() { wx.navigateTo({ url: '/packageD/pages/review-center/review-center' }) },
   goToTitleGrade: function() { wx.navigateTo({ url: '/packageB/pages/title-grade/title-grade' }) },
   goToCultivationLadder: function() { wx.navigateTo({ url: '/packageA/pages/cultivation-ladder/cultivation-ladder' }) },
 

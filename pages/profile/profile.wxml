@@ -226,6 +226,9 @@
       <view class="ba-icon">🔒</view>
       <view class="ba-label">隐私</view>
     </view>
+    <view class="ba-item" bindtap="goToReviewCenter" wx:if="{{showReviewEntry}}">
+      <text>审核中心</text>
+    </view>
   </view>
 
   <view style="height:40rpx"></view>

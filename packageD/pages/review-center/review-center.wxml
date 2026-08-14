@@ -1,0 +1,45 @@
+<!-- 审核中心 -->
+<view class="page">
+  <!-- 无权限空态 -->
+  <view class="empty-state" wx:if="{{noAuth}}">
+    <text class="empty-icon">🔒</text>
+    <text class="empty-text">无审核权限</text>
+  </view>
+
+  <block wx:else>
+    <!-- Tab 切换 -->
+    <view class="tab-bar">
+      <view class="tab-item {{activeTab === 'official' ? 'active' : ''}}" data-tab="official" bindtap="switchTab">官方卡重审</view>
+      <view class="tab-item {{activeTab === 'user' ? 'active' : ''}}" data-tab="user" bindtap="switchTab">用户申请</view>
+    </view>
+
+    <!-- Tab 1：官方卡重审 -->
+    <view wx:if="{{activeTab === 'official'}}">
+      <view class="empty-list" wx:if="{{officialPending.length === 0}}">暂无待重审的官方卡</view>
+      <view class="card" wx:for="{{officialPending}}" wx:key="activityId">
+        <view class="card-name">{{item.name}}</view>
+        <view class="card-meta">{{item.categoryLabel}} · {{item.scorePerUnit}}分</view>
+        <view class="card-desc" wx:if="{{item.description}}">{{item.description}}</view>
+        <view class="card-actions">
+          <view class="btn approve" data-id="{{item.activityId}}" bindtap="approveOfficialCard">通过</view>
+          <view class="btn reject" data-id="{{item.activityId}}" bindtap="rejectOfficialCard">驳回</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Tab 2：用户申请 -->
+    <view wx:if="{{activeTab === 'user'}}">
+      <view class="empty-list" wx:if="{{userApplications.length === 0}}">暂无用户申请</view>
+      <view class="card" wx:for="{{userApplications}}" wx:key="applicationId">
+        <view class="card-name">{{item.name}}</view>
+        <view class="card-meta">{{item.categoryLabel}} · 建议分值 {{item.scorePerUnit}}</view>
+        <view class="card-desc" wx:if="{{item.description}}">{{item.description}}</view>
+        <view class="card-applicant">申请人：{{item.applicantId}}</view>
+        <view class="card-actions">
+          <view class="btn approve" data-id="{{item.applicationId}}" bindtap="approveUserApplication">通过</view>
+          <view class="btn reject" data-id="{{item.applicationId}}" bindtap="rejectUserApplication">驳回</view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

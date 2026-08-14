@@ -52,7 +52,8 @@
         "pages/template-comments/template-comments",
         "pages/activity-library/activity-library",
         "pages/activity-edit/activity-edit",
-        "pages/template-builder/template-builder"
+        "pages/template-builder/template-builder",
+        "pages/activity-apply/activity-apply"
       ]
     },
     {
@@ -71,7 +72,8 @@
         "pages/poem-edit/poem-edit",
         "pages/my-favorites/my-favorites",
         "pages/privacy-settings/privacy-settings",
-        "pages/customer-svc/customer-svc"
+        "pages/customer-svc/customer-svc",
+        "pages/review-center/review-center"
       ]
     },
     {
