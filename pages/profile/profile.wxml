@@ -128,9 +128,12 @@
        模块5: 修行轨迹看板
        ============================================================ -->
   <view class="card trail-card">
-    <view class="section-header" bindtap="goToDetailBoard">
+    <view class="section-header">
       <view class="section-title">修行轨迹</view>
-      <view class="section-more">详情看板 →</view>
+      <view class="section-more">
+        <text class="section-link" bindtap="goToLeaderboard">排行榜</text>
+        <text class="section-link" bindtap="goToDetailBoard">详情看板 →</text>
+      </view>
     </view>
 
     <!-- 五维度占比 -->
