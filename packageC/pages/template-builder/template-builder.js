@@ -39,6 +39,14 @@ var DEFAULT_UNIT_MAP = {
   sport: '组/次', diet: '份', study: '分钟', work: '分钟', debuff: '次'
 }
 
+/** 6 大道则 → 底层 5 大类反向映射（分类 tab 用 grandDao，底层查询仍用 5 大类 key） */
+var GRAND_DAO_TO_CATEGORY = {}
+for (var gdKey in Alib.GRAND_DAO_MAP) {
+  if (Object.prototype.hasOwnProperty.call(Alib.GRAND_DAO_MAP, gdKey)) {
+    GRAND_DAO_TO_CATEGORY[Alib.GRAND_DAO_MAP[gdKey]] = gdKey
+  }
+}
+
 Page({
   data: {
     // 模板基本信息
@@ -71,8 +79,9 @@ Page({
     currentSlotActivities: [],
 
     // 活动库
-    categories: Alib.CATEGORIES,
+    categories: Alib.GRAND_DAO_TABS,
     currentCategory: 'sport',
+    currentGrandDao: 'li',
     libSortType: 'default',
     libSideFilters: [],
     currentLibSide: 'all',
@@ -325,8 +334,14 @@ Page({
   },
 
   switchLibCategory: function(e) {
-    var cat = e.currentTarget.dataset.cat
-    this.setData({ currentCategory: cat, currentLibSide: 'all', libKeyword: '' })
+    var gd = e.currentTarget.dataset.cat
+    var cat = GRAND_DAO_TO_CATEGORY[gd] || ''
+    this.setData({ currentGrandDao: gd, currentCategory: cat, currentLibSide: 'all', libKeyword: '' })
+    // 自由道 zi：无现有 5 大类映射，展示空态
+    if (!cat) {
+      this.setData({ libActivities: [], libSideFilters: [] })
+      return
+    }
     this._initLibSideFilters()
   },
 
@@ -381,6 +396,20 @@ Page({
   },
 
   /**
+   * 统一补 grandDao 并按当前 6 大道则筛选（活动对象缺 grandDao 时按 category 兜底映射）
+   */
+  _applyGrandDaoFilter: function(list) {
+    var gd = this.data.currentGrandDao
+    var result = []
+    for (var i = 0; i < list.length; i++) {
+      var act = list[i]
+      act.grandDao = Alib.getGrandDao(act.category || act.tabKey)
+      if (act.grandDao === gd) result.push(act)
+    }
+    return result
+  },
+
+  /**
    * 构建元卡活动列表项（字段白名单：仅允许 id/actId/activityName/name/category/tabKey/sideFilter/description/scorePerUnit/unit/_isMetaCard）
    * @param {string} sideFilter - 当前侧栏筛选 key
    */
@@ -432,6 +461,7 @@ Page({
         name: card.name,
         category: cat,
         tabKey: cat,
+        grandDao: Alib.getGrandDao(cat),
         sideFilter: sideFilter !== 'all' ? sideFilter : 'all',
         description: card.description || '',
         scorePerUnit: cat === 'debuff' ? -1 : 1,
@@ -568,6 +598,7 @@ Page({
       }
     }
 
+    list = self._applyGrandDaoFilter(list)
     self.setData({ libActivities: self._sortLibByUsage(list) })
     self.applyLibSort()
   },
@@ -636,6 +667,7 @@ Page({
           unit: item.unit,
           category: item.category,
           tabKey: item.category,
+          grandDao: Alib.getGrandDao(item.category),
           topFilter: item.topFilter,
           sideFilter: item.sideFilter,
           description: item.description,
@@ -671,6 +703,7 @@ Page({
           unit: mc.unit,
           category: mc.category,
           tabKey: mc.category,
+          grandDao: Alib.getGrandDao(mc.category),
           topFilter: mc.topFilter || '',
           sideFilter: mc.sideFilter || '',
           description: mc.description || '',
@@ -700,6 +733,7 @@ Page({
             unit: pc.unit,
             category: pc.category,
             tabKey: pc.category,
+            grandDao: Alib.getGrandDao(pc.category),
             topFilter: pc.topFilter || '',
             sideFilter: pc.sideFilter || '',
             description: pc.description || '',
@@ -734,6 +768,7 @@ Page({
       // 引用卡（置底去重）
       var refs = self._loadReferencedActivities()
       list = self._mergeReferenced(list, refs)
+      list = self._applyGrandDaoFilter(list)
 
       self.setData({ libActivities: self._sortLibByUsage(list) })
       self.applyLibSort()
@@ -762,6 +797,7 @@ Page({
           unit: (a.capacity && a.capacity.unit) || a.unit || '次',
           category: a.category || a.tabKey || '',
           tabKey: a.tabKey || a.category || '',
+          grandDao: Alib.getGrandDao(a.category || a.tabKey),
           capacity: a.capacity || { value: 1, unit: '次' },
           type: a.type || 'custom',
           isOfficial: false,

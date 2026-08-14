@@ -4,6 +4,14 @@ var Alib = require('../../../utils/activity-library.js')
 var MetaCards = require('../../../utils/meta-cards.js')
 var DefaultTemplates = require('../../../utils/default-templates.js')
 
+// 6 大道则 → 5 大类反向映射（分类 tab 切换时，底层查询仍用 5 大类 key）
+var GRAND_DAO_TO_CATEGORY = {}
+for (var gdKey in Alib.GRAND_DAO_MAP) {
+  if (Object.prototype.hasOwnProperty.call(Alib.GRAND_DAO_MAP, gdKey)) {
+    GRAND_DAO_TO_CATEGORY[Alib.GRAND_DAO_MAP[gdKey]] = gdKey
+  }
+}
+
 /** 置顶本地存储 key 前缀 */
 var PIN_STORAGE_PREFIX = 'tiandao_actlib_pin_'
 /** 自定义活动存储 key 前缀 */
@@ -120,8 +128,9 @@ function getFoodSideName(key) {
 Page({
   data: {
     themeClass: '',
-    categories: Alib.CATEGORIES,
+    categories: Alib.GRAND_DAO_TABS,
     currentCategory: 'sport',
+    currentGrandDao: 'li',
 
     // 筛选
     sideFilters: [],
@@ -428,8 +437,10 @@ Page({
   // ==================== 分类切换 ====================
 
   switchCategory: function(e) {
-    var cat = e.currentTarget.dataset.category
+    var gd = e.currentTarget.dataset.category
+    var cat = GRAND_DAO_TO_CATEGORY[gd] || ''
     this.setData({
+      currentGrandDao: gd,
       currentCategory: cat,
       searchKeyword: '',
       currentSideFilter: 'all',
@@ -437,6 +448,11 @@ Page({
       metaCardSearchResults: [],
       activities: []          // 切换时立即清空，避免旧分类列表滞留
     })
+    // 自由道 zi：无现有 5 大类映射，展示空态
+    if (!cat) {
+      this.setData({ sideFilters: [], allTags: [] })
+      return
+    }
     this._initFilters()
     this._reloadActivities()
   },
@@ -1168,6 +1184,7 @@ Page({
             unit: item.unit,
             category: item.category,
             tabKey: item.category,
+            grandDao: Alib.getGrandDao(item.category),
             topFilter: item.topFilter,
             sideFilter: item.sideFilter,
             description: item.description,
@@ -1199,6 +1216,7 @@ Page({
                 unit: mc.unit,
                 category: mc.category,
                 tabKey: mc.category,
+                grandDao: Alib.getGrandDao(mc.category),
                 topFilter: mc.topFilter || '',
                 sideFilter: mc.sideFilter || '',
                 description: mc.description || '',
@@ -1228,6 +1246,7 @@ Page({
                 unit: pc.unit,
                 category: pc.category,
                 tabKey: pc.category,
+                grandDao: Alib.getGrandDao(pc.category),
                 topFilter: pc.topFilter || '',
                 sideFilter: pc.sideFilter || '',
                 description: pc.description || '',
@@ -1397,6 +1416,21 @@ Page({
   },
 
   /**
+   * 统一补 grandDao 并按当前 6 大道则筛选（活动对象缺 grandDao 时按 category 兜底映射）
+   */
+  _applyGrandDaoFilter: function(list) {
+    var gd = this.data.currentGrandDao
+    var result = []
+    for (var i = 0; i < list.length; i++) {
+      var act = list[i]
+      if (act._isGroup) { result.push(act); continue }
+      act.grandDao = Alib.getGrandDao(act.category || act.tabKey)
+      if (act.grandDao === gd) result.push(act)
+    }
+    return result
+  },
+
+  /**
    * 列表最终处理：标记修心模式、设置卡模式、空白置顶、排序展示
    */
   _finalizeList: function(list, cat, sideF) {
@@ -1473,6 +1507,8 @@ Page({
       it.__ext = ext
     }
 
+    list = this._applyGrandDaoFilter(list)
+
     this.setData({ activities: this._sortByUsage(list), cardMode: cardMode })
   },
 
@@ -1496,6 +1532,7 @@ Page({
                 unit: mc.unit,
                 category: mc.category,
                 tabKey: mc.category,
+                grandDao: Alib.getGrandDao(mc.category),
                 sideFilter: mc.sideFilter || '',
                 description: mc.description || '',
                 isOfficial: false,
@@ -1538,6 +1575,8 @@ Page({
       it.__ext = ext
     }
 
+    list = this._applyGrandDaoFilter(list)
+
     this.setData({ activities: this._sortByUsage(list), cardMode: 'default' })
   },
 
@@ -1577,9 +1616,9 @@ Page({
 
   // ==================== 自定义活动弹窗 ====================
 
-  /** 计算分类索引 */
+  /** 计算分类索引（编辑面板仍按 5 大类，底层 category 不随 tab 切换） */
   _getCategoryIndex: function(catKey) {
-    var cats = this.data.categories
+    var cats = Alib.CATEGORIES
     for (var i = 0; i < cats.length; i++) {
       if (cats[i].key === catKey) return i
     }
@@ -1896,7 +1935,7 @@ Page({
 
     this.setData({
       showEditModal: true,
-      editCategoryOptions: this.data.categories,
+      editCategoryOptions: Alib.CATEGORIES,
       editUnitOptions: editUnits,
       editData: {
         id: activity.id,

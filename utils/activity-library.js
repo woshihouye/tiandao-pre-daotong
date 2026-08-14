@@ -10,6 +10,29 @@ var CATEGORIES = [
   { key: 'debuff', name: '煞·心魔', icon: '煞', desc: '心魔妄念，损耗道基' }
 ]
 
+// 5 大类 → 6 大道则映射（分类统一）
+var GRAND_DAO_MAP = {
+  sport: 'li',   // 武·炼体 → 力之大道
+  work:  'gong', // 工·功业 → 工之大道
+  study: 'wu',   // 悟·修心 → 悟之大道
+  diet:  'yang', // 食·丹食 → 养生道
+  debuff:'hong'  // 煞·心魔 → 红尘道
+}
+
+function getGrandDao(category) {
+  return GRAND_DAO_MAP[category] || category || 'zi'
+}
+
+// 6 大道则分类 tab（自由道 zi 无现有活动映射，留作兜底 + 新申请可选）
+var GRAND_DAO_TABS = [
+  { key: 'li',   name: '力之大道', icon: '力' },
+  { key: 'gong', name: '工之大道', icon: '工' },
+  { key: 'wu',   name: '悟之大道', icon: '悟' },
+  { key: 'yang', name: '养生道',   icon: '养' },
+  { key: 'zi',   name: '自由道',   icon: '自' },
+  { key: 'hong', name: '红尘道',   icon: '红' }
+]
+
 /**
  * 各分类的双层筛选配置
  * sport.side 已从肌群维度（胸/背/肩/臂/核心/腿/臀/全身有氧）替换为动作模式维度（推/拉/蹲/核心/有氧）
@@ -234,7 +257,11 @@ function getActivityById(activityId) {
   for (var i = 0; i < cats.length; i++) {
     var list = ACTIVITY_LIBRARY[cats[i]]
     for (var j = 0; j < list.length; j++) {
-      if (list[j].id === activityId) return list[j]
+      if (list[j].id === activityId) {
+        var act = list[j]
+        if (!act.grandDao) act.grandDao = getGrandDao(act.category)
+        return act
+      }
     }
   }
   return null
@@ -242,6 +269,9 @@ function getActivityById(activityId) {
 
 module.exports = {
   CATEGORIES: CATEGORIES,
+  GRAND_DAO_MAP: GRAND_DAO_MAP,
+  GRAND_DAO_TABS: GRAND_DAO_TABS,
+  getGrandDao: getGrandDao,
   FILTER_CONFIGS: FILTER_CONFIGS,
   ACTIVITY_LIBRARY: ACTIVITY_LIBRARY,
   getActivitiesByCategory: getActivitiesByCategory,

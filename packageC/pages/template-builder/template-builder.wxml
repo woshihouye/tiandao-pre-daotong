@@ -177,7 +177,7 @@
   <scroll-view scroll-x class="cat-tabs">
     <view
       wx:for="{{categories}}" wx:key="key"
-      class="cat-tab {{currentCategory === item.key ? 'active' : ''}}"
+      class="cat-tab {{currentGrandDao === item.key ? 'active' : ''}}"
       data-cat="{{item.key}}" bindtap="switchLibCategory"
     >{{item.name}}</view>
   </scroll-view>

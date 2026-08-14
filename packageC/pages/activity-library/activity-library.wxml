@@ -15,7 +15,7 @@
       <view
         wx:for="{{categories}}"
         wx:key="key"
-        class="tab-chip {{currentCategory === item.key ? 'active' : ''}}"
+        class="tab-chip {{currentGrandDao === item.key ? 'active' : ''}}"
         data-category="{{item.key}}"
         bindtap="switchCategory"
       >
