@@ -32,6 +32,7 @@ function sanitizeActivity(doc) {
     presetAction: doc.presetAction || '',
     defaultGroup: doc.defaultGroup != null ? doc.defaultGroup : 1,
     isSystem: !!doc.isSystem,
+    isPublicLibrary: !!doc.isPublicLibrary,
     isStudyMode: !!doc.isStudyMode,
     ownerId: doc.ownerId || '',
     ownerName: doc.ownerName || '',

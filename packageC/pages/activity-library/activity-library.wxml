@@ -103,6 +103,7 @@
                 <text class="card-tag official" wx:if="{{act.isOfficial}}">官方</text>
                 <text class="card-tag custom" wx:if="{{act.isCustom && !act.isPublic}}">自定义</text>
                 <text class="card-tag public" wx:if="{{act.isPublic}}">公开</text>
+                <text class="card-tag public-lib" wx:if="{{act.isPublicLibrary}}">公共 +10%</text>
               </view>
               <view class="card-pin {{pinned[act.id] ? 'pinned' : ''}}" data-id="{{act.id}}" catchtap="togglePin">
                 <text>{{pinned[act.id] ? '📌' : '📍'}}</text>

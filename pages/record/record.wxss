@@ -340,6 +340,15 @@ swiper-item {
   color: #9CA3AF;
 }
 
+.public-badge {
+  align-self: flex-start;
+  font-size: 20rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
+  background: #d1fae5;
+  color: #047857;
+}
+
 .act-row-right {
   display: flex;
   align-items: center;

@@ -210,9 +210,10 @@
             <text class="lib-card-icon">{{item.name.charAt(0)}}</text>
           </view>
           <view class="lib-card-name">{{item.name}}</view>
-          <view class="lib-card-tag {{item.sourceType === 'referenced' ? 'tag-ref' : (item._isMetaCard ? 'tag-meta' : (item.isOfficial ? 'tag-official' : (item.isPublic ? 'tag-public' : (item.isCustom ? 'tag-custom' : ''))))}}">
+          <view class="lib-card-tag {{item.sourceType === 'referenced' ? 'tag-ref' : (item._isMetaCard ? 'tag-meta' : (item.isOfficial ? 'tag-official' : (item.isPublic ? 'tag-public' : (item.isCustom ? 'tag-custom' : ''))))}}" wx:if="{{!item.isPublicLibrary}}">
             {{item.sourceType === 'referenced' ? '引' : (item._isMetaCard ? '元' : (item.isOfficial ? '官' : (item.isPublic ? '公' : (item.isCustom ? '自' : ''))))}}
           </view>
+          <view class="lib-card-tag tag-public-lib" wx:if="{{item.isPublicLibrary}}">公共 +10%</view>
         </view>
       </view>
     </scroll-view>

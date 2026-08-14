@@ -1190,7 +1190,8 @@ Page({
             description: item.description,
             presetAction: item.presetAction,
             isOfficial: true,
-            isCustom: false
+            isCustom: false,
+            isPublicLibrary: item.isPublicLibrary || false
           })
         }
 

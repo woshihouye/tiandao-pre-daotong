@@ -673,7 +673,8 @@ Page({
           description: item.description,
           presetAction: item.presetAction,
           isOfficial: true,
-          isCustom: false
+          isCustom: false,
+          isPublicLibrary: item.isPublicLibrary || false
         }
         if (mapped.id === blankId) {
           blankCards.push(mapped)
@@ -952,7 +953,8 @@ Page({
           activityName: act.name,
           capacity: { value: capValue, unit: defaultUnit },
           tabKey: act.tabKey || this.data.currentCategory,
-          category: act.tabKey || this.data.currentCategory
+          category: act.tabKey || this.data.currentCategory,
+          isPublicLibrary: !!act.isPublicLibrary
         })
       }
       this.setData({ timeSlots: slots })
@@ -1007,7 +1009,8 @@ Page({
       activityName: activity.name,
       capacity: { value: val, unit: unit },
       tabKey: activity.tabKey || this.data.currentCategory,
-      category: activity.tabKey || this.data.currentCategory
+      category: activity.tabKey || this.data.currentCategory,
+      isPublicLibrary: !!activity.isPublicLibrary
     }
 
     var type = this.data.templateType

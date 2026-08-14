@@ -6,6 +6,7 @@ var MetaCards = require('../../utils/meta-cards.js')
 var DefaultTemplates = require('../../utils/default-templates.js')
 var templateProgress = require('../../utils/template-progress.js')
 var scoreUtil = require('../../utils/score.js')
+var CONST = require('../../utils/constants.js')
 
 // ========== 分类配置 ==========
 var CATEGORY_TABS = [
@@ -185,6 +186,17 @@ Page({
       })
     }
 
+    // 构建 actId → 解析后活动 映射，供 onSubmit 兜底解析公共库活动
+    var templateActMap = {}
+    for (var mi = 0; mi < templates.length; mi++) {
+      var tplActs = templates[mi].activities || []
+      for (var mj = 0; mj < tplActs.length; mj++) {
+        var tAct = tplActs[mj]
+        if (tAct && tAct.id) templateActMap[tAct.id] = tAct
+      }
+    }
+    self._templateActMap = templateActMap
+
     // 保留所有分类的进度
     var allProgress = Object.assign({}, self.data.allProgress)
     var currentTemplate = templates.length > 0 ? templates[0] : null
@@ -253,7 +265,9 @@ Page({
       scorePerUnit: actItem.scorePerUnit || 1,
       capacityValue: capValue,
       icon: actItem.icon || '',
-      isNegative: actItem.isNegative || false
+      isNegative: actItem.isNegative || false,
+      tabKey: actItem.tabKey || actItem.category || categoryKey,
+      isPublicLibrary: !!actItem.isPublicLibrary
     }
   },
 
@@ -395,7 +409,8 @@ Page({
       var act = template.activities[i]
       var p = progMap[act.id] || 0
       totalProgress += p
-      estimatedScore += (act.scorePerUnit || 0) * (p / 100)
+      var bonus = act.isPublicLibrary ? (1 + CONST.PUBLIC_LIBRARY_BONUS) : 1
+      estimatedScore += (act.scorePerUnit || 0) * (p / 100) * bonus
     }
 
     totalProgress = Math.round(totalProgress / count)
@@ -629,7 +644,8 @@ Page({
     var estimatedScore = 0
     for (var j = 0; j < actCount; j++) {
       var a = template.activities[j]
-      estimatedScore += (a.scorePerUnit || 0) * (totalPercent / 100)
+      var bonus = a.isPublicLibrary ? (1 + CONST.PUBLIC_LIBRARY_BONUS) : 1
+      estimatedScore += (a.scorePerUnit || 0) * (totalPercent / 100) * bonus
     }
 
     template.totalProgress = Math.round(totalPercent)
@@ -669,7 +685,8 @@ Page({
           var act = tpl.activities[j]
           var progress = progMap[act.id] || 0
           totalProgress += progress
-          estimatedScore += (act.scorePerUnit || 0) * (progress / 100)
+          var bonus = act.isPublicLibrary ? (1 + CONST.PUBLIC_LIBRARY_BONUS) : 1
+          estimatedScore += (act.scorePerUnit || 0) * (progress / 100) * bonus
         }
         totalProgress = Math.round(totalProgress / actCount)
       }
@@ -773,12 +790,18 @@ Page({
         if (!act && self._customActivityMap && self._customActivityMap[actId]) {
           act = self._customActivityMap[actId]
         }
+        // 兜底：从模板活动项解析（官方/公共库活动不在静态库与自定义库中）
+        if (!act && self._templateActMap && self._templateActMap[actId]) {
+          act = self._templateActMap[actId]
+        }
         if (!act) continue
 
         // 根据活动的 tabKey 确定 score.js 的 type 参数
         var scoreType = this.mapTabKeyToScoreType(act.tabKey)
         var scoreResult = this.calcScoreViaEngine(act, factor, scoreType)
         var score = scoreResult.score
+        // 公共库活动 +10% 加成
+        if (act.isPublicLibrary) { score = score * (1 + CONST.PUBLIC_LIBRARY_BONUS) }
         totalScore += score
 
         collectedRecords.push({

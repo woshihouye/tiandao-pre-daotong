@@ -106,6 +106,7 @@
           <view class="act-row-content">
             <view class="act-row-left">
               <text class="act-row-name">{{act.name}}</text>
+              <text class="public-badge" wx:if="{{act.isPublicLibrary}}">+10% 公共</text>
               <text class="act-row-unit">{{act.scorePerUnit >= 0 ? '+' : ''}}{{act.scorePerUnit}}/{{act.unit}}</text>
             </view>
             <view class="act-row-right">
@@ -131,6 +132,7 @@
         <view class="act-row-content">
           <view class="act-row-left">
             <text class="act-row-name">{{act.name}}</text>
+            <text class="public-badge" wx:if="{{act.isPublicLibrary}}">+10% 公共</text>
             <text class="act-row-unit">{{act.scorePerUnit >= 0 ? '+' : ''}}{{act.scorePerUnit}}/{{act.unit}}</text>
           </view>
           <view class="act-row-right">

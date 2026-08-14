@@ -543,6 +543,11 @@ page { height: 100%; }
   color: #16A34A;
   border: 1rpx solid #86EFAC;
 }
+.card-tag.public-lib {
+  background: #d1fae5;
+  color: #047857;
+  border: 1rpx solid #a7f3d0;
+}
 
 /* ========== 卡片操作按钮 ========== */
 .card-actions {

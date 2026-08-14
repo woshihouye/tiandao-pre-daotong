@@ -132,6 +132,9 @@ const CAMP = {
 // 辅修模板数量上限
 const MAX_SIDE_TEMPLATES = 3
 
+// 公共库活动修为加成（+10%）
+const PUBLIC_LIBRARY_BONUS = 0.10
+
 // ============================================================
 // 修炼模式
 // ============================================================
@@ -309,6 +312,7 @@ module.exports = {
   TRAINING_PATHS,
   CAMP,
   MAX_SIDE_TEMPLATES,
+  PUBLIC_LIBRARY_BONUS,
   PRACTICE_MODE,
   MEDIA_WEIGHT,
   TITLE_CATEGORY,
