@@ -10,9 +10,9 @@
 var BOARD_CONFIGS = {
   power: {
     id: 'power',
-    name: '实力榜',
+    name: '修为榜',        // 原 '实力榜'
     icon: '⚔️',
-    subtitle: '以修为论英雄',
+    subtitle: '直接修为，苦修不辍',
     sourceField: 'totalCultivation',
     sortDesc: true,
     cacheKey: 'tiandao_leaderboard_power'
@@ -34,7 +34,24 @@ var BOARD_CONFIGS = {
     sourceField: 'totalImportCount',
     sortDesc: true,
     cacheKey: 'tiandao_leaderboard_incense'
+  },
+  combat: {
+    id: 'combat',
+    name: '战力榜',
+    icon: '🛡️',
+    subtitle: '综合战力，以武证道',
+    sourceField: 'combatPower',
+    sortDesc: true,
+    cacheKey: 'tiandao_leaderboard_combat'
   }
+}
+
+/**
+ * 获取全部榜单配置（前端 Tab 配置驱动）
+ * @returns {Array}
+ */
+function getBoardList() {
+  return Object.keys(BOARD_CONFIGS).map(function(k) { return BOARD_CONFIGS[k] })
 }
 
 /**
@@ -143,6 +160,7 @@ function generatePlaceholderBoard(boardType, count) {
 module.exports = {
   BOARD_CONFIGS,
   getBoardConfig,
+  getBoardList,
   formatRank,
   cacheBoardData,
   getCachedBoardData,

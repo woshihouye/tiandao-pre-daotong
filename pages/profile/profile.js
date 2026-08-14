@@ -30,7 +30,8 @@ Page({
     dailyMatch: 0,
     totalCheckins: 0,
     // >>> 模块4: 道牒成就
-    equippedTitle: null,
+    equippedTitle: [null, null],
+    equippedTitleBonus: 0,
     unlockedTitles: [],
     titlePoem: '',
     // >>> 模块5: 修行轨迹
@@ -301,13 +302,39 @@ Page({
 
   // ============ 模块4: 道牒成就 ============
   loadEquippedTitle: function() {
-    var title = app.getEquippedTitle ? app.getEquippedTitle() : null
-    if (title) {
-      this.setData({
-        equippedTitle: { id: title.id, name: title.name, color: title.color, bonus: title.bonus },
-        titlePoem: title.poem || ''
-      })
+    var titles = app.getEquippedTitles ? app.getEquippedTitles() : [null, null]
+    var getTitleBuffs = null
+    try { getTitleBuffs = require('../../utils/titles.js').getTitleBuffs } catch (e) {}
+
+    var cards = [null, null]
+    var totalBonus = 0
+    for (var i = 0; i < titles.length && i < 2; i++) {
+      var t = titles[i]
+      if (!t) continue
+      var buffs = getTitleBuffs ? getTitleBuffs(t) : []
+      var cultivation = 0
+      var combat = 0
+      for (var j = 0; j < buffs.length; j++) {
+        if (buffs[j].type === 'cultivation') cultivation += Number(buffs[j].value || 0)
+        if (buffs[j].type === 'combat') combat += Number(buffs[j].value || 0)
+      }
+      var buffsText = ''
+      if (cultivation > 0) buffsText += '+' + Math.round(cultivation * 100) + '% 修行'
+      if (combat > 0) buffsText += (buffsText ? ' · ' : '') + '+' + Math.round(combat * 100) + '% 战力'
+      cards[i] = {
+        id: t.id,
+        name: t.name,
+        color: t.color,
+        buffsText: buffsText || '加成'
+      }
+      totalBonus += cultivation
     }
+
+    this.setData({
+      equippedTitle: cards,
+      equippedTitleBonus: Math.round(totalBonus * 100)
+    })
+
     if (app.getEquippedTitlePoem) {
       this.setData({ titlePoem: app.getEquippedTitlePoem() })
     }

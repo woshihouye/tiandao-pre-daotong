@@ -1,6 +1,7 @@
 var board = require('../../utils/leaderboard.js')
 Page({
   data: {
+    boards: board.getBoardList(),
     activeBoard: 'power',
     entries: [],
     myRank: null,
@@ -15,9 +16,21 @@ Page({
   loadBoard(t) {
     var cached = board.getCachedBoardData(t)
     if (cached) { this.renderEntries(cached, t); return }
-    // 降级用占位数据
-    var entries = board.generatePlaceholderBoard(t, 10)
-    this.renderEntries(entries, t)
+    var that = this
+    wx.cloud.callFunction({
+      name: 'template-manager',
+      data: { action: 'getLeaderboard', boardType: t, userId: this.data.userId }
+    }).then(function(res) {
+      var r = res.result
+      if (r && r.ok) {
+        that.renderEntries(r.entries || [], t)
+        board.cacheBoardData(t, r.entries || [])
+      } else {
+        that.renderEntries(board.generatePlaceholderBoard(t, 10), t)
+      }
+    }).catch(function() {
+      that.renderEntries(board.generatePlaceholderBoard(t, 10), t)
+    })
   },
   renderEntries(entries, t) {
     var uid = this.data.userId

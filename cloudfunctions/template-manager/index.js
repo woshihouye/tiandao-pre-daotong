@@ -120,6 +120,7 @@ exports.main = async function (event, context) {
       case 'deleteTemplate':     return await deleteTemplate(event);
       case 'getMyPublished':     return await getMyPublished(event);
       case 'getCreatorStats':    return await getCreatorStats(event);
+      case 'getLeaderboard':     return await getLeaderboard(event);
       case 'getFavorites':       return await getFavorites(event);
 
       // --- 关注 ---
@@ -1387,6 +1388,10 @@ async function getCreatorStats(event) {
     totalImports += t.importCount || 0;
   });
 
+  // 排名（供榜称号解锁）——与 getLeaderboard 同查询逻辑
+  var meritRank = await getUserRank(userId, 'meritScore');
+  var combatRank = await getUserRank(userId, 'combatPower');
+
   return {
     ok: true,
     stats: {
@@ -1394,9 +1399,52 @@ async function getCreatorStats(event) {
       totalViews: totalViews,
       totalLikes: totalLikes,
       totalFavs: totalFavs,
-      totalImports: totalImports
+      totalImports: totalImports,
+      meritRank: meritRank,
+      combatRank: combatRank
     }
   };
+}
+
+// ==================== getLeaderboard ====================
+/** 获取排行榜：按 sourceField 聚合 users 排序，返回 top100 + 我的排名 */
+async function getLeaderboard(event) {
+  var boardType = event.boardType || 'power'
+  var userId = event.userId || ''
+  var fieldMap = { power: 'totalCultivation', merit: 'meritScore', combat: 'combatPower', incense: 'totalImportCount' }
+  var field = fieldMap[boardType] || 'totalCultivation'
+  // ★ 匹配锁死 userId 字段（实测 users.userId 存在，openid 值）——禁止 _id 优先/兼容映射分支
+  var res = await db.collection('users')
+    .where({ userId: _.exists(true) })
+    .field({ _id: true, userId: true, nickName: true, [field]: true })
+    .orderBy(field, 'desc')
+    .limit(100)
+    .get()
+  var entries = (res.data || []).map(function(u, i) {
+    // ★ 返回条目 userId: u.userId（不用 _id），与前端 myRank 匹配一致
+    return { userId: u.userId, nickName: u.nickName || '无名修士', avatarText: (u.nickName || '修').charAt(0), score: u[field] || 0, rank: i + 1 }
+  })
+  var myRank = -1
+  for (var i = 0; i < entries.length; i++) {
+    if (entries[i].userId === userId) { myRank = i + 1; break }
+  }
+  return { ok: true, entries: entries, myRank: myRank }
+}
+
+/** 获取用户在指定字段榜中的排名（与 getLeaderboard 同查询逻辑） */
+async function getUserRank(userId, field) {
+  if (!userId || !field) return -1
+  var res = await db.collection('users')
+    .where({ userId: _.exists(true) })
+    .field({ userId: true, [field]: true })
+    .orderBy(field, 'desc')
+    .limit(100)
+    .get()
+  var list = res.data || []
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].userId === userId) return i + 1
+  }
+  return -1
 }
 
 async function getFavorites(event) {

@@ -66,7 +66,7 @@
         <view class="stats-quad-label">模板匹配</view>
       </view>
       <view class="stats-quad-item">
-        <view class="stats-quad-num">{{equippedTitle ? equippedTitle.bonus : 0}}%</view>
+        <view class="stats-quad-num">{{equippedTitleBonus}}%</view>
         <view class="stats-quad-label">道牒加成</view>
       </view>
     </view>
@@ -87,12 +87,18 @@
       <view class="section-more">查看全部 →</view>
     </view>
 
-    <!-- 当前佩戴 -->
-    <view class="title-current" wx:if="{{equippedTitle}}" bindtap="goToTitle">
-      <view class="title-current-badge" style="border-color:{{equippedTitle.color}}; color:{{equippedTitle.color}}">
-        <text>{{equippedTitle.name}}</text>
+    <!-- 当前佩戴（主槽 + 叠加槽） -->
+    <view class="title-current" wx:if="{{equippedTitle[0]}}" bindtap="goToTitle">
+      <view class="title-current-badge" style="border-color:{{equippedTitle[0].color}}; color:{{equippedTitle[0].color}}">
+        <text>{{equippedTitle[0].name}}</text>
       </view>
-      <view class="title-current-bonus" style="color:{{equippedTitle.color}}">+{{equippedTitle.bonus}}% 修为加成</view>
+      <view class="title-current-bonus" style="color:{{equippedTitle[0].color}}">{{equippedTitle[0].buffsText}}</view>
+    </view>
+    <view class="title-current" wx:if="{{equippedTitle[1]}}" bindtap="goToTitle">
+      <view class="title-current-badge" style="border-color:{{equippedTitle[1].color}}; color:{{equippedTitle[1].color}}">
+        <text>{{equippedTitle[1].name}}</text>
+      </view>
+      <view class="title-current-bonus" style="color:{{equippedTitle[1].color}}">{{equippedTitle[1].buffsText}}</view>
     </view>
 
     <!-- 标题诗 -->
@@ -102,7 +108,7 @@
     <scroll-view class="title-scroll" scroll-x wx:if="{{unlockedTitles.length > 0}}">
       <view class="title-scroll-row">
         <view 
-          class="title-chip {{equippedTitle && equippedTitle.id === item.id ? 'active' : ''}}" 
+          class="title-chip {{(equippedTitle[0] && equippedTitle[0].id === item.id) || (equippedTitle[1] && equippedTitle[1].id === item.id) ? 'active' : ''}}" 
           wx:for="{{unlockedTitles}}" 
           wx:key="id"
           style="border-color:{{item.color}}; color:{{item.color}}"
@@ -113,7 +119,7 @@
       </view>
     </scroll-view>
 
-    <view class="title-empty" wx:if="{{!equippedTitle && unlockedTitles.length === 0}}" bindtap="goToTitle">
+    <view class="title-empty" wx:if="{{!equippedTitle[0] && !equippedTitle[1] && unlockedTitles.length === 0}}" bindtap="goToTitle">
       暂无道牒，前往道牒殿解锁
     </view>
   </view>

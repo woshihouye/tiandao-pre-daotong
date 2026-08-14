@@ -1,5 +1,5 @@
 <view class="page">
-  <view class="board-tabs"><view class="tab {{ activeBoard === 'power' ? 'active' : '' }}" bindtap="onBoardTap" data-board="power">⚔️ 实力榜</view><view class="tab {{ activeBoard === 'merit' ? 'active' : '' }}" bindtap="onBoardTap" data-board="merit">🙏 功德榜</view><view class="tab {{ activeBoard === 'incense' ? 'active' : '' }}" bindtap="onBoardTap" data-board="incense">🔥 香火榜</view></view>
+  <view class="board-tabs"><view wx:for="{{boards}}" wx:key="id" class="tab {{ activeBoard === item.id ? 'active' : '' }}" bindtap="onBoardTap" data-board="{{item.id}}">{{item.icon}} {{item.name}}</view></view>
   <view class="my-rank-card" wx:if="{{ myRank }}">
     <text class="my-label">我</text><text class="my-rank">{{ myRank.rank > 0 ? '第' + myRank.rank + '名' : '未上榜' }}</text>
   </view>

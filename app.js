@@ -129,6 +129,12 @@ const BONUS_RULES = {
   template_cap: 0.20              // 模板加成分项上限（不变）
 }
 
+/** 战力计算规则（可调） */
+const COMBAT_RULES = {
+  baseCoeff: 1,            // 修为 → 基础战力系数（可调）
+  titleCap: 0.50           // 称号战力加成上限（可调）
+}
+
 /** 单日扣分最多 10 分，防止一日扣穿 */
 const DAILY_DEDUCT_LIMIT = 10
 
@@ -365,7 +371,7 @@ App({
       USE_UNIFIED_SCORING
     },
     // >>> 道牒称号系统
-    equippedTitle: null,
+    equippedTitle: [null, null],
     titleStats: null,
     titleUnlockCache: [],
     lastRealmIndex: -1,
@@ -1075,8 +1081,31 @@ App({
     }
   },
 
-  /** 称号修行词条合计（stub——任务 3「三榜称号」填真实实现） */
-  getEquippedTitleBuff: function() { return 0 },
+  /** 称号修行词条合计（主槽 + 叠加槽） */
+  getEquippedTitleBuff: function(type) {
+    var titles = this.getEquippedTitles()
+    var total = 0
+    for (var i = 0; i < titles.length; i++) {
+      var buffs = require('./utils/titles.js').getTitleBuffs(titles[i])
+      for (var j = 0; j < buffs.length; j++) {
+        if (buffs[j].type === type) total += Number(buffs[j].value || 0)
+      }
+    }
+    return total
+  },
+
+  /**
+   * 计算综合战力：totalCultivation × baseCoeff × (1 + min(战力词条和, titleCap))
+   * @param {number} totalCultivation
+   * @returns {number}
+   */
+  computeCombatPower: function(totalCultivation) {
+    var rules = COMBAT_RULES || { baseCoeff: 1, titleCap: 0.50 }
+    var base = Number(totalCultivation || 0) * rules.baseCoeff
+    var titleBuff = this.getEquippedTitleBuff('combat')
+    var rate = Math.min(titleBuff, rules.titleCap)
+    return Math.max(0, Math.floor(base * (1 + rate)))
+  },
 
   getThemeByScore(score = 0) {
     const target = this.globalData.themeTargetScore || 20
@@ -1829,6 +1858,7 @@ App({
     const payload = {
       totalCultivation: nextTotalCultivation,
       totalScore: nextTotalScore,
+      combatPower: this.computeCombatPower(nextTotalCultivation),
       updatedAt: Date.now()
     }
 
@@ -2033,21 +2063,35 @@ App({
   // ============================================================
 
   /**
-   * 获取当前佩戴的称号
-   * @returns {object|null} { id, name, color, bonus, ... } 或 null
+   * 获取当前佩戴的称号（双槽数组，兼容单对象旧格式）
+   * @returns {Array} [主槽, 叠加槽]，元素为称号对象或 null
    */
-  getEquippedTitle() {
+  getEquippedTitles() {
     try {
-      const stored = this.globalData.equippedTitle
-        || wx.getStorageSync(STORAGE_KEYS.equippedTitle)
-        || null
-      if (stored && stored.id) return stored
-      return null
-    } catch (e) { return null }
+      var stored = this.globalData.equippedTitle
+      // 初始空槽时回退 storage（跨会话恢复）
+      if (!stored || (Array.isArray(stored) && !stored[0] && !stored[1])) {
+        stored = wx.getStorageSync(STORAGE_KEYS.equippedTitle)
+      }
+      if (!stored) return [null, null]
+      if (Array.isArray(stored)) {
+        return [stored[0] || null, stored[1] || null]
+      }
+      if (stored.id) return [stored, null]
+      return [null, null]
+    } catch (e) { return [null, null] }
   },
 
   /**
-   * 佩戴称号（一次仅一个，新佩戴自动替换旧称号）
+   * 获取主槽称号（兼容旧单称号调用方）
+   * @returns {object|null} { id, name, color, bonus, ... } 或 null
+   */
+  getEquippedTitle() {
+    return this.getEquippedTitles()[0]
+  },
+
+  /**
+   * 佩戴称号（双槽：explosive 先进主槽，主槽被占进叠加槽；非 explosive 进主槽并清空叠加槽）
    * @param {string} titleId 称号 id
    * @returns {object|null} 佩戴的称号对象
    */
@@ -2056,20 +2100,28 @@ App({
       const { getTitleById } = require('./utils/titles.js')
       const title = getTitleById(titleId)
       if (!title) return null
-      wx.setStorageSync(STORAGE_KEYS.equippedTitle, title)
-      this.globalData.equippedTitle = title
-      this.emitAppEvent('title-equipped', { title })
+      var equipped = this.getEquippedTitles() || [null, null]
+      if (title.level === 'explosive') {
+        if (!equipped[0]) { equipped[0] = title }
+        else { equipped[1] = title }
+      } else {
+        equipped[0] = title
+        equipped[1] = null
+      }
+      wx.setStorageSync(STORAGE_KEYS.equippedTitle, equipped)
+      this.globalData.equippedTitle = equipped
+      this.emitAppEvent('title-equipped', { title, equipped })
       if (title.poem) {
         this.emitAppEvent('title-poem-changed', { poem: title.poem, titleName: title.name })
       }
-      // 同步称号ID到云端（供他人主页查询）
+      // 同步主槽称号ID到云端（供他人主页查询）
       try {
         var db = this.globalData.db
         if (db) {
           this.ensureUserProfile().then(function(profile) {
             if (profile && profile._id) {
               db.collection('users').doc(profile._id).update({
-                data: { equippedTitleId: title.id, updatedAt: Date.now() }
+                data: { equippedTitleId: equipped[0] ? equipped[0].id : '', updatedAt: Date.now() }
               })
             }
           }).catch(function() {})
@@ -2081,13 +2133,13 @@ App({
   },
 
   /**
-   * 卸下当前称号
+   * 卸下当前称号（双槽清除）
    */
   unequipTitle() {
     try {
       wx.removeStorageSync(STORAGE_KEYS.equippedTitle)
-      this.globalData.equippedTitle = null
-      this.emitAppEvent('title-equipped', { title: null })
+      this.globalData.equippedTitle = [null, null]
+      this.emitAppEvent('title-equipped', { title: null, equipped: [null, null] })
       this.refreshCultivationPages('title-unequipped')
     } catch (e) { /* ignore */ }
   },

@@ -443,7 +443,42 @@ const TITLE_DEFINITIONS = [
     condition: function(s) { return (s.boneDailyLevel || 0) >= 5 },
     conditionText: '行之根骨达仙髓之骨',
     order: 58
-  }
+  },
+
+  // ==================== 功德榜称号（排名段位制） ====================
+  { id: 'merit_top1',   name: '天运道祖', category: 'merit', level: 'explosive', color: '#a855f7',
+    buffs: [ { type: 'cultivation', value: 0.30 }, { type: 'combat', value: 0.10 } ],
+    condition: function(s) { return (s.meritRank || 0) === 1 },
+    conditionText: '功德榜第 1 名', order: 45 },
+  { id: 'merit_top3',   name: '功德真人', category: 'merit', level: 'top', color: '#f97316',
+    buffs: [ { type: 'cultivation', value: 0.20 } ],
+    condition: function(s) { return (s.meritRank || 0) >= 2 && (s.meritRank || 0) <= 3 },
+    conditionText: '功德榜第 2-3 名', order: 46 },
+  { id: 'merit_top10',  name: '积善真君', category: 'merit', level: 'superior', color: '#f59e0b',
+    buffs: [ { type: 'cultivation', value: 0.10 } ],
+    condition: function(s) { return (s.meritRank || 0) >= 4 && (s.meritRank || 0) <= 10 },
+    conditionText: '功德榜第 4-10 名', order: 47 },
+  { id: 'merit_top50',  name: '行善修士', category: 'merit', level: 'normal', color: '#22c55e',
+    buffs: [ { type: 'cultivation', value: 0.05 } ],
+    condition: function(s) { return (s.meritRank || 0) >= 11 && (s.meritRank || 0) <= 50 },
+    conditionText: '功德榜第 11-50 名', order: 48 },
+  { id: 'merit_top100', name: '向善道童', category: 'merit', level: 'normal', color: '#10b981',
+    buffs: [ { type: 'cultivation', value: 0.02 } ],
+    condition: function(s) { return (s.meritRank || 0) >= 51 && (s.meritRank || 0) <= 100 },
+    conditionText: '功德榜第 51-100 名', order: 49 },
+  // ==================== 战力榜称号（排名段位制） ====================
+  { id: 'combat_top1',  name: '战力之巅', category: 'combat', level: 'explosive', color: '#ef4444',
+    buffs: [ { type: 'combat', value: 0.30 }, { type: 'cultivation', value: 0.10 } ],
+    condition: function(s) { return (s.combatRank || 0) === 1 },
+    conditionText: '战力榜第 1 名', order: 50 },
+  { id: 'combat_top10', name: '百战真人', category: 'combat', level: 'top', color: '#e74c3c',
+    buffs: [ { type: 'combat', value: 0.15 } ],
+    condition: function(s) { return (s.combatRank || 0) >= 2 && (s.combatRank || 0) <= 10 },
+    conditionText: '战力榜第 2-10 名', order: 51 },
+  { id: 'combat_top100',name: '斗战胜士', category: 'combat', level: 'superior', color: '#d35400',
+    buffs: [ { type: 'combat', value: 0.05 } ],
+    condition: function(s) { return (s.combatRank || 0) >= 11 && (s.combatRank || 0) <= 100 },
+    conditionText: '战力榜第 11-100 名', order: 52 }
 ]
 
 function getTitlesByCategory(category) {
@@ -495,6 +530,21 @@ function getUnlockedTitles(userStats) {
   return TITLE_DEFINITIONS.filter(function(t) { return checkTitleUnlock(t, userStats) })
 }
 
+// 称号词条类型（未来加新加成类型只加这里）
+var BUFF_TYPES = {
+  cultivation: { label: '修行加成', unit: '%' },
+  combat:      { label: '战力加成', unit: '%' }
+}
+
+function getTitleBuffs(title) {
+  if (!title) return []
+  if (Array.isArray(title.buffs)) return title.buffs
+  if (typeof title.bonus === 'number' && title.bonus > 0) {
+    return [{ type: 'cultivation', value: title.bonus }]
+  }
+  return []
+}
+
 module.exports = {
   TITLE_DEFINITIONS: TITLE_DEFINITIONS,
   TITLE_CATEGORY: TITLE_CATEGORY,
@@ -505,11 +555,13 @@ module.exports = {
   LEVEL_WEIGHT: LEVEL_WEIGHT,
   LEVEL_TAB_ORDER: LEVEL_TAB_ORDER,
   CORE_COLORS: CORE_COLORS,
+  BUFF_TYPES: BUFF_TYPES,
   getTitlesByCategory: getTitlesByCategory,
   getTitlesByLevel: getTitlesByLevel,
   getAllTitles: getAllTitles,
   getAllTitlesSortedByLevel: getAllTitlesSortedByLevel,
   getTitleById: getTitleById,
+  getTitleBuffs: getTitleBuffs,
   checkTitleUnlock: checkTitleUnlock,
   getUnlockedTitles: getUnlockedTitles
 }

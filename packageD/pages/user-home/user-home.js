@@ -20,7 +20,7 @@ Page({
     totalCultivation: 0,
     streakDays: 0,
     // 称号
-    equippedTitle: null,
+    equippedTitle: [null, null],
     // 模板
     mainTemplate: null,
     sideTemplates: [],

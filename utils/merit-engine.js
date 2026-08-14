@@ -19,13 +19,13 @@
  * 参照热度分权重设计，但更突出长期价值和传播性
  */
 var MERIT_WEIGHTS = {
-  templatePublished:  10,   // 发布一个模板（一次性）
-  likeReceived:        1,   // 收到一个点赞
-  favReceived:         3,   // 收到一个收藏（比点赞更有价值）
-  importReceived:      5,   // 被一个用户导入/使用（高价值）
-  eliteFollowed:      10,   // 被一个用户追随精英模板
-  templateFeatured:   50,   // 模板被官方推荐/精选（预留）
-  commentReceived:     1    // 收到评论（预留）
+  templatePublished:  10,   // 不变
+  likeReceived:        3,   // 原 1
+  favReceived:         5,   // 原 3
+  importReceived:     10,   // 原 5
+  eliteFollowed:      10,   // 不变
+  templateFeatured:   50,   // 不变（预留）
+  commentReceived:     2    // 原 1
 }
 
 // ============================================================
