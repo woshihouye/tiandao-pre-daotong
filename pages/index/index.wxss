@@ -1132,3 +1132,26 @@
   color: var(--primary);
   flex-shrink: 0;
 }
+
+.onboard-container {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60rpx 40rpx;
+}
+.onboard-logo { font-size: 96rpx; margin-bottom: 24rpx; }
+.onboard-title { font-size: 48rpx; font-weight: 700; color: #111827; }
+.onboard-sub { font-size: 28rpx; color: #6b7280; margin-top: 12rpx; text-align: center; }
+.onboard-primary {
+  margin-top: 64rpx; width: 480rpx; height: 96rpx;
+  background: #10B981; color: #fff; font-size: 34rpx; font-weight: 600;
+  border-radius: 48rpx; display: flex; align-items: center; justify-content: center;
+}
+.onboard-dims-label { margin-top: 64rpx; font-size: 26rpx; color: #9ca3af; }
+.onboard-dims { margin-top: 24rpx; white-space: nowrap; width: 100%; }
+.onboard-dim {
+  display: inline-block; margin-right: 24rpx; padding: 20rpx 36rpx;
+  background: #fff; border-radius: 40rpx; font-size: 30rpx;
+  color: #374151; border: 1rpx solid #e5e7eb;
+}
+.onboard-foot { margin-top: 64rpx; font-size: 24rpx; color: #d1d5db; text-align: center; }

@@ -1,6 +1,6 @@
 <!-- 人生模板系统首页 - 精英模板系统版 -->
 <import src="/templates/theme-deco.wxml"/>
-<view class="container theme-page {{themeClass}}">
+<view class="container theme-page {{themeClass}}" wx:if="{{!isNewUser}}">
 
   <template is="theme-deco" data="{{themeClass}}"/>
 
@@ -334,8 +334,26 @@
   </view>
 </view>
 
+  <view class="onboard-container" wx:if="{{isNewUser}}">
+    <view class="onboard-logo">🌱</view>
+    <view class="onboard-title">天道修行</view>
+    <view class="onboard-sub">记录每天的修行，累积修为，突破境界</view>
+
+    <view class="onboard-primary" bindtap="startFirstRecord">记下第一笔</view>
+
+    <view class="onboard-dims-label">想从哪一维开始？</view>
+    <scroll-view class="onboard-dims" scroll-x="true">
+      <view class="onboard-dim" bindtap="startFirstRecord">🏋️ 健身</view>
+      <view class="onboard-dim" bindtap="startFirstRecord">📚 学习</view>
+      <view class="onboard-dim" bindtap="startFirstRecord">🥗 饮食</view>
+      <view class="onboard-dim" bindtap="startFirstRecord">✍️ 写作</view>
+    </scroll-view>
+
+    <view class="onboard-foot">拍照识物 · 道童对话 · 模板广场，记下第一笔后解锁完整首页</view>
+  </view>
+
   <!-- 突破仪式弹窗 -->
-  <view class="breakthrough-mask" wx:if="{{showBreakthrough}}" catchtap="postponeBreakthrough">
+  <view class="breakthrough-mask" wx:if="{{showBreakthrough && !isNewUser}}" catchtap="postponeBreakthrough">
     <view class="breakthrough-panel" catchtap="">
       <view class="breakthrough-glow"></view>
       <view class="breakthrough-title">⚡ 天道感应 ⚡</view>
@@ -353,7 +371,7 @@
   </view>
 
   <!-- 称号解锁弹窗 -->
-  <view class="title-popup-mask" wx:if="{{unlockedTitlePopup}}" catchtap="closeTitlePopup">
+  <view class="title-popup-mask" wx:if="{{unlockedTitlePopup && !isNewUser}}" catchtap="closeTitlePopup">
     <view class="title-popup-panel" catchtap="">
       <view class="title-popup-seal" style="border-color:{{unlockedTitlePopup.color}}; color:{{unlockedTitlePopup.color}}">
         <view class="seal-ring"></view>
@@ -365,4 +383,4 @@
     </view>
   </view>
 
-<dao-spirit />
+<dao-spirit wx:if="{{!isNewUser}}" />

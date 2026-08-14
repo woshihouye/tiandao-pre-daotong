@@ -384,3 +384,16 @@ swiper-item {
   font-weight: 600;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
+
+.submit-feedback-mask {
+  position: fixed; left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999;
+}
+.submit-feedback {
+  background: #fff; border-radius: 20rpx; padding: 40rpx 48rpx;
+  text-align: center; box-shadow: 0 8rpx 40rpx rgba(0,0,0,0.15);
+}
+.sf-score { font-size: 44rpx; font-weight: 700; color: #059669; }
+.sf-formula { font-size: 26rpx; color: #6b7280; margin-top: 12rpx; line-height: 1.6; }

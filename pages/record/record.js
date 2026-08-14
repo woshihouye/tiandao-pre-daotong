@@ -50,7 +50,8 @@ Page({
 
     // 提交状态
     submitting: false,
-    mode: 'fuzzy'
+    mode: 'fuzzy',
+    submitFeedback: null,
   },
 
   onLoad: function () {
@@ -812,7 +813,14 @@ Page({
           scorePerUnit: act.scorePerUnit,
           score: score,
           isNegative: act.isNegative || false,
-          tabKey: act.tabKey
+          tabKey: act.tabKey,
+          formula: scoreResult.formula || '',
+          intensityLabel: scoreResult.intensityLabel || '',
+          efficiencyLabel: scoreResult.efficiencyLabel || '',
+          subCoeff: (scoreResult.subCoeff != null) ? scoreResult.subCoeff : 1,
+          isMainPath: scoreResult.isMainPath !== false,
+          capCapped: scoreResult.capCapped === true,
+          capReason: scoreResult.capReason || ''
         })
       }
     }
@@ -836,14 +844,14 @@ Page({
     var db = app.globalData && app.globalData.db
     if (db) {
       db.collection('records').add({ data: recordData }).then(function () {
-        self.onSubmitSuccess(totalScore)
+        self.onSubmitSuccess(totalScore, collectedRecords)
       }).catch(function (err) {
         console.error('保存记录失败', err)
         self.setData({ submitting: false })
         wx.showToast({ title: '保存失败，请重试', icon: 'none' })
       })
     } else {
-      self.onSubmitSuccess(totalScore)
+      self.onSubmitSuccess(totalScore, collectedRecords)
     }
   },
 
@@ -902,7 +910,17 @@ Page({
         systemKey: 'traditional'
       })
       if (result && typeof result.score === 'number' && result.score !== 0) {
-        return { score: result.score }
+        var capResult = result.capResult || {}
+        return {
+          score: result.score,
+          formula: result.formula || '',
+          intensityLabel: result.intensityLabel || '',
+          efficiencyLabel: result.efficiencyLabel || '',
+          subCoeff: (result.subCoeff != null) ? result.subCoeff : 1,
+          isMainPath: result.isMainPath !== false,
+          capCapped: capResult.capped === true,
+          capReason: (capResult.capped === true) ? (capResult.reason || '') : ''
+        }
       }
     } catch (e) {
       console.warn('score.js calculateScoreV2 异常:', act.id, e)
@@ -911,19 +929,39 @@ Page({
     // 降级：用活动库 scorePerUnit × 进度因子
     var baseScore = act.scorePerUnit || 1
     var fallbackScore = Math.round(baseScore * factor * 10) / 10
-    return { score: fallbackScore }
+    return {
+      score: fallbackScore,
+      formula: '降级计分',
+      intensityLabel: '',
+      efficiencyLabel: '',
+      subCoeff: 1,
+      isMainPath: true,
+      capCapped: false,
+      capReason: ''
+    }
   },
 
-  onSubmitSuccess: function (totalScore) {
+  onSubmitSuccess: function (totalScore, collectedRecords) {
     var self = this
-
-    // 煞类负分正确显示「修为 -N」
     var gongText = totalScore >= 0 ? '+' + totalScore : '-' + Math.abs(totalScore)
 
-    wx.showToast({
-      title: '已保存，修为 ' + gongText,
-      icon: 'success',
-      duration: 2000
+    // 拼公式摘要：每条取「活动名：公式」，最多 3 条，超出加省略
+    var list = collectedRecords || []
+    var formulaList = []
+    for (var i = 0; i < list.length && i < 3; i++) {
+      var rec = list[i]
+      var line = (rec.activityName || '') + '：' + (rec.formula || '')
+      if (rec.capCapped) {
+        line += '（' + (rec.capReason || '已达上限') + '）'
+      }
+      formulaList.push(line)
+    }
+    if (list.length > 3) {
+      formulaList.push('…共 ' + list.length + ' 条，明细可在首页记录查看')
+    }
+
+    self.setData({
+      submitFeedback: { gongText: gongText, formulaList: formulaList }
     })
 
     if (app.emitAppEvent) {
@@ -931,9 +969,9 @@ Page({
     }
 
     setTimeout(function () {
-      self.setData({ submitting: false })
+      self.setData({ submitting: false, submitFeedback: null })
       wx.switchTab({ url: '/pages/index/index' })
-    }, 1500)
+    }, 1800)
   },
 
   // ========== 自定义活动 ==========

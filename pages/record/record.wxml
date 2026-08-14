@@ -72,6 +72,14 @@
   </view>
 </view>
 
+  <!-- 提交即时反馈轻提示 -->
+  <view class="submit-feedback-mask" wx:if="{{submitFeedback}}" catchtap="">
+    <view class="submit-feedback">
+      <view class="sf-score">修为 {{submitFeedback.gongText}}</view>
+      <view class="sf-formula" wx:for="{{submitFeedback.formulaList}}" wx:key="*this">{{item}}</view>
+    </view>
+  </view>
+
 <!-- ==================== 精准记录模式 ==================== -->
 <view class="page-container precise-mode" wx:if="{{mode === 'precise'}}">
   <!-- 顶部导航栏 -->

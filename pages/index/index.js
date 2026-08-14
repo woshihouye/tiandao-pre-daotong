@@ -12,6 +12,7 @@ Page({
     totalCultivation: 0,
     slogan: '夕阳无限，修为尚有余力',
     records: [],
+    isNewUser: false,
     animateScore: false,
     currentRealm: { id: 'lianqi', name: '炼精化气', stage: 1, remaining: 33 },
     realmProgress: 0,
@@ -83,6 +84,10 @@ Page({
   },
 
   onShow() {
+    // 引导态下强制刷新，确保完成首条后引导态消失
+    if (this.data.isNewUser === true) {
+      this._recordsLoaded = false
+    }
     this.loadUserData()
     // v4.0: 检查突破预警
     if (app.checkBreakthroughWarning) {
@@ -273,6 +278,7 @@ Page({
   },
 
   processTodayRecords(records, userInfo) {
+    console.assert(Array.isArray(records), 'records 必须为数组')
     const processed = records.map(r => ({
       ...r,
       timeStr: this.formatTime(r.timestamp)
@@ -351,6 +357,7 @@ Page({
       fortune: fortune,
       announcement: announcement,
       titlePoem: titlePoem,
+      isNewUser: (totalCultivation === 0 && records.length === 0),
       // 功德数据
       meritData: app.globalData.meritData || null
     });
@@ -364,6 +371,10 @@ Page({
   formatTime(ts) {
     const d = new Date(ts);
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  },
+
+  startFirstRecord: function () {
+    wx.switchTab({ url: '/pages/record/record' })
   },
 
   goToRecord(e) {
