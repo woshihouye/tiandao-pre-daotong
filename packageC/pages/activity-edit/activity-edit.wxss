@@ -85,6 +85,30 @@
   display: block;
 }
 
+/* 发布到公共库开关 */
+.publish-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  background: #fff;
+}
+.publish-switch-label {
+  display: flex;
+  flex-direction: column;
+}
+.publish-switch-title {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
+}
+.publish-switch-desc {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+
 /* 底部按钮 */
 .bottom-bar {
   position: fixed;

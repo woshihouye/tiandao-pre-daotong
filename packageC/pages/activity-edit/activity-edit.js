@@ -4,6 +4,7 @@
 
 var app = getApp()
 var metaCards = require('../../../utils/meta-cards.js')
+var Alib = require('../../../utils/activity-library.js')
 
 // 分类选项
 var CATEGORY_OPTIONS = [
@@ -76,6 +77,9 @@ Page({
     coverTempPath: '',             // 封面本地临时路径
     coverFileID: '',               // 封面云存储 fileID
     coverDisplayUrl: '',           // 封面展示 URL
+
+    // ── 发布到公共库开关 ──
+    publishToPublic: false,
 
     saving: false
   },
@@ -163,6 +167,10 @@ Page({
 
   onDescInput: function(e) {
     this.setData({ description: e.detail.value })
+  },
+
+  onTogglePublish: function(e) {
+    this.setData({ publishToPublic: !!e.detail.value })
   },
 
   onIconInput: function(e) {
@@ -662,6 +670,15 @@ Page({
             self.setData({ saving: false })
             if (res.result && res.result.ok) {
               wx.showToast({ title: '复制成功，你可以修改了', icon: 'success' })
+              if (self.data.publishToPublic) {
+                self._submitToPublicLibrary({
+                  name: name,
+                  category: Alib.getGrandDao(catKey),
+                  unit: unit,
+                  scorePerUnit: scoreVal,
+                  description: self.data.description || ''
+                })
+              }
               var newActId = (res.result.data && res.result.data.activity && res.result.data.activity.activityId) || ''
               if (newActId) {
                 self.setData({ activityId: newActId, isNew: false })
@@ -693,6 +710,15 @@ Page({
             self.setData({ saving: false })
             if (res.result && res.result.ok) {
               wx.showToast({ title: '创建成功', icon: 'success' })
+              if (self.data.publishToPublic) {
+                self._submitToPublicLibrary({
+                  name: name,
+                  category: Alib.getGrandDao(catKey),
+                  unit: unit,
+                  scorePerUnit: scoreVal,
+                  description: self.data.description || ''
+                })
+              }
               self._notifyParentSaved()
               setTimeout(function() { wx.navigateBack() }, 1500)
             } else {
@@ -718,6 +744,15 @@ Page({
           self.setData({ saving: false })
           if (res.result && res.result.ok) {
             wx.showToast({ title: '保存成功', icon: 'success' })
+            if (self.data.publishToPublic) {
+              self._submitToPublicLibrary({
+                name: name,
+                category: Alib.getGrandDao(catKey),
+                unit: unit,
+                scorePerUnit: scoreVal,
+                description: self.data.description || ''
+              })
+            }
             self._notifyParentSaved()
             setTimeout(function() { wx.navigateBack() }, 1500)
           } else {
@@ -800,6 +835,15 @@ Page({
           self.setData({ saving: false })
           if (res.result && res.result.ok) {
             wx.showToast({ title: '创建成功', icon: 'success' })
+            if (self.data.publishToPublic) {
+              self._submitToPublicLibrary({
+                name: name,
+                category: Alib.getGrandDao(metaCategory),
+                unit: '次',
+                scorePerUnit: 1,
+                description: self.data.description || ''
+              })
+            }
             self._notifyParentSaved()
             setTimeout(function() { wx.navigateBack() }, 1500)
           } else {
@@ -834,6 +878,32 @@ Page({
     } else {
       doCreate('')
     }
+  },
+
+  // 提交到公共库审核（保存成功后调用，失败不阻断）
+  _submitToPublicLibrary: function(payload) {
+    var self = this
+    wx.cloud.callFunction({
+      name: 'activity-review',
+      data: {
+        action: 'submitActivityApplication',
+        name: payload.name,
+        category: payload.category,
+        unit: payload.unit,
+        scorePerUnit: payload.scorePerUnit,
+        description: payload.description
+      },
+      success: function(res) {
+        if (res.result && res.result.ok) {
+          wx.showToast({ title: '已提交公共库审核', icon: 'none' })
+        } else {
+          wx.showToast({ title: (res.result && res.result.error) || '提交审核失败', icon: 'none' })
+        }
+      },
+      fail: function() {
+        wx.showToast({ title: '提交审核网络异常', icon: 'none' })
+      }
+    })
   },
 
   // 通知上页活动已更新

@@ -182,6 +182,15 @@
       <textarea class="form-textarea" placeholder="输入活动描述（选填）" value="{{description}}" bindinput="onDescInput" maxlength="200" />
     </view>
 
+    <!-- 发布到公共库开关 -->
+    <view class="publish-switch-row">
+      <view class="publish-switch-label">
+        <text class="publish-switch-title">发布到公共库</text>
+        <text class="publish-switch-desc">审核通过后 +10% 修为，所有人可见</text>
+      </view>
+      <switch checked="{{publishToPublic}}" bindchange="onTogglePublish" color="#07c160" />
+    </view>
+
     <!-- 图标（非元卡模式：emoji 输入） -->
     <view class="form-item" wx:if="{{mode !== 'metaCard'}}">
       <text class="form-label">图标（emoji）</text>
