@@ -1615,10 +1615,6 @@ Page({
     wx.switchTab({ url: '/pages/record/record' })
   },
 
-  goToApply: function() {
-    wx.navigateTo({ url: '/packageC/pages/activity-apply/activity-apply' })
-  },
-
   // ==================== 自定义活动弹窗 ====================
 
   /** 计算分类索引（编辑面板仍按 5 大类，底层 category 不随 tab 切换） */

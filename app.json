@@ -52,8 +52,7 @@
         "pages/template-comments/template-comments",
         "pages/activity-library/activity-library",
         "pages/activity-edit/activity-edit",
-        "pages/template-builder/template-builder",
-        "pages/activity-apply/activity-apply"
+        "pages/template-builder/template-builder"
       ]
     },
     {

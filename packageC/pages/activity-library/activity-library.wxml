@@ -9,9 +9,6 @@
     <view class="hero-debug" wx:if="{{cardMode}}">[{{cardMode}}] 共{{activities.length}}项</view>
   </view>
 
-  <!-- 申请添加活动入口 -->
-  <view class="apply-entry" bindtap="goToApply">＋ 申请添加活动</view>
-
   <!-- 主分类 Tab -->
   <view class="tab-scroll">
     <scroll-view scroll-x class="tab-scroll-inner">
