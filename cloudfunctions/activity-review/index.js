@@ -22,6 +22,9 @@ const GRAND_DAO_CATEGORIES = {
 // 申请表单分类白名单（锁死）
 const GRAND_DAO_KEYS = ['li', 'gong', 'wu', 'yang', 'zi', 'hong']
 
+// 官方卡 5 大类 → 6 大道则 key（listActivityApplications 补 categoryLabel 用）
+const CATEGORY_TO_GRAND_DAO = { sport: 'li', work: 'gong', study: 'wu', diet: 'yang', debuff: 'hong' }
+
 /** 管理员判定：OPENID 在 admins 集合 或 adminToken 兜底 */
 async function isAdmin(wxContext, event) {
   if (event.adminToken === ADMIN_TOKEN) return true
@@ -87,10 +90,17 @@ async function listActivityApplications(event, wxContext) {
     .limit(100)
     .get()
 
+  // 官方卡补 categoryLabel（category 5 大类 → 6 大道则 label）
+  var officialPending = (officialRes.data || []).map(function (doc) {
+    var gd = CATEGORY_TO_GRAND_DAO[doc.category] || doc.category
+    doc.categoryLabel = GRAND_DAO_CATEGORIES[gd] || doc.categoryLabel || doc.category
+    return doc
+  })
+
   return {
     ok: true,
     data: {
-      officialPending: officialRes.data || [],
+      officialPending: officialPending,
       userApplications: userRes.data || []
     }
   }
