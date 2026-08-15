@@ -186,7 +186,7 @@ Page({
 
   editTemplate() {
     wx.navigateTo({
-      url: `/packageC/pages/template-edit/template-edit?id=${this.templateId}`
+      url: `/packageC/pages/template-builder/template-builder?id=${this.templateId}`
     })
   },
 

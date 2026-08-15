@@ -317,7 +317,7 @@ Page({
   openTemplate: function(e) {
     var id = e.currentTarget.dataset.id
     if (id === 'custom') {
-      wx.navigateTo({ url: '/packageC/pages/template-edit/template-edit' })
+      wx.navigateTo({ url: '/packageC/pages/template-builder/template-builder' })
       return
     }
     wx.navigateTo({ url: '/packageC/pages/template-detail/template-detail?id=' + id })

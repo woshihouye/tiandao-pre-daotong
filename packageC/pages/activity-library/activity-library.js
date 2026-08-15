@@ -3,6 +3,7 @@ var app = getApp()
 var Alib = require('../../../utils/activity-library.js')
 var MetaCards = require('../../../utils/meta-cards.js')
 var DefaultTemplates = require('../../../utils/default-templates.js')
+var Cart = require('../../../utils/cart.js')
 
 // 6 大道则 → 5 大类反向映射（分类 tab 切换时，底层查询仍用 5 大类 key）
 var GRAND_DAO_TO_CATEGORY = {}
@@ -1689,6 +1690,27 @@ Page({
 
     // 通用卡片 → 打开详情弹窗
     this.openActivityDetail(activity)
+  },
+
+  /** 点活动卡卡片本身 → 进入单品详情页 */
+  navigateToActivityDetail: function(e) {
+    var act = e.currentTarget.dataset.activity
+    if (!act) return
+    wx.navigateTo({
+      url: '/packageC/pages/activity-detail/activity-detail?data=' + encodeURIComponent(JSON.stringify(act))
+    })
+  },
+
+  /** 活动卡右上角「＋」加购（catchtap 拦截冒泡） */
+  addToCart: function(e) {
+    var act = e.currentTarget.dataset.act
+    if (!act) return
+    var res = Cart.addToCart(act)
+    if (res.ok) {
+      wx.showToast({ title: '已加入购物车', icon: 'success' })
+    } else if (res.reason === 'duplicate') {
+      wx.showToast({ title: '已在购物车', icon: 'none' })
+    }
   },
 
   /** 克隆公开活动：提示确认后调用云端 cloneActivity */

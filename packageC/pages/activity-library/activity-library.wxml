@@ -94,7 +94,8 @@
               <text class="group-name">{{act._groupName}}</text>
               <text class="group-count">{{act._groupCount}}项</text>
             </view>
-            <view wx:if="{{cardMode === 'study'}}" class="grid-card study-card {{act.isNegative ? 'is-negative' : ''}}" data-activity="{{act}}" bindtap="onCardTap">
+            <view wx:if="{{cardMode === 'study'}}" class="grid-card study-card {{act.isNegative ? 'is-negative' : ''}}" data-activity="{{act}}" bindtap="navigateToActivityDetail">
+              <view class="card-add" catchtap="addToCart" data-act="{{act}}">＋</view>
               <view class="card-tags">
                 <text class="card-tag meta" wx:if="{{act._isMetaCard}}">元</text>
                 <text class="card-tag official" wx:if="{{act.isOfficial}}">官方</text>
@@ -121,7 +122,8 @@
                 </view>
               </view>
             </view>
-            <view wx:elif="{{cardMode === 'food'}}" class="grid-card food-card" data-activity="{{act}}" bindtap="onCardTap">
+            <view wx:elif="{{cardMode === 'food'}}" class="grid-card food-card" data-activity="{{act}}" bindtap="navigateToActivityDetail">
+              <view class="card-add" catchtap="addToCart" data-act="{{act}}">＋</view>
               <view class="card-tags">
                 <text class="card-tag meta" wx:if="{{act._isMetaCard}}">元</text>
                 <text class="card-tag custom" wx:if="{{act.isCustom}}">自定义</text>
@@ -132,7 +134,8 @@
               <view class="food-card-name">{{act.name}}</view>
               <view class="food-card-calories">{{act.calories}} 千卡/100g</view>
             </view>
-            <view wx:else class="grid-card {{act.isNegative ? 'is-negative' : ''}}" data-activity="{{act}}" bindtap="onCardTap">
+            <view wx:else class="grid-card {{act.isNegative ? 'is-negative' : ''}}" data-activity="{{act}}" bindtap="navigateToActivityDetail">
+              <view class="card-add" catchtap="addToCart" data-act="{{act}}">＋</view>
               <view class="card-tags">
                 <text class="card-tag meta" wx:if="{{act._isMetaCard}}">元</text>
                 <text class="card-tag official" wx:if="{{act.isOfficial}}">官方</text>

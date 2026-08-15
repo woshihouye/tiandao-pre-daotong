@@ -48,7 +48,7 @@
                 </view>
               </view>
             </view>
-            <text class="slot-empty" wx:else>点击下方活动库添加活动</text>
+            <text class="slot-empty" wx:else>从下方购物车落位添加活动</text>
           </scroll-view>
           <!-- 时间轴轨道（点击时间文字直接唤起原生时间选择器） -->
           <view class="timeline-track">
@@ -67,6 +67,14 @@
         <view class="slot-right">
           <view class="slot-badge" wx:if="{{slot.activities.length > 0}}">{{slot.activities.length}}</view>
         </view>
+        <!-- 落位模式：时段勾选 toggle -->
+        <view
+          wx:if="{{dropMode}}"
+          class="slot-drop-toggle {{dropSlotChecked[index] ? 'checked' : ''}}"
+          data-id="{{slot.id}}"
+          data-index="{{index}}"
+          catchtap="toggleDropSlot"
+        >{{dropSlotChecked[index] ? '✓' : '＋'}}</view>
       </view>
     </scroll-view>
   </view>
@@ -165,59 +173,45 @@
   <!-- 分隔线 -->
   <view class="section-divider">
     <view class="divider-line"></view>
-    <text class="divider-text">活动库</text>
-    <text class="lib-sort-toggle" bindtap="changeLibSort">排序</text>
-    <text class="lib-edit-toggle {{editMode ? 'active' : ''}}" bindtap="toggleEditMode">{{editMode ? '完成' : '编辑'}}</text>
+    <text class="divider-text">购物车</text>
     <view class="divider-line"></view>
   </view>
 
-  <!-- ═══════════ 下半屏：活动库 ═══════════ -->
+  <!-- ═══════════ 下半屏：购物车落位区 ═══════════ -->
 
-  <!-- 分类标签 -->
-  <scroll-view scroll-x class="cat-tabs">
-    <view
-      wx:for="{{categories}}" wx:key="key"
-      class="cat-tab {{currentGrandDao === item.key ? 'active' : ''}}"
-      data-cat="{{item.key}}" bindtap="switchLibCategory"
-    >{{item.name}}</view>
-  </scroll-view>
-
-  <!-- 搜索 -->
-  <view class="lib-search">
-    <input class="lib-search-input" placeholder="搜索活动..." value="{{libKeyword}}" bindinput="onLibSearch"/>
-    <text class="lib-search-clear" wx:if="{{libKeyword}}" bindtap="clearLibSearch">✕</text>
+  <!-- 落位模式操作条 -->
+  <view class="drop-bar" wx:if="{{dropMode}}">
+    <text class="drop-bar-info">已选 {{dropSelectedSlots.length}} 个时段</text>
+    <view class="drop-bar-actions">
+      <text class="drop-btn cancel" bindtap="cancelDrop">取消</text>
+      <text class="drop-btn confirm" bindtap="confirmDrop">完成</text>
+    </view>
   </view>
 
-  <!-- 侧栏 + 宫格 -->
-  <view class="lib-body">
-    <scroll-view scroll-y class="lib-side">
-      <view
-        wx:for="{{libSideFilters}}" wx:key="key"
-        class="lib-side-item {{currentLibSide === item.key ? 'active' : ''}}"
-        data-key="{{item.key}}" bindtap="tapLibSide"
-      >{{item.name}}</view>
-    </scroll-view>
+  <!-- 空态 -->
+  <view class="cart-empty" wx:if="{{!dropMode && cart.length === 0}}">
+    <text class="cart-empty-text">购物车还是空的</text>
+    <view class="cart-empty-btn" bindtap="goToActivityLibrary">去修行库挑选活动</view>
+  </view>
 
-    <scroll-view scroll-y class="lib-grid-area">
-      <view class="lib-grid">
-        <view
-          wx:for="{{libActivities}}" wx:key="id"
-          class="lib-card {{item.isNegative ? 'is-negative' : ''}} {{editMode ? 'edit-mode' : ''}}"
-          data-act="{{item}}" bindtap="onLibCardTap" bindlongpress="editLibActivity"
-        >
-          <view class="lib-card-edit-badge" wx:if="{{editMode}}">编辑</view>
-          <view class="lib-card-icon-wrap">
-            <text class="lib-card-icon">{{item.name.charAt(0)}}</text>
-          </view>
-          <view class="lib-card-name">{{item.name}}</view>
-          <view class="lib-card-tag {{item.sourceType === 'referenced' ? 'tag-ref' : (item._isMetaCard ? 'tag-meta' : (item.isOfficial ? 'tag-official' : (item.isPublic ? 'tag-public' : (item.isCustom ? 'tag-custom' : ''))))}}" wx:if="{{!item.isPublicLibrary}}">
-            {{item.sourceType === 'referenced' ? '引' : (item._isMetaCard ? '元' : (item.isOfficial ? '官' : (item.isPublic ? '公' : (item.isCustom ? '自' : ''))))}}
-          </view>
-          <view class="lib-card-tag tag-public-lib" wx:if="{{item.isPublicLibrary}}">公共 +10%</view>
+  <!-- 购物车列表 -->
+  <scroll-view scroll-y class="cart-list" wx:if="{{!dropMode && cart.length > 0}}">
+    <view
+      wx:for="{{cart}}" wx:key="cartId"
+      class="cart-item"
+    >
+      <view class="cart-item-main" data-id="{{item.cartId}}" bindtap="onCartItemTap">
+        <view class="cart-item-icon">{{item.act.name.charAt(0)}}</view>
+        <view class="cart-item-info">
+          <view class="cart-item-name">{{item.act.name}}</view>
+          <view class="cart-item-cap">{{item.capacity.value}}{{item.capacity.unit}}</view>
         </view>
       </view>
-    </scroll-view>
-  </view>
+      <view class="cart-item-drop" wx:if="{{templateType === 'daily'}}" data-id="{{item.cartId}}" bindtap="startDrop">落位</view>
+      <text class="cart-item-del" data-id="{{item.cartId}}" bindtap="removeCartItem">✕</text>
+    </view>
+    <view class="cart-clear" bindtap="clearCart">清空</view>
+  </scroll-view>
 
   <!-- 底部保存 -->
   <view class="save-bar">
@@ -243,6 +237,27 @@
     <view class="popup-actions">
       <view class="popup-btn cancel" bindtap="closeCapacityPopup">取消</view>
       <view class="popup-btn confirm" bindtap="confirmCapacity">确认</view>
+    </view>
+  </view>
+</view>
+
+<!-- ═══════════ 浮层：购物车容量编辑 ═══════════ -->
+<view class="popup-overlay {{showCartEditPopup ? 'show' : ''}}" bindtap="closeCartEditPopup">
+  <view class="popup-sheet" catchtap="preventBubble">
+    <view class="popup-title">修改容量 — {{cartEditTarget.act.name}}</view>
+    <view class="popup-row">
+      <input class="popup-input" type="digit" placeholder="数值" value="{{cartEditValue}}" bindinput="onCartEditValue"/>
+      <view class="popup-unit-tabs">
+        <view
+          wx:for="{{cartEditUnits}}" wx:key="*this"
+          class="popup-unit {{cartEditUnit === item ? 'active' : ''}}"
+          data-unit="{{item}}" bindtap="selectCartEditUnit"
+        >{{item}}</view>
+      </view>
+    </view>
+    <view class="popup-actions">
+      <view class="popup-btn cancel" bindtap="closeCartEditPopup">取消</view>
+      <view class="popup-btn confirm" bindtap="confirmCartCapacity">确认</view>
     </view>
   </view>
 </view>

@@ -1,7 +1,6 @@
 // 自建模板配置页
 var app = getApp()
-var Alib = require('../../../utils/activity-library.js')
-var MetaCards = require('../../../utils/meta-cards.js')
+var Cart = require('../../../utils/cart.js')
 
 /** 存储 key */
 var CUSTOM_TEMPLATES_KEY = 'tiandao_custom_templates_'
@@ -34,32 +33,16 @@ var WEEK_PERIODS = [
 /** 容量单位选项 */
 var CAPACITY_UNITS_ALL = ['次', '组', '分钟', '秒', '次/天', '份', '组×次']
 
-/** 活动类型默认单位映射 — 炼体=组/次, 有氧=分钟, 丹食=份 */
-var DEFAULT_UNIT_MAP = {
-  sport: '组/次', diet: '份', study: '分钟', work: '分钟', debuff: '次'
-}
-
-/** 6 大道则 → 底层 5 大类反向映射（分类 tab 用 grandDao，底层查询仍用 5 大类 key） */
-var GRAND_DAO_TO_CATEGORY = {}
-for (var gdKey in Alib.GRAND_DAO_MAP) {
-  if (Object.prototype.hasOwnProperty.call(Alib.GRAND_DAO_MAP, gdKey)) {
-    GRAND_DAO_TO_CATEGORY[Alib.GRAND_DAO_MAP[gdKey]] = gdKey
-  }
-}
-
 Page({
   data: {
     // 模板基本信息
     templateId: '',
     templateName: '',
     templateType: 'daily',
-    currentTemplateId: '',
-    currentTemplateSlots: [],
 
     // 日模板
     timeSlots: [],
     currentSlotId: 'dawn',
-    editMode: false,
 
     // 周模板
     weekDays: WEEK_DAYS,
@@ -78,15 +61,17 @@ Page({
     currentSlotLabel: '',
     currentSlotActivities: [],
 
-    // 活动库
-    categories: Alib.GRAND_DAO_TABS,
-    currentCategory: 'sport',
-    currentGrandDao: 'li',
-    libSortType: 'default',
-    libSideFilters: [],
-    currentLibSide: 'all',
-    libActivities: [],
-    libKeyword: '',
+    // 购物车落位区
+    cart: [],
+    dropMode: false,
+    dropTarget: null,
+    dropSelectedSlots: [],
+    dropSlotChecked: [],
+    showCartEditPopup: false,
+    cartEditTarget: null,
+    cartEditValue: '',
+    cartEditUnit: '',
+    cartEditUnits: CAPACITY_UNITS_ALL,
 
     // 容量浮层
     showCapacityPopup: false,
@@ -133,13 +118,10 @@ Page({
     } catch(e) {}
     this._initTimeSlots()
     this._initWeekData()
-    this._initLibSideFilters()
-    this._loadLibActivities()
   },
 
   onShow: function() {
-    // 从 activity-edit 返回后刷新活动库
-    this._loadLibActivities()
+    this.setData({ cart: Cart.getCart() })
   },
 
   // ==================== 模板切换 ====================
@@ -323,662 +305,150 @@ Page({
     return key
   },
 
-  // ==================== 活动库 ====================
+  // ==================== 购物车落位区 ====================
 
-  _initLibSideFilters: function() {
-    var cat = this.data.currentCategory
-    var config = Alib.FILTER_CONFIGS[cat] || { categories: [], subcategories: [] }
-    var sideFilters = config.categories || config.subcategories || []
-    this.setData({ libSideFilters: sideFilters, currentLibSide: 'all' })
-    this._loadLibActivities()
+  goToActivityLibrary: function() {
+    wx.navigateTo({ url: '/packageC/pages/activity-library/activity-library' })
   },
 
-  switchLibCategory: function(e) {
-    var gd = e.currentTarget.dataset.cat
-    var cat = GRAND_DAO_TO_CATEGORY[gd] || ''
-    this.setData({ currentGrandDao: gd, currentCategory: cat, currentLibSide: 'all', libKeyword: '' })
-    // 自由道 zi：无现有 5 大类映射，展示空态
-    if (!cat) {
-      this.setData({ libActivities: [], libSideFilters: [] })
+  onCartItemTap: function(e) {
+    var cartId = e.currentTarget.dataset.id
+    var cart = this.data.cart
+    var target = null
+    for (var i = 0; i < cart.length; i++) {
+      if (cart[i].cartId === cartId) { target = cart[i]; break }
+    }
+    if (!target) return
+    this.setData({
+      showCartEditPopup: true,
+      cartEditTarget: target,
+      cartEditValue: String(target.capacity.value),
+      cartEditUnit: target.capacity.unit
+    })
+  },
+
+  closeCartEditPopup: function() {
+    this.setData({ showCartEditPopup: false, cartEditTarget: null })
+  },
+
+  onCartEditValue: function(e) {
+    this.setData({ cartEditValue: e.detail.value })
+  },
+
+  selectCartEditUnit: function(e) {
+    this.setData({ cartEditUnit: e.currentTarget.dataset.unit })
+  },
+
+  confirmCartCapacity: function() {
+    var val = parseInt(this.data.cartEditValue)
+    if (isNaN(val) || val <= 0) {
+      wx.showToast({ title: '请输入有效容量', icon: 'none' })
       return
     }
-    this._initLibSideFilters()
+    var target = this.data.cartEditTarget
+    if (!target) return
+    Cart.updateCartCapacity(target.cartId, val, this.data.cartEditUnit)
+    this.setData({
+      cart: Cart.getCart(),
+      showCartEditPopup: false,
+      cartEditTarget: null
+    })
+    wx.showToast({ title: '容量已更新', icon: 'success' })
   },
 
-  tapLibSide: function(e) {
-    var key = e.currentTarget.dataset.key
-    this.setData({ currentLibSide: key })
-    this._loadLibActivities()
+  removeCartItem: function(e) {
+    var cartId = e.currentTarget.dataset.id
+    Cart.removeFromCart(cartId)
+    this.setData({ cart: Cart.getCart() })
   },
 
-  onLibSearch: function(e) {
-    this.setData({ libKeyword: e.detail.value })
-    this._loadLibActivities()
+  clearCart: function() {
+    Cart.clearCart()
+    this.setData({ cart: [] })
   },
 
-  clearLibSearch: function() {
-    this.setData({ libKeyword: '' })
-    this._loadLibActivities()
-  },
-
-  _loadLibActivities: function() {
-    var cat = this.data.currentCategory
-    var kw = this.data.libKeyword
-    var side = this.data.currentLibSide
-
-    // 统一流程：元卡渲染 + 云端加载（官方 → 我的 → 公开）+ 引用卡
-    this._loadLibFromCloud(cat, kw, side)
-  },
-
-  changeLibSort: function() {
-    var self = this
-    wx.showActionSheet({
-      itemList: ['默认排序', '修为值从高到低', '修为值从低到高', '按名称'],
-      success: function(res) {
-        var map = { 0: 'default', 1: 'score_desc', 2: 'score_asc', 3: 'name' }
-        self.setData({ libSortType: map[res.tapIndex] })
-        self.applyLibSort()
-      }
+  startDrop: function(e) {
+    var cartId = e.currentTarget.dataset.id
+    var cart = this.data.cart
+    var target = null
+    for (var i = 0; i < cart.length; i++) {
+      if (cart[i].cartId === cartId) { target = cart[i]; break }
+    }
+    if (!target) return
+    var checked = []
+    for (var j = 0; j < this.data.timeSlots.length; j++) checked.push(false)
+    this.setData({
+      dropMode: true,
+      dropTarget: target,
+      dropSelectedSlots: [],
+      dropSlotChecked: checked
     })
   },
 
-  applyLibSort: function() {
-    var list = (this.data.libActivities || []).slice()
-    var type = this.data.libSortType
-    if (type === 'score_desc') {
-      list.sort(function(a, b) { return (Number(b.scorePerUnit) || 0) - (Number(a.scorePerUnit) || 0) })
-    } else if (type === 'score_asc') {
-      list.sort(function(a, b) { return (Number(a.scorePerUnit) || 0) - (Number(b.scorePerUnit) || 0) })
-    } else if (type === 'name') {
-      list.sort(function(a, b) { return (a.name || '').localeCompare(b.name || '') })
-    }
-    this.setData({ libActivities: list })
-  },
-
-  /**
-   * 统一补 grandDao 并按当前 6 大道则筛选（活动对象缺 grandDao 时按 category 兜底映射）
-   */
-  _applyGrandDaoFilter: function(list) {
-    var gd = this.data.currentGrandDao
-    var result = []
-    for (var i = 0; i < list.length; i++) {
-      var act = list[i]
-      act.grandDao = Alib.getGrandDao(act.category || act.tabKey)
-      if (act.grandDao === gd) result.push(act)
-    }
-    return result
-  },
-
-  /**
-   * 构建元卡活动列表项（字段白名单：仅允许 id/actId/activityName/name/category/tabKey/sideFilter/description/scorePerUnit/unit/_isMetaCard）
-   * @param {string} sideFilter - 当前侧栏筛选 key
-   */
-  _buildTemplateMetaCards: function(sideFilter) {
-    var cat = this.data.currentCategory
-    var kw = this.data.libKeyword
-    var cards = MetaCards.META_CARDS
-    var arr = []
-    for (var key in cards) {
-      if (!Object.prototype.hasOwnProperty.call(cards, key)) continue
-      var card = cards[key]
-      // 非 sport 维度按 category 过滤；sport 维度无 category 字段
-      if (card.category && card.category !== cat) continue
-      if (!card.category && cat !== 'sport') continue
-      // 侧栏筛选
-      if (sideFilter !== 'all') {
-        if (cat === 'sport' && card.subcategory !== sideFilter) continue
-        if (cat === 'debuff') {
-          if (sideFilter === 'body_hurt' && card.id !== 'body_harm') continue
-          if (sideFilter === 'eat_chaos' && card.id !== 'eat_chaos') continue
-          if (sideFilter === 'screen_lost' && card.id !== 'screen_lost') continue
-          if (sideFilter === 'inner_demon' && card.id !== 'inner_demon') continue
-          if (sideFilter === 'unknown' && card.id !== 'inner_demon') continue
-        }
-        if (cat === 'work') {
-          var goalCardMap = { kaitian: ['plan', 'talk'], butian: ['execute', 'talk'], fun: ['plan', 'execute'], boring: ['execute'], unknown: ['talk'] }
-          var allowedCards = goalCardMap[sideFilter] || []
-          if (allowedCards.indexOf(card.id) === -1) continue
-        }
-        if (cat === 'study') {
-          var learnCardMap = { knowledge: ['input'], skill: ['process'], worldly: ['output'], cyber: ['input', 'process'], unknown: ['output'] }
-          var allowedStudy = learnCardMap[sideFilter] || []
-          if (allowedStudy.indexOf(card.id) === -1) continue
-        }
-      }
-      // 关键词模糊匹配
-      if (kw && kw.trim()) {
-        var kwLower = kw.trim().toLowerCase()
-        if (card.name.toLowerCase().indexOf(kwLower) === -1 &&
-            (!card.description || card.description.toLowerCase().indexOf(kwLower) === -1)) {
-          continue
-        }
-      }
-      // 字段白名单：仅保留规范的输出字段
-      arr.push({
-        id: 'meta_' + card.id,
-        actId: 'meta_' + card.id,
-        activityName: card.name,
-        name: card.name,
-        category: cat,
-        tabKey: cat,
-        grandDao: Alib.getGrandDao(cat),
-        sideFilter: sideFilter !== 'all' ? sideFilter : 'all',
-        description: card.description || '',
-        scorePerUnit: cat === 'debuff' ? -1 : 1,
-        unit: '次',
-        _isMetaCard: true
-      })
-    }
-    return arr
-  },
-
-  /** 从 storage 读取活动编辑覆写 */
-  _loadEdits: function() {
-    var edits = {}
-    try { edits = wx.getStorageSync('tiandao_act_edits_' + this._getUid()) || {} } catch(e) {}
-    return edits
-  },
-
-  /** 按使用频次排序活动列表，空白始终置顶 */
-  _sortLibByUsage: function(list) {
-    var self = this
-    var usage = {}
-    try { usage = wx.getStorageSync('tiandao_act_usage_' + self._getUid()) || {} } catch(e) {}
-    list.sort(function(a, b) {
-      // 空白始终在最前
-      if (a.sideFilter === 'blank' && b.sideFilter !== 'blank') return -1
-      if (a.sideFilter !== 'blank' && b.sideFilter === 'blank') return 1
-      // 自定义活动排在官方前面
-      if (a.isCustom && !b.isCustom) return -1
-      if (!a.isCustom && b.isCustom) return 1
-      // 按使用次数降序
-      var ua = usage[a.id] || 0
-      var ub = usage[b.id] || 0
-      return ub - ua
-    })
-    return list
-  },
-
-  /**
-   * 分页拉取全量数据（循环直到凑够 total）
-   */
-  _fetchAllPages: function(action, baseParams, pageSize) {
-    pageSize = pageSize || 50
-    var all = []
-    var page = 1
-    var MAX_PAGES = 100
-
-    var self = this
-    return new Promise(function(resolve) {
-      function loadPage() {
-        wx.cloud.callFunction({
-          name: 'activity-api',
-          data: {
-            action: action,
-            params: Object.assign({}, baseParams, { page: page, pageSize: pageSize })
-          },
-          success: function(res) {
-            var result = res.result
-            if (!result || !result.ok) { resolve(null); return }
-            var list = result.data.list || []
-            var total = result.data.total || 0
-            all = all.concat(list)
-            if (all.length >= total || page >= MAX_PAGES) {
-              resolve(all)
-            } else {
-              page++
-              loadPage()
-            }
-          },
-          fail: function() { resolve(null) }
-        })
-      }
-      loadPage()
-    })
-  },
-
-  /** 本地加载活动库 + 元卡渲染（不再调用云端，走 Alib + 元卡） */
-  _loadLibFromLocal: function(cat, kw, side) {
-    var self = this
-
-    // 先同步渲染元卡，避免空白等待
-    var metaCards = self._buildTemplateMetaCards(side)
-    self.setData({ libActivities: metaCards })
-
-    var list = []
-    if (kw && kw.trim()) {
-      list = Alib.searchActivities(kw, cat)
-      var customAll = []
-      try { customAll = wx.getStorageSync('tiandao_custom_act_' + self._getUid()) || [] } catch(e) {}
-      var kwLower = kw.trim().toLowerCase()
-      for (var i = 0; i < customAll.length; i++) {
-        var ci = customAll[i]
-        if (ci.category === cat) {
-          if (ci.name.toLowerCase().indexOf(kwLower) !== -1 ||
-              (ci.description && ci.description.toLowerCase().indexOf(kwLower) !== -1)) {
-            list.unshift(ci)
-          }
-        }
-      }
+  toggleDropSlot: function(e) {
+    var id = e.currentTarget.dataset.id
+    var index = parseInt(e.currentTarget.dataset.index)
+    var selected = this.data.dropSelectedSlots.slice()
+    var checked = this.data.dropSlotChecked.slice()
+    var idx = selected.indexOf(id)
+    if (idx > -1) {
+      selected.splice(idx, 1)
+      checked[index] = false
     } else {
-      list = Alib.filterActivities(cat, 'all', side)
-      var customAll2 = []
-      try { customAll2 = wx.getStorageSync('tiandao_custom_act_' + self._getUid()) || [] } catch(e) {}
-      var customFiltered = []
-      for (var j = 0; j < customAll2.length; j++) {
-        var cj = customAll2[j]
-        if (cj.category === cat) {
-          if (side === 'all' || cj.sideFilter === side) {
-            customFiltered.push(cj)
-          }
-        }
-      }
-      list = customFiltered.concat(list)
+      selected.push(id)
+      checked[index] = true
     }
-
-    // 全部视图下，空白活动固定置顶
-    if (side === 'all') {
-      for (var bi = 0; bi < list.length; bi++) {
-        if (list[bi].sideFilter === 'blank') {
-          var blankItem = list.splice(bi, 1)[0]
-          list.unshift(blankItem)
-          break
-        }
-      }
-    }
-
-    // 应用编辑覆写（含 defaultGroup）
-    var edits = self._loadEdits()
-    for (var k = 0; k < list.length; k++) {
-      var edit = edits[list[k].id]
-      if (edit) {
-        if (edit.scorePerUnit !== undefined) list[k].scorePerUnit = edit.scorePerUnit
-        if (edit.unit !== undefined) list[k].unit = edit.unit
-        if (edit.defaultGroup !== undefined) list[k].defaultGroup = edit.defaultGroup
-      }
-    }
-
-    list = self._applyGrandDaoFilter(list)
-    self.setData({ libActivities: self._sortLibByUsage(list) })
-    self.applyLibSort()
+    this.setData({ dropSelectedSlots: selected, dropSlotChecked: checked })
   },
 
-  /**
-   * 云端加载活动库（与 activity-library.js 的 _loadFromCloud 字段映射逐字段一致）
-   * 顺序固定：① 官方 getLibrary → ② 我的 getMine → ③ 全服公开 getPublicCustom
-   */
-  _loadLibFromCloud: function(cat, kw, side) {
-    var self = this
-
-    // 先同步渲染元卡，避免空白等待
-    var metaCards = self._buildTemplateMetaCards(side)
-    self.setData({ libActivities: metaCards })
-
-    // 并行调用三个云函数
-    var promises = [
-      // 1. 官方活动（分页拉全量）
-      new Promise(function(resolve) {
-        self._fetchAllPages('getLibrary', { category: cat, topFilter: 'all', sideFilter: side, keyword: kw || undefined }, 100).then(function(list) {
-          resolve({ ok: list ? true : false, data: { list: list || [], total: (list || []).length } })
-        })
-      }),
-      // 2. 我的自定义
-      new Promise(function(resolve) {
-        wx.cloud.callFunction({
-          name: 'activity-api',
-          data: { action: 'getMine' },
-          success: function(res) { resolve(res.result) },
-          fail: function() { resolve(null) }
-        })
-      }),
-      // 3. 全服公开自定义（仅在非搜索时加载）
-      new Promise(function(resolve) {
-        if (kw && kw.trim()) { resolve(null); return }
-        self._fetchAllPages('getPublicCustom', { category: cat }, 50).then(function(list) {
-          resolve({ ok: true, data: { list: list || [], total: (list || []).length } })
-        })
-      })
-    ]
-
-    Promise.all(promises).then(function(results) {
-      var officialRes = results[0]
-      var mineRes = results[1]
-      var publicRes = results[2]
-
-      // 判断云端是否可用
-      var cloudOk = officialRes && officialRes.ok
-      if (!cloudOk) {
-        self._loadLibFromLocal(cat, kw, side)
-        return
-      }
-
-      var blankCards = []
-      var officialCards = []
-      var blankId = cat === 'diet' ? 'blank_diet' : ('blank_' + cat)
-
-      // 1. 官方活动：映射字段（拆分空白卡）
-      var officialList = (officialRes.data && officialRes.data.list) || []
-      for (var i = 0; i < officialList.length; i++) {
-        var item = officialList[i]
-        var mapped = {
-          id: item.activityId,
-          name: item.name,
-          scorePerUnit: item.scorePerUnit,
-          unit: item.unit,
-          category: item.category,
-          tabKey: item.category,
-          grandDao: Alib.getGrandDao(item.category),
-          topFilter: item.topFilter,
-          sideFilter: item.sideFilter,
-          description: item.description,
-          presetAction: item.presetAction,
-          isOfficial: true,
-          isCustom: false,
-          isPublicLibrary: item.isPublicLibrary || false
-        }
-        if (mapped.id === blankId) {
-          blankCards.push(mapped)
-        } else {
-          officialCards.push(mapped)
-        }
-      }
-
-      // 2. 我的自定义：分类筛选 + 合并
-      var mineCards = []
-      var mineList = (mineRes && mineRes.ok && mineRes.data && mineRes.data.list) || []
-      for (var j = 0; j < mineList.length; j++) {
-        var mc = mineList[j]
-        if (mc.category !== cat) continue
-        if (side !== 'all' && mc.sideFilter !== side) continue
-        if (kw && kw.trim()) {
-          var kwLower = kw.trim().toLowerCase()
-          if (mc.name.toLowerCase().indexOf(kwLower) === -1 &&
-              (!mc.description || mc.description.toLowerCase().indexOf(kwLower) === -1)) {
-            continue
-          }
-        }
-        mineCards.push({
-          id: mc.activityId || mc._id || mc.id,
-          name: mc.name,
-          scorePerUnit: mc.scorePerUnit,
-          unit: mc.unit,
-          category: mc.category,
-          tabKey: mc.category,
-          grandDao: Alib.getGrandDao(mc.category),
-          topFilter: mc.topFilter || '',
-          sideFilter: mc.sideFilter || '',
-          description: mc.description || '',
-          isOfficial: false,
-          isCustom: true,
-          presetAction: '',
-          categoryName: mc.categoryName || '',
-          ext: mc.ext || {},
-          tags: mc.tags || [],
-          icon: mc.icon || '',
-          customMeta: mc.customMeta || null
-        })
-      }
-
-      // 3. 全服公开自定义：分类筛选 + 合并
-      var publicCards = []
-      if (publicRes && publicRes.ok) {
-        var pubList = (publicRes.data && publicRes.data.list) || []
-        for (var k = 0; k < pubList.length; k++) {
-          var pc = pubList[k]
-          if (pc.category !== cat) continue
-          if (side !== 'all' && pc.sideFilter !== side) continue
-          publicCards.push({
-            id: pc.activityId || pc._id || pc.id,
-            name: pc.name,
-            scorePerUnit: pc.scorePerUnit,
-            unit: pc.unit,
-            category: pc.category,
-            tabKey: pc.category,
-            grandDao: Alib.getGrandDao(pc.category),
-            topFilter: pc.topFilter || '',
-            sideFilter: pc.sideFilter || '',
-            description: pc.description || '',
-            isOfficial: false,
-            isCustom: true,
-            isPublic: true,
-            ownerName: pc.ownerName || '',
-            presetAction: '',
-            categoryName: pc.categoryName || '',
-            ext: pc.ext || {},
-            tags: pc.tags || [],
-            icon: pc.icon || '',
-            customMeta: pc.customMeta || null
-          })
-        }
-      }
-
-      // 合并顺序：元卡 + 空白卡 + 官方 + 我的 + 公开
-      var list = metaCards.concat(blankCards).concat(officialCards).concat(mineCards).concat(publicCards)
-
-      // 应用编辑覆写（本地覆写仍然生效）
-      var edits = self._loadEdits()
-      for (var ei = 0; ei < list.length; ei++) {
-        var edit = edits[list[ei].id]
-        if (edit) {
-          if (edit.scorePerUnit !== undefined) list[ei].scorePerUnit = edit.scorePerUnit
-          if (edit.unit !== undefined) list[ei].unit = edit.unit
-          if (edit.defaultGroup !== undefined) list[ei].defaultGroup = edit.defaultGroup
-        }
-      }
-
-      // 引用卡（置底去重）
-      var refs = self._loadReferencedActivities()
-      list = self._mergeReferenced(list, refs)
-      list = self._applyGrandDaoFilter(list)
-
-      self.setData({ libActivities: self._sortLibByUsage(list) })
-      self.applyLibSort()
-    }).catch(function() {
-      self._loadLibFromLocal(cat, kw, side)
-    })
+  cancelDrop: function() {
+    this.setData({ dropMode: false, dropTarget: null, dropSelectedSlots: [], dropSlotChecked: [] })
   },
 
-  /**
-   * 引用活动卡：编辑模板时，将当前模板 timeSlots 里已用活动合并进活动库
-   * 标记 sourceType: 'referenced' + refFromTemplate（来源模板 id）
-   */
-  _loadReferencedActivities: function() {
-    var refs = []
-    var slots = this.data.currentTemplateSlots || []
-    for (var i = 0; i < slots.length; i++) {
-      var acts = slots[i].activities || []
-      for (var j = 0; j < acts.length; j++) {
-        var a = acts[j] || {}
-        refs.push({
-          id: a.actId || a.id,
-          activityId: a.activityId || a.actId || a.id,
-          name: a.activityName || a.name || '未命名活动',
-          scorePerUnit: a.scorePerUnit != null ? a.scorePerUnit : 1,
-          baseScore: a.baseScore != null ? a.baseScore : 1,
-          unit: (a.capacity && a.capacity.unit) || a.unit || '次',
-          category: a.category || a.tabKey || '',
-          tabKey: a.tabKey || a.category || '',
-          grandDao: Alib.getGrandDao(a.category || a.tabKey),
-          capacity: a.capacity || { value: 1, unit: '次' },
-          type: a.type || 'custom',
-          isOfficial: false,
-          isCustom: false,
-          isPublic: false,
-          _isMetaCard: false,
-          sourceType: 'referenced',
-          refFromTemplate: this.data.currentTemplateId || ''
-        })
-      }
-    }
-    return refs
-  },
-
-  /**
-   * 引用卡去重合并（置底）：
-   * - activityId 优先匹配；无 activityId 时按 metaCardId + name 组合判定
-   * - 与元卡（metaCardId）/官方（activityId）/我的（activityId）/公开（activityId）任一匹配则不追加
-   */
-  _mergeReferenced: function(list, refs) {
-    var merged = list.slice()
-    for (var i = 0; i < refs.length; i++) {
-      var ref = refs[i]
-      var refId = ref.activityId || ref.actId || ref.id
-      var refMeta = ref.metaCardId || ''
-      var refName = ref.name || ref.activityName || ''
-
-      var dup = false
-      for (var j = 0; j < merged.length; j++) {
-        var it = merged[j]
-        // ① 元卡：metaCardId 匹配（元卡 id 形如 meta_<metaCardId>）
-        if (refMeta && it._isMetaCard) {
-          var metaId = (it.id || '').replace('meta_', '')
-          if (metaId === refMeta) { dup = true; break }
-        }
-        // ②③④ 官方/我的/公开：activityId（或 actId/id）匹配
-        if (refId && (it.id === refId || it.activityId === refId || it.actId === refId)) {
-          dup = true
-          break
-        }
-        // 兜底：metaCardId + name 组合
-        if (!refId && refMeta && refName && it.metaCardId === refMeta && (it.name === refName || it.activityName === refName)) {
-          dup = true
-          break
-        }
-      }
-      if (!dup) merged.push(ref)
-    }
-    return merged
-  },
-
-  // ==================== 活动库编辑体系 ====================
-
-  toggleEditMode: function() {
-    this.setData({ editMode: !this.data.editMode })
-  },
-
-  onLibCardTap: function(e) {
-    if (this.data.editMode) {
-      this.editLibActivity(e)
-    } else {
-      this.addActivity(e)
-    }
-  },
-
-  editLibActivity: function(e) {
-    var act = e.currentTarget.dataset.act
-    if (!act) return
-
-    // 元卡 → 创建衍生活动
-    if (act._isMetaCard) {
-      var metaCardId = act.metaCardId || act.id
-      if (metaCardId) {
-        wx.navigateTo({ url: '/packageC/pages/activity-edit/activity-edit?metaCard=' + metaCardId })
-      }
+  confirmDrop: function() {
+    if (this.data.dropSelectedSlots.length === 0) {
+      wx.showToast({ title: '请先选择时段', icon: 'none' })
       return
     }
+    var target = this.data.dropTarget
+    if (!target) return
 
-    // 公开活动 → 克隆
-    if (act.isPublic) {
-      var self = this
-      wx.showModal({
-        title: '克隆活动',
-        content: '确定要将「' + act.name + '」克隆为我的自定义活动吗？',
-        success: function(res) {
-          if (res.confirm) {
-            wx.cloud.callFunction({
-              name: 'activity-api',
-              data: { action: 'cloneActivity', params: { activityId: act.id } },
-              success: function() {
-                self._loadLibActivities()
-                wx.showToast({ title: '克隆成功', icon: 'success' })
-              },
-              fail: function() { wx.showToast({ title: '克隆失败，请重试', icon: 'none' }) }
-            })
-          }
-        }
-      })
-      return
-    }
-
-    // 官方活动 → 复制后编辑
-    if (act.isOfficial) {
-      var copyData = encodeURIComponent(JSON.stringify({
-        id: act.id, name: act.name, category: act.category,
-        unit: act.unit, scorePerUnit: act.scorePerUnit,
-        description: act.description || '', icon: act.presetAction || ''
-      }))
-      wx.navigateTo({ url: '/packageC/pages/activity-edit/activity-edit?isNew=true&data=' + copyData })
-      return
-    }
-
-    // 用户自定义 → 编辑
-    var editData = encodeURIComponent(JSON.stringify({
-      id: act.id, name: act.name, category: act.category,
-      unit: act.unit, scorePerUnit: act.scorePerUnit,
-      description: act.description || '', icon: act.icon || ''
-    }))
-    wx.navigateTo({ url: '/packageC/pages/activity-edit/activity-edit?isNew=false&data=' + editData })
-  },
-
-  // ==================== 添加活动到当前时段 ====================
-
-  addActivity: function(e) {
-    var act = e.currentTarget.dataset.act
-    if (!act) return
-
-    // 日模板：无弹窗直接添加，已存在则累加容量
-    if (this.data.templateType === 'daily') {
-      var slots = this.data.timeSlots
-      var slotId = this.data.currentSlotId
-      var slot = null
-      for (var i = 0; i < slots.length; i++) {
-        if (slots[i].id === slotId) { slot = slots[i]; break }
-      }
-      if (!slot) return
-
+    var slots = this.data.timeSlots
+    var selected = this.data.dropSelectedSlots
+    var actId = target.act.id
+    var tabKey = target.act.tabKey || target.act.category
+    for (var s = 0; s < slots.length; s++) {
+      if (selected.indexOf(slots[s].id) === -1) continue
+      var slot = slots[s]
       var existIdx = -1
       for (var j = 0; j < slot.activities.length; j++) {
-        if (slot.activities[j].actId === act.id) { existIdx = j; break }
+        if (slot.activities[j].actId === actId) { existIdx = j; break }
       }
       if (existIdx > -1) {
         slot.activities[existIdx].capacity.value += 1
       } else {
-        var defaultUnit = act.unit || DEFAULT_UNIT_MAP[act.tabKey || this.data.currentCategory] || '次'
-        var capValue = 1
-        if (defaultUnit === '次' && act.defaultGroup) {
-          capValue = parseInt(act.defaultGroup) || 1
-        }
         slot.activities.push({
-          actId: act.id,
-          activityName: act.name,
-          capacity: { value: capValue, unit: defaultUnit },
-          tabKey: act.tabKey || this.data.currentCategory,
-          category: act.tabKey || this.data.currentCategory,
-          isPublicLibrary: !!act.isPublicLibrary
+          actId: actId,
+          activityName: target.act.name,
+          capacity: { value: target.capacity.value, unit: target.capacity.unit },
+          tabKey: tabKey,
+          category: tabKey,
+          isPublicLibrary: !!target.act.isPublicLibrary
         })
       }
-      this.setData({ timeSlots: slots })
-      this._refreshCurrentSlotDisplay()
-      return
     }
 
-    // 周模板/合道模板：保持原有弹窗逻辑
-    this.addActivityToSlot(e)
-  },
-
-  addActivityToSlot: function(e) {
-    var activity = e.currentTarget.dataset.act || e.currentTarget.dataset.activity
-    if (!activity) return
-
-    // 储存临时信息，弹出容量设置
+    Cart.removeFromCart(target.cartId)
     this.setData({
-      showCapacityPopup: true,
-      capacityActivityId: activity.id,
-      capacityActivityName: activity.name,
-      capacityValue: '',
-      currentCapacityUnit: DEFAULT_UNIT_MAP[activity.tabKey || this.data.currentCategory] || '次',
-      capacityTempInfo: activity
+      timeSlots: slots,
+      cart: Cart.getCart(),
+      dropMode: false,
+      dropTarget: null,
+      dropSelectedSlots: [],
+      dropSlotChecked: []
     })
+    this._refreshCurrentSlotDisplay()
+    wx.showToast({ title: '已加入 ' + selected.length + ' 个时段', icon: 'success' })
   },
 
   onCapacityValue: function(e) {
@@ -1008,8 +478,8 @@ Page({
       actId: activity.id,
       activityName: activity.name,
       capacity: { value: val, unit: unit },
-      tabKey: activity.tabKey || this.data.currentCategory,
-      category: activity.tabKey || this.data.currentCategory,
+      tabKey: activity.tabKey || activity.category || 'sport',
+      category: activity.tabKey || activity.category || 'sport',
       isPublicLibrary: !!activity.isPublicLibrary
     }
 
@@ -1472,8 +942,6 @@ Page({
       wx.showToast({ title: '模板不存在', icon: 'none' })
       this._initTimeSlots()
       this._initWeekData()
-      this._initLibSideFilters()
-      this._loadLibActivities()
       return
     }
 
@@ -1498,30 +966,6 @@ Page({
       })
     }
 
-    // 归一化当前模板时段活动，供引用活动卡加载（sourceType: 'referenced'）
-    var refSlots = []
-    if (found.type === 'daily') {
-      refSlots = found.timeSlots || []
-    } else if (found.type === 'weekly') {
-      var wd = found.weekData || {}
-      for (var dk in wd) {
-        if (!Object.prototype.hasOwnProperty.call(wd, dk)) continue
-        var periods = wd[dk] || {}
-        for (var pk in periods) {
-          if (!Object.prototype.hasOwnProperty.call(periods, pk)) continue
-          refSlots.push({ id: dk + '_' + pk, activities: periods[pk] || [] })
-        }
-      }
-    } else if (found.type === 'pool') {
-      refSlots = [{ id: 'pool', activities: found.poolActivities || [] }]
-    }
-    this.setData({
-      currentTemplateId: found.id,
-      currentTemplateSlots: refSlots
-    })
-
-    this._initLibSideFilters()
-    this._loadLibActivities()
     this._refreshCurrentSlotDisplay()
   },
 

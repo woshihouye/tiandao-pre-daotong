@@ -98,6 +98,15 @@ page { height: 100%; }
 }
 .card-pin.pinned { color: #f59e0b; }
 
+/* 加购按钮（右上角，catchtap 拦截冒泡） */
+.card-add {
+  position: absolute; right: 52rpx; top: 6rpx; z-index: 3;
+  width: 44rpx; height: 44rpx; border-radius: 50%;
+  background: var(--primary-color, #10B981); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30rpx; font-weight: 600; line-height: 1;
+}
+
 /* 图标区 */
 .card-icon-wrap {
   width: 80rpx; height: 80rpx; border-radius: 50%;

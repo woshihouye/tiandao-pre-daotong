@@ -77,7 +77,7 @@ Page({
   /** 编辑模板 */
   editTemplate: function(e) {
     var id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: '/packageC/pages/template-edit/template-edit?id=' + id })
+    wx.navigateTo({ url: '/packageC/pages/template-builder/template-builder?id=' + id })
   },
 
   /** 下架模板（云端） */

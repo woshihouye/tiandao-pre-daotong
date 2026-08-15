@@ -1,0 +1,33 @@
+<!-- 单品活动详情页 -->
+<view class="page-body">
+
+  <block wx:if="{{act}}">
+    <!-- 大图标 + 名称 + 角标 -->
+    <view class="detail-hero">
+      <view class="detail-icon">{{iconText}}</view>
+      <view class="detail-name">{{act.name}}</view>
+      <view class="detail-badges">
+        <text wx:for="{{badges}}" wx:key="type" class="badge badge-{{item.type}}">{{item.label}}</text>
+        <text wx:if="{{isPublicLibrary}}" class="badge badge-public-lib">公共 +10%</text>
+      </view>
+    </view>
+
+    <!-- 完整介绍 -->
+    <view class="detail-section" wx:if="{{act.description}}">
+      <text class="detail-label">介绍</text>
+      <text class="detail-desc">{{act.description}}</text>
+    </view>
+
+    <!-- 分值 -->
+    <view class="detail-score" wx:if="{{act.scorePerUnit !== undefined}}">
+      <text class="score-value">{{act.scorePerUnit > 0 ? '+' : ''}}{{act.scorePerUnit}}</text>
+      <text class="score-unit">修为/{{act.unit}}</text>
+    </view>
+
+    <!-- 底部加入购物车 -->
+    <view class="detail-footer">
+      <view class="add-btn" bindtap="addToCart">加入购物车</view>
+    </view>
+  </block>
+
+</view>
