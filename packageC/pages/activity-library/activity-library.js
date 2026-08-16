@@ -155,8 +155,9 @@ Page({
     // 管理员标识
     isAdmin: false,
 
-    // "只看我的自定义" 筛选
-    showMyCustomOnly: false,
+    // "历史活动卡" 筛选（练过的活动）
+    showTrainedOnly: false,
+    trainedActivityIds: {},
     showAllTagsOff: false,  // false=不限，true=只看未打标签
     selectedTag: '',        // 当前选中的 tag，空='全部'
     allTags: [],            // 聚合后的标签列表
@@ -1349,11 +1350,12 @@ Page({
     // 竞态守卫：请求返回时若分类已切换，丢弃过期结果
     if (cat !== this.data.currentCategory) return
 
-    // 筛选：只看我的自定义
-    if (this.data.showMyCustomOnly) {
+    // 筛选：历史活动卡（练过的活动）
+    if (this.data.showTrainedOnly) {
+      var trained = this.data.trainedActivityIds || {}
       var filtered = []
       for (var fi = 0; fi < list.length; fi++) {
-        if (list[fi].isCustom && !list[fi].isPublic) {
+        if (trained[list[fi].id]) {
           filtered.push(list[fi])
         }
       }
@@ -1398,11 +1400,6 @@ Page({
           break
         }
       }
-    }
-
-    // 只看我的自定义时，按自定义分类名分组
-    if (this.data.showMyCustomOnly) {
-      list = this._groupMyCustom(list)
     }
 
     // ext 预处理：生成 __keys 数组供 wxml 渲染
@@ -1599,12 +1596,6 @@ Page({
       return
     }
 
-    // 他人的公开自定义活动 → 提示克隆
-    if (activity.isPublic) {
-      this._promptCloneActivity(activity)
-      return
-    }
-
     // 通用卡片 → 打开详情弹窗
     this.openActivityDetail(activity)
   },
@@ -1628,59 +1619,6 @@ Page({
     } else if (res.reason === 'duplicate') {
       wx.showToast({ title: '已在购物车', icon: 'none' })
     }
-  },
-
-  /** 克隆公开活动：提示确认后调用云端 cloneActivity */
-  _promptCloneActivity: function(activity) {
-    var self = this
-    var msg = '确定要将「' + activity.name + '」克隆为我的自定义活动吗？'
-    if (activity.ownerName) {
-      msg = '确定要将 ' + activity.ownerName + ' 分享的「' + activity.name + '」克隆为我的自定义活动吗？'
-    }
-    wx.showModal({
-      title: '克隆活动',
-      content: msg,
-      success: function(res) {
-        if (res.confirm) {
-          wx.cloud.callFunction({
-            name: 'activity-api',
-            data: {
-              action: 'cloneActivity',
-              params: { activityId: activity.id }
-            },
-            success: function() {
-              self._reloadActivities()
-              wx.showToast({ title: '克隆成功', icon: 'success' })
-            },
-            fail: function() {
-              wx.showToast({ title: '克隆失败，请重试', icon: 'none' })
-            }
-          })
-        }
-      }
-    })
-  },
-
-  /** 复制官方活动 */
-  onCopyActivity: function(e) {
-    var activity = e.currentTarget.dataset.activity
-    if (!activity) return
-
-    // 跳转到编辑页（新建模式，传入原活动数据）
-    var data = encodeURIComponent(JSON.stringify({
-      id: activity.id,
-      name: activity.name,
-      category: activity.category,
-      unit: activity.unit,
-      scorePerUnit: activity.scorePerUnit,
-      description: activity.description || '',
-      icon: activity.presetAction || ''
-    }))
-
-    this.closeActivityDetail()
-    wx.navigateTo({
-      url: '/packageC/pages/activity-edit/activity-edit?isNew=true&data=' + data + '&originActivityName=' + encodeURIComponent(activity.name)
-    })
   },
 
   /** 编辑自定义活动 */
@@ -1832,11 +1770,46 @@ Page({
     this.setData({ showReclassifyModal: false })
   },
 
-  /** 切换"只看我的自定义" */
-  onToggleMyCustom: function() {
-    var current = this.data.showMyCustomOnly
-    this.setData({ showMyCustomOnly: !current })
-    this._reloadActivities()
+  /** 切换「历史活动卡」（练过的活动） */
+  onToggleTrained: function() {
+    var self = this
+    var next = !this.data.showTrainedOnly
+    this.setData({ showTrainedOnly: next })
+    if (next) {
+      this._loadTrainedIds(function () { self._reloadActivities() })
+    } else {
+      this._reloadActivities()
+    }
+  },
+
+  /** 加载练过的活动 id 集合（从 records 聚合，批量结构 records[].activityId + 单条结构顶层 activityId） */
+  _loadTrainedIds: function (callback) {
+    var self = this
+    var userId = this._getUid()
+    var db = (app.globalData && app.globalData.db)
+    if (!db) { if (callback) callback(); return }
+    db.collection('records')
+      .where({ userId: userId })
+      .field({ records: true, activityId: true })
+      .limit(1000)
+      .get()
+      .then(function (res) {
+        var trained = {}
+        var docs = res.data || []
+        for (var i = 0; i < docs.length; i++) {
+          var doc = docs[i]
+          if (doc.records && Array.isArray(doc.records)) {
+            for (var j = 0; j < doc.records.length; j++) {
+              if (doc.records[j].activityId) trained[doc.records[j].activityId] = true
+            }
+          } else if (doc.activityId) {
+            trained[doc.activityId] = true
+          }
+        }
+        self.setData({ trainedActivityIds: trained })
+        if (callback) callback()
+      })
+      .catch(function () { if (callback) callback() })
   },
 
   onTagTap: function(e) {
@@ -2096,58 +2069,14 @@ Page({
     })
   },
 
-  /** 默认活动卡初始化：云函数幂等写入；成功后初始化默认模板并刷新列表 */
+  /** 默认活动卡初始化：默认卡机制已取缔（官方活动为公共资源），仅保留默认模板初始化 */
   _initDefaultActivities: function() {
-    var self = this
-    wx.cloud.callFunction({
-      name: 'user-activity',
-      data: { action: 'initDefaults' },
-      success: function(res) {
-        var r = res.result
-        if (r && r.ok) {
-          // 默认卡初始化状态仅用于卡本身，不阻塞模板
-          if (r.initialized) {
-            self._reloadActivities()
-          }
-          // 默认模板：只要云函数返回 ok，无论是否有卡，都尝试初始化
-          self._initDefaultTemplates()
-        }
-      },
-      fail: function() { /* 静默失败，下次进入再试 */ }
-    })
+    this._initDefaultTemplates()
   },
 
   /** 默认模板初始化：本地 storage 幂等写入（无模板且无标记才写） */
   _initDefaultTemplates: function() {
     DefaultTemplates.ensureDefaultTemplates(this._getUid())
-  },
-
-  /** 手动恢复系统默认卡：调云函数补写缺失的默认卡（用户主动触发，已删除的会补回） */
-  onRestoreDefaultCards: function() {
-    var self = this
-    wx.showModal({
-      title: '恢复系统默认卡',
-      content: '将补全 24 张系统默认活动卡（与你已有的自建卡不冲突，可随时删除）。确定恢复？',
-      confirmText: '恢复',
-      success: function(res) {
-        if (!res.confirm) return
-        wx.cloud.callFunction({
-          name: 'user-activity',
-          data: { action: 'restoreDefaultCards' },
-          success: function(res2) {
-            if (res2.result && res2.result.ok) {
-              wx.showToast({ title: '已恢复 ' + (res2.result.written || 0) + ' 张默认卡', icon: 'success' })
-              self._reloadActivities()
-            } else {
-              wx.showToast({ title: (res2.result && res2.result.error) || '恢复失败', icon: 'none' })
-            }
-          },
-          fail: function() {
-            wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' })
-          }
-        })
-      }
-    })
   },
 
   /**

@@ -40,17 +40,12 @@
     </view>
   </view>
 
-  <!-- 筛选栏 — 只看我的自定义 -->
-  <view class="filter-my-custom" wx:if="{{viewMode === 'browse'}}" bindtap="onToggleMyCustom">
-    <view class="filter-my-custom-check {{showMyCustomOnly ? 'checked' : ''}}">
-      <text wx:if="{{showMyCustomOnly}}">✓</text>
+  <!-- 筛选栏 — 历史活动卡 -->
+  <view class="filter-my-custom" wx:if="{{viewMode === 'browse'}}" bindtap="onToggleTrained">
+    <view class="filter-my-custom-check {{showTrainedOnly ? 'checked' : ''}}">
+      <text wx:if="{{showTrainedOnly}}">✓</text>
     </view>
-    <text class="filter-my-custom-label">只看我的自定义</text>
-  </view>
-
-  <!-- 恢复系统默认卡 -->
-  <view class="restore-default-bar" wx:if="{{viewMode === 'browse'}}" bindtap="onRestoreDefaultCards">
-    <text class="restore-default-text">↺ 恢复系统默认卡</text>
+    <text class="filter-my-custom-label">历史活动卡</text>
   </view>
 
 
@@ -128,9 +123,6 @@
                   <text class="hc-score">{{act.scorePerUnit > 0 ? '+' : ''}}{{act.scorePerUnit}} 修为/{{act.unit}}</text>
                 </view>
                 <view class="card-actions" wx:if="{{!act.isPublic}}">
-                  <view class="card-btn copy" wx:if="{{act.isOfficial}}" catchtap="onCopyActivity" data-activity="{{act}}">
-                    <text>复制</text>
-                  </view>
                   <view class="card-btn edit" wx:if="{{act.isCustom}}" catchtap="onEditCustomActivity" data-activity="{{act}}">
                     <text>编辑</text>
                   </view>
@@ -203,9 +195,6 @@
                 <view class="card-actions" wx:if="{{!act.isPublic}}">
                   <view class="card-btn use" wx:if="{{act._isMetaCard}}" catchtap="onCreateDerivative" data-activity="{{act}}">
                     <text>创建衍生</text>
-                  </view>
-                  <view class="card-btn copy" wx:elif="{{act.isOfficial}}" catchtap="onCopyActivity" data-activity="{{act}}">
-                    <text>复制</text>
                   </view>
                   <view class="card-btn edit" wx:if="{{act.isCustom}}" catchtap="onEditCustomActivity" data-activity="{{act}}">
                     <text>编辑</text>
@@ -544,7 +533,6 @@
 
       <!-- 操作按钮 -->
       <view class="detail-actions">
-        <button class="detail-btn copy" bindtap="onCopyActivity" data-activity="{{activityDetail}}">创建副本</button>
         <button wx:if="{{activityDetail.isCustom && !activityDetail.isPublic && activityDetail.category === 'sport' && activityDetail.customMeta && activityDetail.customMeta.metaCard}}" class="detail-btn reclassify" bindtap="onReclassifyActivity" data-activity="{{activityDetail}}">调整分类</button>
         <button wx:if="{{activityDetail.isCustom && !activityDetail.isPublic}}" class="detail-btn edit" bindtap="onEditCustomActivity" data-activity="{{activityDetail}}">编辑</button>
         <button wx:if="{{activityDetail.isCustom && !activityDetail.isPublic}}" class="detail-btn delete" bindtap="onDeleteCustomActivity" data-activity="{{activityDetail}}">删除</button>
