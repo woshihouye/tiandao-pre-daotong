@@ -47,7 +47,17 @@ function sanitizeActivity(doc) {
     tags: doc.tags || [],
     customMeta: doc.customMeta || null,
     // 元卡字段：从 customMeta 提取，用于 sport 维度的元卡分类
-    metaCard: (doc.customMeta && doc.customMeta.metaCard) ? doc.customMeta.metaCard : 'unknown'
+    metaCard: (doc.customMeta && doc.customMeta.metaCard) ? doc.customMeta.metaCard : 'unknown',
+    intensity: doc.intensity || '',
+    difficulty: doc.difficulty || '',
+    defaultGroup: doc.defaultGroup != null ? doc.defaultGroup : null,
+    defaultReps: doc.defaultReps || '',
+    defaultLoad: doc.defaultLoad || '',
+    restInterval: doc.restInterval || '',
+    sessionDuration: doc.sessionDuration || '',
+    targetMuscle: doc.targetMuscle || '',
+    targetAmount: doc.targetAmount || '',
+    frequency: doc.frequency || ''
   }
 }
 
@@ -476,6 +486,21 @@ async function searchActivities(params) {
 }
 
 // ==================== initOfficialActivities ====================
+/** 构造官方活动卡写入字段（新增/更新共用） */
+function buildOfficialActivityData(m) {
+  return {
+    activityId: m.key, name: m.name, category: m.category, metaCardId: m.metaCardId,
+    unit: m.unit, scorePerUnit: m.scorePerUnit, isOfficial: true, isSystem: true,
+    sideFilter: 'all', topFilter: 'all', status: 'active',
+    intensity: m.intensity || '', difficulty: m.difficulty || '',
+    defaultGroup: (m.defaultGroup != null) ? m.defaultGroup : null,
+    defaultReps: m.defaultReps || '', defaultLoad: m.defaultLoad || '',
+    restInterval: m.restInterval || '', sessionDuration: m.sessionDuration || '',
+    targetMuscle: m.targetMuscle || '', targetAmount: m.targetAmount || '',
+    frequency: m.frequency || ''
+  }
+}
+
 /** 从官方活动映射表创建/补齐官方活动卡（幂等；仅管理员/控制台调用） */
 async function initOfficialActivities(event) {
   var wxContext = cloud.getWXContext()
@@ -484,29 +509,34 @@ async function initOfficialActivities(event) {
     return { ok: false, error: '无权限' }
   }
   var map = require('./official-activity-map.js')
-  // 1. 批量查询已存在的 activityId（一次查询替代106次串行查询）
+  // 1. 批量查询已存在的 activityId → 拿到 _id 用于后续 update
   var keys = map.map(function(m) { return m.key })
   var existRes = await db.collection('activities').where({ activityId: _.in(keys) }).limit(1000).get()
-  var existKeys = {}
-  ;(existRes.data || []).forEach(function(a) { existKeys[a.activityId] = true })
-  // 2. 过滤出需要新增的缺失活动
-  var toAdd = map.filter(function(m) { return !existKeys[m.key] })
-  // 3. 分批并行新增（每批20条，控制并发量避免触发数据库限制）
+  var existMap = {}
+  ;(existRes.data || []).forEach(function(a) { existMap[a.activityId] = a._id })
+  // 2. 拆分：缺失的 add，已存在的 update 补齐字段
+  var toAdd = map.filter(function(m) { return !existMap[m.key] })
+  var toUpdate = map.filter(function(m) { return !!existMap[m.key] })
+  // 3. 新增缺失项（每批20条）
   var BATCH = 20
   for (var i = 0; i < toAdd.length; i += BATCH) {
     var batch = toAdd.slice(i, i + BATCH)
     await Promise.all(batch.map(function(m) {
       return db.collection('activities').add({
-        data: {
-          activityId: m.key, name: m.name, category: m.category, metaCardId: m.metaCardId,
-          unit: m.unit, scorePerUnit: m.scorePerUnit, isOfficial: true, isSystem: true,
-          sideFilter: 'all', topFilter: 'all', status: 'active',
-          createdAt: new Date(), updatedAt: new Date()
-        }
+        data: Object.assign({}, buildOfficialActivityData(m), { createdAt: new Date(), updatedAt: new Date() })
       })
     }))
   }
-  return { ok: true, created: toAdd.length, skipped: map.length - toAdd.length }
+  // 4. 更新已存在项（补齐新字段）
+  for (var j = 0; j < toUpdate.length; j += BATCH) {
+    var ubatch = toUpdate.slice(j, j + BATCH)
+    await Promise.all(ubatch.map(function(m) {
+      return db.collection('activities').doc(existMap[m.key]).update({
+        data: Object.assign({}, buildOfficialActivityData(m), { updatedAt: new Date() })
+      })
+    }))
+  }
+  return { ok: true, created: toAdd.length, updated: toUpdate.length }
 }
 
 // ==================== 入口 ====================
