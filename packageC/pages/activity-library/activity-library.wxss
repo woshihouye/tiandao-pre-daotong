@@ -16,6 +16,20 @@ page { height: 100%; }
 .hero-title { font-size: 36rpx; font-weight: 700; color: #5c4033; margin-bottom: 10rpx; }
 .hero-desc { font-size: 26rpx; color: #8b7355; line-height: 1.6; }
 
+.mode-switch {
+  display: flex; margin: 0 24rpx 16rpx 24rpx;
+  background: var(--bg-secondary, #f3f4f6);
+  border-radius: 40rpx; padding: 6rpx;
+}
+.mode-switch-item {
+  flex: 1; text-align: center; padding: 14rpx 0;
+  font-size: 26rpx; color: var(--text-secondary, #6b7280);
+  border-radius: 34rpx; transition: all 0.2s;
+}
+.mode-switch-item.active {
+  background: var(--primary-color, #10B981); color: #fff; font-weight: 600;
+}
+
 /* ========== 主分类 Tab 胶囊 ========== */
 .tab-scroll { padding: 0 24rpx; margin-bottom: 10rpx; }
 .tab-scroll-inner { display: flex; white-space: nowrap; }
@@ -75,92 +89,92 @@ page { height: 100%; }
 /* ---- 右侧宫格区 ---- */
 .grid-area { flex: 1; }
 .grid-container {
-  display: flex; flex-wrap: wrap; align-content: flex-start;
-  padding: 4rpx 0;
+  display: flex; flex-direction: column; align-content: flex-start;
+  padding: 4rpx 0; gap: 16rpx;
 }
 
-/* ---- 宫格卡片 ---- */
+/* ---- 横向商品卡 ---- */
 .grid-card {
-  width: calc((100% - 16rpx) / 2); margin: 0 16rpx 16rpx 0;
-  padding: 20rpx 16rpx 16rpx; border-radius: 16rpx;
+  width: 100%; margin: 0 0 0 0;
+  padding: 24rpx; border-radius: 28rpx;
   position: relative; box-sizing: border-box; overflow: hidden;
   background: var(--card-bg, #fff);
   border: 1rpx solid var(--border-color, #eee);
-  display: flex; flex-direction: column; align-items: center;
-}
-.grid-card:nth-child(2n) { margin-right: 0; }
-
-/* 置顶 */
-.card-pin {
-  position: absolute; right: 10rpx; top: 8rpx; z-index: 2;
-  font-size: 32rpx; color: var(--text-tertiary, #d1d5db);
-  padding: 4rpx; line-height: 1;
-}
-.card-pin.pinned { color: #f59e0b; }
-
-/* 加购按钮（右上角，catchtap 拦截冒泡） */
-.card-add {
-  position: absolute; right: 52rpx; top: 6rpx; z-index: 3;
-  width: 44rpx; height: 44rpx; border-radius: 50%;
-  background: var(--primary-color, #10B981); color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 30rpx; font-weight: 600; line-height: 1;
+  display: flex; align-items: center; gap: 20rpx;
 }
 
-/* 图标区 */
-.card-icon-wrap {
-  width: 80rpx; height: 80rpx; border-radius: 50%;
+/* 左：图标 */
+.hc-icon {
+  width: 112rpx; height: 112rpx; flex-shrink: 0; border-radius: 24rpx;
   background: linear-gradient(135deg, #e8f5e9 0%, #f0fdf4 100%);
   display: flex; align-items: center; justify-content: center;
-  margin-bottom: 12rpx;
+  font-size: 52rpx; font-weight: 700; color: var(--primary-color, #10B981);
 }
-.is-negative .card-icon-wrap { background: linear-gradient(135deg, #fef2f2 0%, #fff5f5 100%); }
-.card-icon { font-size: 36rpx; font-weight: 700; color: var(--primary-color, #10B981); }
-.is-negative .card-icon { color: var(--danger-text, #ef4444); }
+.is-negative .hc-icon { background: linear-gradient(135deg, #fef2f2 0%, #fff5f5 100%); color: var(--danger-text, #ef4444); }
 
-/* 活动名 */
-.card-name {
-  font-size: 26rpx; font-weight: 600; color: var(--text-primary, #1f2937);
-  text-align: center; width: 100%;
+/* 中：信息区 */
+.hc-info { flex: 1; min-width: 0; overflow: hidden; display: flex; flex-direction: column; gap: 8rpx; }
+.hc-row1 {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10rpx;
+  position: relative;
+}
+.hc-tags { display: flex; gap: 8rpx; flex-wrap: wrap; }
+.hc-pin {
+  position: absolute; right: 0; top: -2rpx;
+  font-size: 28rpx; color: var(--text-tertiary, #d1d5db);
+  padding: 2rpx; line-height: 1;
+}
+.hc-pin.pinned { color: #f59e0b; }
+.hc-name {
+  font-size: 28rpx; font-weight: 700; color: var(--text-primary, #1f2937);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  margin-bottom: 8rpx;
+  max-width: 100%;
 }
 
-/* 修为结算 */
-.card-score { font-size: 22rpx; font-weight: 600; white-space: nowrap; }
-.score-positive { color: var(--primary-color, #10B981); }
-.score-negative { color: var(--danger-text, #ef4444); }
-
-/* 元卡描述 */
-.card-meta-desc {
-  font-size: 22rpx; color: var(--text-secondary, #6b7280);
-  text-align: center; width: 100%; line-height: 1.4;
-  overflow: hidden; text-overflow: ellipsis;
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
-  margin-bottom: 4rpx;
-}
-.card-meta-muscles {
-  font-size: 20rpx; color: #6b7280;
-  text-align: center; width: 100%;
+.hc-row2 {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  background: #f0fdf4; border-radius: 6rpx;
-  padding: 4rpx 10rpx; margin-bottom: 6rpx;
+}
+.hc-desc { font-size: 22rpx; color: var(--text-secondary, #6b7280); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.hc-row3 {
+  display: flex; align-items: center; gap: 10rpx; flex-wrap: wrap;
+}
+.hc-score { color: #ef4444; font-size: 30rpx; font-weight: 800; }
+.hc-ext { display: flex; flex-wrap: wrap; gap: 4rpx; }
+
+/* 右：加购按钮 */
+.hc-add {
+  width: 52rpx; height: 52rpx; border-radius: 50%; flex-shrink: 0;
+  background: #10B981; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36rpx; font-weight: 700; line-height: 1;
 }
 
-/* ext 属性行 */
-.card-ext-row {
-  display: flex; flex-wrap: wrap; gap: 4rpx;
-  margin-top: 4rpx; justify-content: center; width: 100%;
-}
-.card-ext-item {
-  font-size: 18rpx; color: var(--text-tertiary, #9ca3af);
-  background: var(--bg-secondary, #f3f4f6);
-  padding: 2rpx 8rpx; border-radius: 6rpx;
-  max-width: 120rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+/* 旧角标标签位置重置（hc-tags 内） */
+.card-tags {
+  display: flex;
+  gap: 8rpx;
+  position: static;
+  left: auto;
+  top: auto;
+  z-index: auto;
+  flex-wrap: wrap;
 }
 
 /* 负面活动淡灰底色 */
 .grid-card.is-negative { background: rgba(239, 68, 68, 0.03); border-color: rgba(239, 68, 68, 0.1); }
+
+/* 卡片操作按钮（横向布局适配） */
+.card-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 12rpx;
+  padding: 8rpx 0 0;
+  width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  border-top: none;
+}
 
 /* 空状态 */
 .empty-tip { width: 100%; text-align: center; padding: 60rpx 24rpx; }
@@ -295,20 +309,18 @@ page { height: 100%; }
 
 /* ========== 食物卡片 ========== */
 .food-card {
-  padding: 28rpx 16rpx 24rpx;
-  justify-content: center;
-  min-height: 120rpx;
+  padding: 24rpx;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 0;
 }
-.food-card-name {
-  font-size: 28rpx; font-weight: 600;
-  color: var(--text-primary, #1f2937);
-  text-align: center; width: 100%;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  margin-bottom: 6rpx;
-}
-.food-card-calories {
-  font-size: 22rpx; color: #9ca3af;
-  text-align: center; width: 100%;
+
+/* ========== 修心卡片 ========== */
+.study-card {
+  padding: 24rpx;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 0;
 }
 
 /* ========== 食物详情面板 ========== */

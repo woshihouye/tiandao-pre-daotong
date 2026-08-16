@@ -9,6 +9,12 @@
     <view class="hero-debug" wx:if="{{cardMode}}">[{{cardMode}}] 共{{activities.length}}项</view>
   </view>
 
+  <!-- 模式切换：修行库货架 / 补天·创建 -->
+  <view class="mode-switch">
+    <view class="mode-switch-item {{viewMode === 'browse' ? 'active' : ''}}" data-mode="browse" bindtap="switchMode">修行库</view>
+    <view class="mode-switch-item {{viewMode === 'butian' ? 'active' : ''}}" data-mode="butian" bindtap="switchMode">补天·创建</view>
+  </view>
+
   <!-- 主分类 Tab -->
   <view class="tab-scroll">
     <scroll-view scroll-x class="tab-scroll-inner">
@@ -35,7 +41,7 @@
   </view>
 
   <!-- 筛选栏 — 只看我的自定义 -->
-  <view class="filter-my-custom" bindtap="onToggleMyCustom">
+  <view class="filter-my-custom" wx:if="{{viewMode === 'browse'}}" bindtap="onToggleMyCustom">
     <view class="filter-my-custom-check {{showMyCustomOnly ? 'checked' : ''}}">
       <text wx:if="{{showMyCustomOnly}}">✓</text>
     </view>
@@ -43,7 +49,7 @@
   </view>
 
   <!-- 恢复系统默认卡 -->
-  <view class="restore-default-bar" bindtap="onRestoreDefaultCards">
+  <view class="restore-default-bar" wx:if="{{viewMode === 'browse'}}" bindtap="onRestoreDefaultCards">
     <text class="restore-default-text">↺ 恢复系统默认卡</text>
   </view>
 
@@ -62,6 +68,16 @@
   <view class="filter-content-wrap">
 
     <!-- 左右分栏 -->
+      <!-- 标签筛选行 -->
+      <scroll-view scroll-x class="tag-filter-row" wx:if="{{viewMode === 'browse' && allTags.length > 0}}">
+        <view class="tag-filter-item {{selectedTag === '' ? 'active' : ''}}" data-tag="" bindtap="onTagTap">全部</view>
+        <view class="tag-filter-item {{selectedTag === item.name ? 'active' : ''}}"
+          wx:for="{{allTags}}" wx:key="name" data-tag="{{item.name}}" bindtap="onTagTap">
+          {{item.name}}<text class="tag-count">{{item.count}}</text>
+        </view>
+        <view class="tag-filter-item {{showAllTagsOff ? 'active' : ''}}" bindtap="toggleAllTagsOff">未标签</view>
+      </scroll-view>
+
     <view class="split-layout">
 
       <!-- 左侧垂直侧边栏 -->
@@ -75,17 +91,7 @@
         >{{item.name}}</view>
       </scroll-view>
 
-      <!-- 标签筛选行 -->
-      <scroll-view scroll-x class="tag-filter-row" wx:if="{{allTags.length > 0}}">
-        <view class="tag-filter-item {{selectedTag === '' ? 'active' : ''}}" data-tag="" bindtap="onTagTap">全部</view>
-        <view class="tag-filter-item {{selectedTag === item.name ? 'active' : ''}}"
-          wx:for="{{allTags}}" wx:key="name" data-tag="{{item.name}}" bindtap="onTagTap">
-          {{item.name}}<text class="tag-count">{{item.count}}</text>
-        </view>
-        <view class="tag-filter-item {{showAllTagsOff ? 'active' : ''}}" bindtap="toggleAllTagsOff">未标签</view>
-      </scroll-view>
-
-      <!-- 右侧 2 列宫格 -->
+      <!-- 右侧 单列商品卡列表 -->
       <view class="grid-area">
         <view class="grid-container">
           <block wx:for="{{activities}}" wx:for-item="act" wx:key="id">
@@ -94,86 +100,122 @@
               <text class="group-name">{{act._groupName}}</text>
               <text class="group-count">{{act._groupCount}}项</text>
             </view>
+            <!-- 修心卡片 -->
             <view wx:if="{{cardMode === 'study'}}" class="grid-card study-card {{act.isNegative ? 'is-negative' : ''}}" data-activity="{{act}}" bindtap="navigateToActivityDetail">
-              <view class="card-add" catchtap="addToCart" data-act="{{act}}">＋</view>
-              <view class="card-tags">
-                <text class="card-tag meta" wx:if="{{act._isMetaCard}}">元</text>
-                <text class="card-tag official" wx:if="{{act.isOfficial}}">官方</text>
-                <text class="card-tag custom" wx:if="{{act.isCustom && !act.isPublic}}">自定义</text>
-                <text class="card-tag public" wx:if="{{act.isPublic}}">公开</text>
-                <text class="card-tag public-lib" wx:if="{{act.isPublicLibrary}}">公共 +10%</text>
+              <view class="hc-icon">
+                <text>{{act._iconText}}</text>
               </view>
-              <view class="card-pin {{pinned[act.id] ? 'pinned' : ''}}" data-id="{{act.id}}" catchtap="togglePin">
-                <text>{{pinned[act.id] ? '📌' : '📍'}}</text>
+              <view class="hc-info">
+                <view class="hc-row1">
+                  <view class="hc-tags">
+                    <text class="card-tag meta" wx:if="{{act._isMetaCard}}">元</text>
+                    <text class="card-tag official" wx:if="{{act.isOfficial}}">官方</text>
+                    <text class="card-tag custom" wx:if="{{act.isCustom && !act.isPublic}}">自定义</text>
+                    <text class="card-tag public" wx:if="{{act.isPublic}}">公开</text>
+                    <text class="card-tag public-lib" wx:if="{{act.isPublicLibrary}}">公共 +10%</text>
+                  </view>
+                  <view class="hc-pin {{pinned[act.id] ? 'pinned' : ''}}" data-id="{{act.id}}" catchtap="togglePin">
+                    <text>{{pinned[act.id] ? '📌' : '📍'}}</text>
+                  </view>
+                  <text class="hc-name">{{act.name}}</text>
+                </view>
+                <view class="hc-row2">
+                  <text class="hc-desc">
+                    <block wx:if="{{act.ownerName}}">{{act.ownerName}} · </block>{{act.calcUnit === 'time' ? '按' + act.unit + '计算' : '按次计算'}}
+                  </text>
+                </view>
+                <view class="hc-row3" wx:if="{{!act._isMetaCard}}">
+                  <text class="hc-score">{{act.scorePerUnit > 0 ? '+' : ''}}{{act.scorePerUnit}} 修为/{{act.unit}}</text>
+                </view>
+                <view class="card-actions" wx:if="{{!act.isPublic}}">
+                  <view class="card-btn copy" wx:if="{{act.isOfficial}}" catchtap="onCopyActivity" data-activity="{{act}}">
+                    <text>复制</text>
+                  </view>
+                  <view class="card-btn edit" wx:if="{{act.isCustom}}" catchtap="onEditCustomActivity" data-activity="{{act}}">
+                    <text>编辑</text>
+                  </view>
+                  <view class="card-btn delete" wx:if="{{act.isCustom}}" catchtap="onDeleteCustomActivity" data-activity="{{act}}">
+                    <text>删除</text>
+                  </view>
+                </view>
               </view>
-              <view class="study-card-name">{{act.name}}</view>
-              <view wx:if="{{act.ownerName}}" class="card-owner-name">{{act.ownerName}}</view>
-              <view class="study-card-rule">{{act.calcUnit === 'time' ? '按' + act.unit + '计算' : '按次计算'}}</view>
-              <!-- 操作按钮 -->
-              <view class="card-actions" wx:if="{{!act.isPublic}}">
-                <view class="card-btn copy" wx:if="{{act.isOfficial}}" catchtap="onCopyActivity" data-activity="{{act}}">
-                  <text>复制</text>
-                </view>
-                <view class="card-btn edit" wx:if="{{act.isCustom}}" catchtap="onEditCustomActivity" data-activity="{{act}}">
-                  <text>编辑</text>
-                </view>
-                <view class="card-btn delete" wx:if="{{act.isCustom}}" catchtap="onDeleteCustomActivity" data-activity="{{act}}">
-                  <text>删除</text>
-                </view>
-              </view>
+              <view class="hc-add" wx:if="{{!act._isMetaCard}}" catchtap="addToCart" data-act="{{act}}">＋</view>
             </view>
+            <!-- 食物卡片 -->
             <view wx:elif="{{cardMode === 'food'}}" class="grid-card food-card" data-activity="{{act}}" bindtap="navigateToActivityDetail">
-              <view class="card-add" catchtap="addToCart" data-act="{{act}}">＋</view>
-              <view class="card-tags">
-                <text class="card-tag meta" wx:if="{{act._isMetaCard}}">元</text>
-                <text class="card-tag custom" wx:if="{{act.isCustom}}">自定义</text>
+              <view class="hc-icon">
+                <text>{{act._iconText}}</text>
               </view>
-              <view class="card-pin {{pinned[act.id] ? 'pinned' : ''}}" data-id="{{act.id}}" catchtap="togglePin">
-                <text>{{pinned[act.id] ? '📌' : '📍'}}</text>
+              <view class="hc-info">
+                <view class="hc-row1">
+                  <view class="hc-tags">
+                    <text class="card-tag meta" wx:if="{{act._isMetaCard}}">元</text>
+                    <text class="card-tag custom" wx:if="{{act.isCustom}}">自定义</text>
+                  </view>
+                  <view class="hc-pin {{pinned[act.id] ? 'pinned' : ''}}" data-id="{{act.id}}" catchtap="togglePin">
+                    <text>{{pinned[act.id] ? '📌' : '📍'}}</text>
+                  </view>
+                  <text class="hc-name">{{act.name}}</text>
+                </view>
+                <view class="hc-row2">
+                  <text class="hc-desc">{{act.calories}} 千卡/100g</text>
+                </view>
               </view>
-              <view class="food-card-name">{{act.name}}</view>
-              <view class="food-card-calories">{{act.calories}} 千卡/100g</view>
+              <view class="hc-add" wx:if="{{!act._isMetaCard}}" catchtap="addToCart" data-act="{{act}}">＋</view>
             </view>
+            <!-- 普通活动卡片 -->
             <view wx:else class="grid-card {{act.isNegative ? 'is-negative' : ''}}" data-activity="{{act}}" bindtap="navigateToActivityDetail">
-              <view class="card-add" catchtap="addToCart" data-act="{{act}}">＋</view>
-              <view class="card-tags">
-                <text class="card-tag meta" wx:if="{{act._isMetaCard}}">元</text>
-                <text class="card-tag official" wx:if="{{act.isOfficial}}">官方</text>
-                <text class="card-tag custom" wx:if="{{act.isCustom && !act.isPublic}}">自定义</text>
-                <text class="card-tag public" wx:if="{{act.isPublic}}">公开</text>
+              <view class="hc-icon">
+                <text>{{act._iconText}}</text>
               </view>
-              <view class="card-pin {{pinned[act.id] ? 'pinned' : ''}}" data-id="{{act.id}}" catchtap="togglePin">
-                <text>{{pinned[act.id] ? '📌' : '📍'}}</text>
-              </view>
-              <view class="card-name">{{act.name}}</view>
-              <view wx:if="{{act.ownerName}}" class="card-owner-name">{{act.ownerName}}</view>
-              <!-- 元卡：描述 + 肌群 -->
-              <view wx:if="{{act._isMetaCard && act.description}}" class="card-meta-desc">{{act.description}}</view>
-              <view wx:if="{{act._isMetaCard && act._muscleSummary}}" class="card-meta-muscles">{{act._muscleSummary}}</view>
-              <!-- 非元卡：修为值 -->
-              <view wx:if="{{!act._isMetaCard}}" class="card-score {{act.scorePerUnit > 0 ? 'score-positive' : 'score-negative'}}">
-                {{act.scorePerUnit > 0 ? '+' : ''}}{{act.scorePerUnit}}修为/{{act.unit}}
-              </view>
-              <!-- ext 属性 -->
-              <view wx:if="{{act.ext && act.__keys && act.__keys.length}}" class="card-ext-row">
-                <text wx:for="{{act.__keys}}" wx:key="*this" wx:for-item="k" class="card-ext-item">{{k}}:{{act.__ext[k]}}</text>
-              </view>
-              <!-- 操作按钮 -->
-              <view class="card-actions" wx:if="{{!act.isPublic}}">
-                <!-- 元卡：创建衍生 -->
-                <view class="card-btn use" wx:if="{{act._isMetaCard}}" catchtap="onCreateDerivative" data-activity="{{act}}">
-                  <text>创建衍生</text>
+              <view class="hc-info">
+                <view class="hc-row1">
+                  <view class="hc-tags">
+                    <text class="card-tag meta" wx:if="{{act._isMetaCard}}">元</text>
+                    <text class="card-tag official" wx:if="{{act.isOfficial}}">官方</text>
+                    <text class="card-tag custom" wx:if="{{act.isCustom && !act.isPublic}}">自定义</text>
+                    <text class="card-tag public" wx:if="{{act.isPublic}}">公开</text>
+                    <text class="card-tag public-lib" wx:if="{{act.isPublicLibrary}}">公共 +10%</text>
+                  </view>
+                  <view class="hc-pin {{pinned[act.id] ? 'pinned' : ''}}" data-id="{{act.id}}" catchtap="togglePin">
+                    <text>{{pinned[act.id] ? '📌' : '📍'}}</text>
+                  </view>
+                  <text class="hc-name">{{act.name}}</text>
                 </view>
-                <view class="card-btn copy" wx:elif="{{act.isOfficial}}" catchtap="onCopyActivity" data-activity="{{act}}">
-                  <text>复制</text>
+                <view class="hc-row2">
+                  <block wx:if="{{act._isMetaCard}}">
+                    <text class="hc-desc">
+                      <block wx:if="{{act._muscleSummary}}">{{act._muscleSummary}} · </block>{{act.description}}
+                    </text>
+                  </block>
+                  <block wx:else>
+                    <text class="hc-desc">
+                      <block wx:if="{{act.ownerName}}">{{act.ownerName}} · </block>{{act.description}}
+                    </text>
+                  </block>
                 </view>
-                <view class="card-btn edit" wx:if="{{act.isCustom}}" catchtap="onEditCustomActivity" data-activity="{{act}}">
-                  <text>编辑</text>
+                <view class="hc-row3" wx:if="{{!act._isMetaCard}}">
+                  <text class="hc-score">{{act.scorePerUnit > 0 ? '+' : ''}}{{act.scorePerUnit}} 修为/{{act.unit}}</text>
+                  <view wx:if="{{act.ext && act.__keys && act.__keys.length}}" class="hc-ext">
+                    <text wx:for="{{act.__keys}}" wx:key="*this" wx:for-item="k" class="card-ext-item">{{k}}:{{act.__ext[k]}}</text>
+                  </view>
                 </view>
-                <view class="card-btn delete" wx:if="{{act.isCustom}}" catchtap="onDeleteCustomActivity" data-activity="{{act}}">
-                  <text>删除</text>
+                <view class="card-actions" wx:if="{{!act.isPublic}}">
+                  <view class="card-btn use" wx:if="{{act._isMetaCard}}" catchtap="onCreateDerivative" data-activity="{{act}}">
+                    <text>创建衍生</text>
+                  </view>
+                  <view class="card-btn copy" wx:elif="{{act.isOfficial}}" catchtap="onCopyActivity" data-activity="{{act}}">
+                    <text>复制</text>
+                  </view>
+                  <view class="card-btn edit" wx:if="{{act.isCustom}}" catchtap="onEditCustomActivity" data-activity="{{act}}">
+                    <text>编辑</text>
+                  </view>
+                  <view class="card-btn delete" wx:if="{{act.isCustom}}" catchtap="onDeleteCustomActivity" data-activity="{{act}}">
+                    <text>删除</text>
+                  </view>
                 </view>
               </view>
+              <view class="hc-add" wx:if="{{!act._isMetaCard}}" catchtap="addToCart" data-act="{{act}}">＋</view>
             </view>
           </block>
 

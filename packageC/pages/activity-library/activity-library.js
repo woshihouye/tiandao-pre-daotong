@@ -137,6 +137,7 @@ Page({
     sideFilters: [],
     currentSideFilter: 'all',
     cardMode: 'default',  // 'study' | 'food' | 'default'
+    viewMode: 'browse',   // 'browse'=修行库货架 | 'butian'=补天·创建
 
     // 元卡浏览（sport / diet 维度）
     currentSubcategory: 'all', // 当前子集筛选
@@ -456,6 +457,43 @@ Page({
     }
     this._initFilters()
     this._reloadActivities()
+  },
+
+  /** 模式切换：browse=货架 / butian=补天创建 */
+  switchMode: function (e) {
+    var mode = e.currentTarget.dataset.mode
+    if (!mode || mode === this.data.viewMode) return
+    this.setData({
+      viewMode: mode,
+      searchKeyword: '',
+      metaCardSearchKeyword: '',
+      metaCardSearchResults: [],
+      currentSideFilter: 'all',
+      currentSubcategory: 'all',
+      currentMetaCard: '',
+      activities: []
+    })
+    this._initFilters()
+    this._reloadActivities()
+  },
+
+  /** 按分类构建元卡列表（补天模式专用，复用现有 5 个元卡构建函数） */
+  _buildMetaCardsByCategory: function (cat, kw) {
+    var metaActs = []
+    if (cat === 'sport') metaActs = this._buildMetaCardActivities()
+    else if (cat === 'diet') metaActs = this._buildDietMetaCardActivities()
+    else if (cat === 'study') metaActs = this._buildStudyMetaCardActivities()
+    else if (cat === 'work') metaActs = this._buildWorkMetaCardActivities()
+    else if (cat === 'debuff') metaActs = this._buildDebuffMetaCardActivities()
+
+    if (kw && kw.trim()) {
+      var kwLower = kw.trim().toLowerCase()
+      metaActs = metaActs.filter(function (ma) {
+        return ma.name.toLowerCase().indexOf(kwLower) !== -1 ||
+          (ma.description && ma.description.toLowerCase().indexOf(kwLower) !== -1)
+      })
+    }
+    return metaActs
   },
 
   // ==================== 筛选 ====================
@@ -918,146 +956,18 @@ Page({
   _reloadActivities: function() {
     var self = this
     this._activityRequestId = (this._activityRequestId || 0) + 1
-    var currentRequestId = this._activityRequestId
     var cat = this.data.currentCategory
     var kw = this.data.searchKeyword
     var sideF = this.data.currentSideFilter
 
-    // sport 维度：元卡模式
-    if (cat === 'sport') {
-      var metaActs = []
-      // 非"我的自定义"模式：注入元卡虚拟活动
-      if (!this.data.showMyCustomOnly) {
-        metaActs = this._buildMetaCardActivities()
-        // 搜索：也搜元卡名字描述
-        if (kw && kw.trim()) {
-          var kwLower = kw.trim().toLowerCase()
-          var filtered = []
-          for (var mi = 0; mi < metaActs.length; mi++) {
-            var ma = metaActs[mi]
-            if (ma.name.toLowerCase().indexOf(kwLower) !== -1 ||
-                (ma.description && ma.description.toLowerCase().indexOf(kwLower) !== -1)) {
-              filtered.push(ma)
-            }
-          }
-          metaActs = filtered
-        }
-      }
-      // 先同步显示元卡（立即渲染），再异步追加自定义活动
+    // 补天·创建模式：只显示元卡（母版），不加载官方/自定义/公开活动
+    if (this.data.viewMode === 'butian') {
+      var metaActs = this._buildMetaCardsByCategory(cat, kw)
       this._finalizeListWithMetaCards(metaActs, cat)
-      // 异步加载云端自定义活动并追加
-      this._loadCustomFromCloud(cat, kw, sideF, function(customList) {
-        if (currentRequestId !== self._activityRequestId) return
-        if (customList.length === 0) return
-        var merged = metaActs.concat(customList)
-        if (self.data.showMyCustomOnly) {
-          merged = self._groupMyCustom(customList)
-        }
-        self._finalizeListWithMetaCards(merged, cat)
-      })
       return
     }
 
-    // 食·丹食 元卡改造：虚拟注入 diet 元卡 + 自定义活动
-    if (cat === 'diet') {
-      var dietMetaActs = self._buildDietMetaCardActivities()
-      var kw2 = (self.data.searchKeyword || '').trim()
-
-      // 搜索模式下按名称匹配
-      if (kw2) {
-        dietMetaActs = dietMetaActs.filter(function(a) {
-          return a.name.indexOf(kw2) !== -1
-        })
-      }
-
-      // 先同步显示 diet 元卡（立即渲染，对齐 sport 分支），再异步追加自定义活动
-      self._finalizeListWithMetaCards(dietMetaActs, cat)
-
-      // 加载自定义 diet 活动（与 sport 分支同款函数）
-      self._loadCustomFromCloud(cat, kw, sideF, function(customList) {
-        if (currentRequestId !== self._activityRequestId) return
-        var merged = dietMetaActs.concat(customList)
-        if (self.data.showMyCustomOnly) {
-          merged = self._groupMyCustom(customList)
-        }
-        self._finalizeListWithMetaCards(merged, cat)
-      })
-      return
-    }
-
-    // 悟·修心 元卡改造：虚拟注入 study 元卡 + 自定义活动
-    if (cat === 'study') {
-      var studyMetaActs = self._buildStudyMetaCardActivities()
-      var kw3 = (self.data.searchKeyword || '').trim()
-
-      if (kw3) {
-        studyMetaActs = studyMetaActs.filter(function(a) {
-          return a.name.indexOf(kw3) !== -1
-        })
-      }
-
-      self._finalizeListWithMetaCards(studyMetaActs, cat)
-
-      self._loadCustomFromCloud(cat, kw, sideF, function(customList) {
-        if (currentRequestId !== self._activityRequestId) return
-        var merged = studyMetaActs.concat(customList)
-        if (self.data.showMyCustomOnly) {
-          merged = self._groupMyCustom(customList)
-        }
-        self._finalizeListWithMetaCards(merged, cat)
-      })
-      return
-    }
-
-    // 工·功业 元卡改造：虚拟注入 work 元卡 + 自定义活动
-    if (cat === 'work') {
-      var workMetaActs = self._buildWorkMetaCardActivities()
-      var kw4 = (self.data.searchKeyword || '').trim()
-
-      if (kw4) {
-        workMetaActs = workMetaActs.filter(function(a) {
-          return a.name.indexOf(kw4) !== -1
-        })
-      }
-
-      self._finalizeListWithMetaCards(workMetaActs, cat)
-
-      self._loadCustomFromCloud(cat, kw, sideF, function(customList) {
-        if (currentRequestId !== self._activityRequestId) return
-        var merged = workMetaActs.concat(customList)
-        if (self.data.showMyCustomOnly) {
-          merged = self._groupMyCustom(customList)
-        }
-        self._finalizeListWithMetaCards(merged, cat)
-      })
-      return
-    }
-
-    // 煞·心魔 元卡改造：虚拟注入 debuff 元卡 + 自定义活动
-    if (cat === 'debuff') {
-      var debuffMetaActs = self._buildDebuffMetaCardActivities()
-      var kw5 = (self.data.searchKeyword || '').trim()
-
-      if (kw5) {
-        debuffMetaActs = debuffMetaActs.filter(function(a) {
-          return a.name.indexOf(kw5) !== -1
-        })
-      }
-
-      self._finalizeListWithMetaCards(debuffMetaActs, cat)
-
-      self._loadCustomFromCloud(cat, kw, sideF, function(customList) {
-        if (currentRequestId !== self._activityRequestId) return
-        var merged = debuffMetaActs.concat(customList)
-        if (self.data.showMyCustomOnly) {
-          merged = self._groupMyCustom(customList)
-        }
-        self._finalizeListWithMetaCards(merged, cat)
-      })
-      return
-    }
-
-    // 其他分类：云端加载，失败回退本地
+    // 修行库货架模式：统一走云端加载（官方 + 自定义 + 公开）
     this._loadFromCloud(cat, kw, sideF)
   },
 
@@ -1584,6 +1494,13 @@ Page({
 
   /** 按置顶+使用次数排序：置顶优先，其次按使用次数降序 */
   _sortByUsage: function(list) {
+    // 预计算图标首字（wxml 表达式不支持 charAt 等方法调用，须在 js 算好再绑定）
+    for (var ii = 0; ii < list.length; ii++) {
+      var itm = list[ii]
+      if (itm && itm.name && !itm._iconText) {
+        itm._iconText = itm.name.charAt(0)
+      }
+    }
     var pinned = this.data.pinned || {}
     // 尝试从本地读取使用统计
     var usage = {}
