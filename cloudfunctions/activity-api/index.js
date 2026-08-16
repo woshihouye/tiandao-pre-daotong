@@ -57,7 +57,9 @@ function sanitizeActivity(doc) {
     sessionDuration: doc.sessionDuration || '',
     targetMuscle: doc.targetMuscle || '',
     targetAmount: doc.targetAmount || '',
-    frequency: doc.frequency || ''
+    frequency: doc.frequency || '',
+    cellTypes: doc.cellTypes || [],
+    defaultCells: doc.defaultCells || []
   }
 }
 
@@ -497,7 +499,8 @@ function buildOfficialActivityData(m) {
     defaultReps: m.defaultReps || '', defaultLoad: m.defaultLoad || '',
     restInterval: m.restInterval || '', sessionDuration: m.sessionDuration || '',
     targetMuscle: m.targetMuscle || '', targetAmount: m.targetAmount || '',
-    frequency: m.frequency || ''
+    frequency: m.frequency || '',
+    cellTypes: m.cellTypes || [], defaultCells: m.defaultCells || []
   }
 }
 

@@ -142,7 +142,7 @@ var ACTIVITY_LIBRARY = {
     { id: 'blank_sport', name: '空白炼体',
       metaCard: 'unknown',  // 关联元卡（兜底）
       description: '自由记录运动修行',
-      unit: '次', scorePerUnit: 1,
+      unit: '次', scorePerUnit: 0,
       tabKey: 'sport', presetAction: '' }
   ],
 
@@ -151,7 +151,7 @@ var ACTIVITY_LIBRARY = {
   // ============================================================
   diet: [
     { id: 'blank_diet', name: '空白丹食', metaCard: 'diet_free',
-      description: '自由记录饮食修行', unit: '份', scorePerUnit: 1, tabKey: 'diet', presetAction: '' }
+      description: '自由记录饮食修行', unit: '份', scorePerUnit: 0, tabKey: 'diet', presetAction: '' }
   ],
 
   // ============================================================
@@ -159,14 +159,14 @@ var ACTIVITY_LIBRARY = {
   // ============================================================
   study: [
     { id: 'blank_study', name: '空白修心', metaCard: 'output',
-      description: '自由记录修心修行', unit: '10分钟', scorePerUnit: 1, tabKey: 'study', presetAction: '' }
+      description: '自由记录修心修行', unit: '10分钟', scorePerUnit: 0, tabKey: 'study', presetAction: '' }
   ],
   // ============================================================
   //  四、工·功业
   // ============================================================
   work: [
     { id: 'blank_work', name: '空白功业', metaCard: 'talk',
-      description: '自由记录功业修行', unit: '30分钟', scorePerUnit: 1, tabKey: 'work', presetAction: '' }
+      description: '自由记录功业修行', unit: '30分钟', scorePerUnit: 0, tabKey: 'work', presetAction: '' }
   ],
 
   // ============================================================
@@ -174,7 +174,7 @@ var ACTIVITY_LIBRARY = {
   // ============================================================
   debuff: [
     { id: 'blank_debuff', name: '空白心魔', metaCard: 'inner_demon',
-      description: '自由记录心魔修行', unit: '次', scorePerUnit: -5, isNegative: true, tabKey: 'debuff', presetAction: '' }
+      description: '自由记录心魔修行', unit: '次', scorePerUnit: 0, isNegative: true, tabKey: 'debuff', presetAction: '' }
   ]
 }
 
