@@ -18,6 +18,50 @@
       <text class="detail-desc">{{act.description}}</text>
     </view>
 
+    <!-- 训练信息 -->
+    <view class="detail-section" wx:if="{{metaCardName}}">
+      <text class="detail-label">元卡</text>
+      <text class="detail-desc">{{metaCardName}}</text>
+    </view>
+
+    <view class="detail-section" wx:if="{{trainText || editingTrain}}">
+      <text class="detail-label">训练量</text>
+      <block wx:if="{{!editingTrain}}">
+        <text class="detail-desc train-text">{{trainText}}</text>
+        <text class="train-edit-btn" catchtap="startEditTrain">修改</text>
+      </block>
+      <block wx:else>
+        <view class="train-edit-row" wx:for="{{editCells}}" wx:key="id" wx:for-item="cell" wx:for-index="ci">
+          <input class="train-input" type="digit" value="{{cell.value}}" data-index="{{ci}}" bindinput="onTrainInput" />
+          <text class="train-unit">{{cell.unit}}</text>
+        </view>
+        <view class="train-edit-actions">
+          <text class="train-save-btn" catchtap="saveTrain">保存</text>
+          <text class="train-cancel-btn" catchtap="cancelTrain">取消</text>
+        </view>
+      </block>
+    </view>
+
+    <view class="detail-section" wx:elif="{{cellText}}">
+      <text class="detail-label">记录维度</text>
+      <text class="detail-desc">{{cellText}}</text>
+    </view>
+
+    <view class="detail-section" wx:if="{{primaryMuscles.length}}">
+      <text class="detail-label">主要肌群</text>
+      <text class="detail-desc">{{primaryMuscles}}</text>
+    </view>
+
+    <view class="detail-section" wx:if="{{secondaryMuscles.length}}">
+      <text class="detail-label">辅助肌群</text>
+      <text class="detail-desc">{{secondaryMuscles}}</text>
+    </view>
+
+    <view class="detail-section" wx:if="{{trainParams.length}}">
+      <text class="detail-label">训练参数</text>
+      <text class="detail-desc">{{trainParams}}</text>
+    </view>
+
     <!-- 分值 -->
     <view class="detail-score" wx:if="{{act.scorePerUnit !== undefined}}">
       <text class="score-value">{{act.scorePerUnit > 0 ? '+' : ''}}{{act.scorePerUnit}}</text>

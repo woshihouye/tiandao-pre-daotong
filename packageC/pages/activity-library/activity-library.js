@@ -1103,7 +1103,19 @@ Page({
             presetAction: item.presetAction,
             isOfficial: true,
             isCustom: false,
-            isPublicLibrary: item.isPublicLibrary || false
+            isPublicLibrary: item.isPublicLibrary || false,
+            intensity: item.intensity || '',
+            difficulty: item.difficulty || '',
+            defaultGroup: item.defaultGroup,
+            defaultReps: item.defaultReps || '',
+            defaultLoad: item.defaultLoad || '',
+            restInterval: item.restInterval || '',
+            sessionDuration: item.sessionDuration || '',
+            targetMuscle: item.targetMuscle || '',
+            targetAmount: item.targetAmount || '',
+            frequency: item.frequency || '',
+            cellTypes: item.cellTypes || [],
+            defaultCells: item.defaultCells || []
           })
         }
 

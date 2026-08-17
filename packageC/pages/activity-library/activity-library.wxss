@@ -146,6 +146,12 @@ page { height: 100%; }
   display: flex; align-items: center; gap: 10rpx; flex-wrap: wrap;
 }
 .hc-score { color: #ef4444; font-size: 30rpx; font-weight: 800; }
+.hc-train {
+  font-size: 20rpx;
+  color: #6B7280;
+  margin-left: 12rpx;
+  flex-shrink: 0;
+}
 .hc-ext { display: flex; flex-wrap: wrap; gap: 4rpx; }
 
 /* 右：加购按钮 */

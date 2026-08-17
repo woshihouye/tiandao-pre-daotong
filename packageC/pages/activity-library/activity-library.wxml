@@ -188,6 +188,10 @@
                 </view>
                 <view class="hc-row3" wx:if="{{!act._isMetaCard}}">
                   <text class="hc-score">{{act.scorePerUnit > 0 ? '+' : ''}}{{act.scorePerUnit}} 修为/{{act.unit}}</text>
+                  <text class="hc-train" wx:if="{{act.defaultGroup && act.defaultReps && act.defaultGroup != null}}">
+                    {{act.defaultGroup}}组×{{act.defaultReps}}次{{act.defaultLoad && act.defaultLoad !== '——' ? ' · ' + act.defaultLoad : ''}}
+                  </text>
+                  <text class="hc-train" wx:elif="{{act.targetAmount}}">{{act.targetAmount}}{{act.frequency ? ' · ' + act.frequency : ''}}</text>
                   <view wx:if="{{act.ext && act.__keys && act.__keys.length}}" class="hc-ext">
                     <text wx:for="{{act.__keys}}" wx:key="*this" wx:for-item="k" class="card-ext-item">{{k}}:{{act.__ext[k]}}</text>
                   </view>
