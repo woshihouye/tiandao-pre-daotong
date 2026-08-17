@@ -516,3 +516,103 @@
   color: var(--text-tertiary);
   flex-shrink: 0;
 }
+
+.rich-section {
+  margin-top: 20rpx;
+  padding: 28rpx 24rpx;
+}
+
+.rich-subtitle {
+  font-size: 26rpx;
+  color: var(--primary);
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  line-height: 1.5;
+}
+
+.rich-slogan {
+  margin-top: 10rpx;
+  padding: 14rpx 18rpx;
+  background: var(--surface-soft);
+  border-left: 6rpx solid var(--primary);
+  border-radius: 0 12rpx 12rpx 0;
+  font-size: 26rpx;
+  color: var(--text-primary);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.rich-longtext {
+  margin-top: 18rpx;
+  font-size: 30rpx;
+  color: var(--text-primary);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.rich-grid {
+  margin-top: 20rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.rich-img {
+  width: 210rpx;
+  height: 210rpx;
+  border-radius: 14rpx;
+  background: var(--surface-soft);
+}
+
+.rich-videos {
+  margin-top: 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.rich-video {
+  width: 100%;
+  height: 420rpx;
+  border-radius: 16rpx;
+  background: #000;
+}
+
+.rich-links {
+  margin-top: 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.rich-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18rpx 22rpx;
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+  border-radius: 14rpx;
+}
+
+.rich-link-title {
+  flex: 1;
+  font-size: 26rpx;
+  color: var(--text-primary);
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rich-link-copy {
+  flex-shrink: 0;
+  margin-left: 14rpx;
+  padding: 6rpx 16rpx;
+  font-size: 22rpx;
+  color: var(--primary);
+  border: 1rpx solid var(--primary);
+  border-radius: 20rpx;
+}

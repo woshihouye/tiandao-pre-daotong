@@ -41,6 +41,12 @@ Page({
     creatorName: '',
     creatorId: '',
     creatorAvatar: '',
+    longTextContent: '',
+    subtitle: '',
+    slogan: '',
+    imageUrls: [],
+    videoUrls: [],
+    externalLinks: [],
     isOfficial: false,
     // >>> 评论
     comments: [],
@@ -242,6 +248,12 @@ Page({
         creatorName: (t && t.creatorName) || '',
         creatorId: (t && t.creatorId) || '',
         creatorAvatar: (t && t.creatorAvatar) || '',
+        longTextContent: (t && t.longTextContent) || '',
+        subtitle: (t && t.subtitle) || '',
+        slogan: (t && t.slogan) || '',
+        imageUrls: (t && t.imageUrls) || [],
+        videoUrls: (t && t.videoUrls) || [],
+        externalLinks: (t && t.externalLinks) || [],
         isOfficial: !!(t && t.isOfficial)
       })
     }).catch(function() {
@@ -458,5 +470,10 @@ Page({
   goToUserHome: function(e) {
     var userId = e.currentTarget.dataset.userId
     if (userId) wx.navigateTo({ url: '/packageD/pages/user-home/user-home?userId=' + userId })
+  },
+
+  copyLink: function(e) {
+    var url = e.currentTarget.dataset.url
+    if (url) wx.setClipboardData({ data: url, success: function() { wx.showToast({ title: '链接已复制', icon: 'none' }) } })
   }
 })

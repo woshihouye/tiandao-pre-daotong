@@ -1282,6 +1282,7 @@ async function publishTemplate(event) {
     externalLinks: template.externalLinks || [],
     longTextContent: template.longTextContent || '',
     imageUrls: template.imageUrls || [],
+    videoUrls: template.videoUrls || [],
     creatorTitleInfo: template.creatorTitleInfo || null
   };
 

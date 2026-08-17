@@ -27,6 +27,28 @@
     <view class="buff-tip" wx:if="{{buffTip}}">{{buffTip}}</view>
   </view>
 
+  <!-- ===== 富媒体正文（长文/图片/视频/链接）===== -->
+  <view class="rich-section card" wx:if="{{longTextContent || subtitle || slogan || imageUrls.length || videoUrls.length || externalLinks.length}}">
+    <view class="rich-subtitle" wx:if="{{subtitle}}">{{subtitle}}</view>
+    <view class="rich-slogan" wx:if="{{slogan}}">{{slogan}}</view>
+    <view class="rich-longtext" wx:if="{{longTextContent}}">{{longTextContent}}</view>
+
+    <view class="rich-grid" wx:if="{{imageUrls.length}}">
+      <image class="rich-img" wx:for="{{imageUrls}}" wx:key="*this" src="{{item}}" mode="aspectFill" />
+    </view>
+
+    <view class="rich-videos" wx:if="{{videoUrls.length}}">
+      <video class="rich-video" wx:for="{{videoUrls}}" wx:key="*this" src="{{item}}" controls />
+    </view>
+
+    <view class="rich-links" wx:if="{{externalLinks.length}}">
+      <view class="rich-link" wx:for="{{externalLinks}}" wx:key="title" data-url="{{item.url}}" bindtap="copyLink">
+        <text class="rich-link-title">{{item.title}}</text>
+        <text class="rich-link-copy">复制</text>
+      </view>
+    </view>
+  </view>
+
   <!-- ===== 精英模板专属视图 ===== -->
   <block wx:if="{{isElite && eliteTemplateData}}">
     <!-- 精英简介 -->

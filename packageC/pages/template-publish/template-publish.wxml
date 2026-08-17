@@ -6,6 +6,37 @@
   </view>
 
   <view class="card">
+    <view class="section-title">正文与素材</view>
+    <textarea class="longtext-input" placeholder="写点正文，说说做这个模板的心情、由来（博主视角）" value="{{longTextContent}}" bindinput="onLongTextInput" maxlength="2000" auto-height />
+    <input class="mini-input" placeholder="副标题（可选）" value="{{subtitle}}" bindinput="onSubtitleInput" maxlength="30" />
+    <input class="mini-input" placeholder="一句话金句（可选）" value="{{slogan}}" bindinput="onSloganInput" maxlength="30" />
+
+    <view class="media-row">
+      <view class="media-item" wx:for="{{imageUrls}}" wx:key="*this" data-index="{{index}}" bindtap="removeImage">
+        <image class="media-img" src="{{item}}" mode="aspectFill" />
+        <text class="media-del">✕</text>
+      </view>
+      <view class="video-item" wx:for="{{videoUrls}}" wx:key="*this" data-index="{{index}}" bindtap="removeVideo">
+        <video class="media-img" src="{{item}}" />
+        <text class="media-del">✕</text>
+      </view>
+      <view class="media-add" bindtap="chooseImages">＋图片</view>
+      <view class="media-add" bindtap="chooseVideos">＋视频</view>
+    </view>
+
+    <view class="link-item" wx:for="{{externalLinks}}" wx:key="title" data-index="{{index}}">
+      <text class="link-title">{{item.title}}</text>
+      <text class="link-url">{{item.url}}</text>
+      <text class="link-del" data-index="{{index}}" bindtap="removeLink">删除</text>
+    </view>
+    <view class="link-add-row">
+      <input class="mini-input link-title-input" placeholder="链接标题（如 list背单词）" value="{{linkTitle}}" bindinput="onLinkTitleInput" maxlength="20" />
+      <input class="mini-input" placeholder="https://..." value="{{linkUrl}}" bindinput="onLinkUrlInput" />
+      <button class="btn btn-mini" size="mini" bindtap="addLink">加链接</button>
+    </view>
+  </view>
+
+  <view class="card">
     <view class="section-title">可见范围</view>
     <view class="option-group">
       <view class="option-item {{visibility === 'public' ? 'selected' : ''}}" data-value="public" bindtap="changeVisibility">公开 · 所有道友可见</view>
