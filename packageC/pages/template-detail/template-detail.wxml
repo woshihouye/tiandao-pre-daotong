@@ -12,6 +12,14 @@
       </view>
     </view>
     <view class="desc">{{template.description}}</view>
+
+    <!-- 创作者（点头像跳主页） -->
+    <view class="creator-row" wx:if="{{creatorName}}" data-user-id="{{creatorId}}" bindtap="goToUserHome">
+      <image class="creator-avatar" src="{{creatorAvatar || '/assets/images/avatars/av_default.png'}}" mode="aspectFill"/>
+      <text class="creator-name">{{creatorName}}</text>
+      <text class="creator-arrow">›</text>
+    </view>
+
     <view class="meta-row">
       <view class="meta">境界：{{realm.name}} · 第{{realm.stage}}阶</view>
       <view class="meta">今日 {{todayScore}}/{{dailyCap}}</view>

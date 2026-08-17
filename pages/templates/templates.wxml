@@ -87,11 +87,14 @@
             <view class="plaza-tag" wx:if="{{item.subcategory && !item.industry}}">{{item.subcategory}}</view>
             <view class="plaza-tag plaza-tag-cat">{{item.category === 'career' ? '行业成长' : item.category === 'learning' ? '学习精进' : item.category === 'fitness' ? '运动健康' : '生活修行'}}</view>
           </view>
+          <view class="plaza-creator" wx:if="{{item.creatorName}}" data-user-id="{{item.creatorId}}" catchtap="goToUserHome">
+            <image class="plaza-creator-avatar" src="{{item.creatorAvatar || '/assets/images/avatars/av_default.png'}}" mode="aspectFill"/>
+            <text class="plaza-creator-name">{{item.creatorName}}</text>
+          </view>
           <view class="plaza-meta">
             <text class="plaza-stat">🔥 {{item.likeCount || 0}}</text>
             <text class="plaza-stat">⭐ {{item.favCount || 0}}</text>
             <text class="plaza-stat">📥 {{item.importCount || 0}}</text>
-            <text class="plaza-stat" wx:if="{{item.creatorName}}">👤 {{item.creatorName}}</text>
           </view>
         </view>
         <view class="plaza-card-right">

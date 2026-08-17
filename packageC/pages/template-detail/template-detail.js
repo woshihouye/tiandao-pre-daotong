@@ -39,6 +39,8 @@ Page({
     isLiked: false,
     isFavorited: false,
     creatorName: '',
+    creatorId: '',
+    creatorAvatar: '',
     isOfficial: false,
     // >>> 评论
     comments: [],
@@ -238,6 +240,8 @@ Page({
         isLiked: res.isLiked || false,
         isFavorited: res.isFavorited || false,
         creatorName: (t && t.creatorName) || '',
+        creatorId: (t && t.creatorId) || '',
+        creatorAvatar: (t && t.creatorAvatar) || '',
         isOfficial: !!(t && t.isOfficial)
       })
     }).catch(function() {
@@ -449,5 +453,10 @@ Page({
     wx.navigateTo({
       url: '/packageA/pages/elite-journey/elite-journey?templateId=' + this.templateId
     })
+  },
+
+  goToUserHome: function(e) {
+    var userId = e.currentTarget.dataset.userId
+    if (userId) wx.navigateTo({ url: '/packageD/pages/user-home/user-home?userId=' + userId })
   }
 })

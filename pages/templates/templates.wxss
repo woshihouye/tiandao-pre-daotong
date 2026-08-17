@@ -701,6 +701,27 @@
   white-space: nowrap;
 }
 
+.plaza-creator {
+  margin-top: var(--space-xs);
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.plaza-creator-avatar {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--border-color);
+}
+
+.plaza-creator-name {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
 .plaza-meta {
   margin-top: var(--space-xs);
   display: flex;

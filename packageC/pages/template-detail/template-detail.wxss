@@ -485,3 +485,34 @@
   font-size: 22rpx;
   color: var(--text-secondary);
 }
+
+.creator-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin-top: 20rpx;
+  padding: 16rpx 20rpx;
+  background: var(--surface-soft);
+  border-radius: 16rpx;
+}
+
+.creator-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--border-color);
+}
+
+.creator-name {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.creator-arrow {
+  font-size: 32rpx;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
