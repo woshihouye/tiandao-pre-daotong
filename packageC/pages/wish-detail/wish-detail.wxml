@@ -7,10 +7,12 @@
         <text class="del-btn" catchtap="onDeleteWish">删除</text>
       </view>
       <view class="publisher-row">
-        <image class="wish-avatar" src="{{wish.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"/>
-        <view class="publisher-col">
-          <text class="wish-nickname">{{wish.nickName || '无名修士'}}</text>
-          <text class="wish-time">{{wish.createdAt}}</text>
+        <view data-user-id="{{wish.userId}}" catchtap="goToUserHome" class="publisher-user-info">
+          <image class="wish-avatar" src="{{wish.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"/>
+          <view class="publisher-col">
+            <text class="wish-nickname">{{wish.nickName || '无名修士'}}</text>
+            <text class="wish-time">{{wish.createdAt}}</text>
+          </view>
         </view>
         <text class="wish-status" wx:if="{{wish.status === 'fulfilled'}}">已满足</text>
       </view>
@@ -42,11 +44,13 @@
       </view>
 
       <view class="comment-item" wx:for="{{comments}}" wx:key="_id">
-        <image class="comment-avatar" src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"/>
-        <view class="comment-body">
-          <text class="comment-name">{{item.nickName || '无名修士'}}</text>
-          <text class="comment-text">{{item.content}}</text>
-          <text class="comment-time">{{item._timeText}}</text>
+        <view data-user-id="{{item.userId}}" catchtap="goToUserHome" class="comment-user-info">
+          <image class="comment-avatar" src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"/>
+          <view class="comment-body">
+            <text class="comment-name">{{item.nickName || '无名修士'}}</text>
+            <text class="comment-text">{{item.content}}</text>
+            <text class="comment-time">{{item._timeText}}</text>
+          </view>
         </view>
       </view>
 

@@ -32,7 +32,10 @@ Page({
     isRestricted: false,
     restrictedReason: '',
     // 状态
-    loading: true
+    loading: true,
+    // 此人所创模板
+    createdTemplates: [],
+    createdLoading: false
   },
 
   onLoad: function(options) {
@@ -50,6 +53,7 @@ Page({
     
     this.loadUserInfo()
     this.checkFollowStatus()
+    this.loadCreatedTemplates()
   },
 
   loadUserInfo: function() {
@@ -269,6 +273,39 @@ Page({
     if (!this.data.user) return
     wx.navigateTo({
       url: '/packageD/pages/chat-detail/chat-detail?userId=' + this.data.userId + '&nickName=' + (this.data.nickName || '道友')
+    })
+  },
+
+  // >>> 此人所创
+  loadCreatedTemplates: function() {
+    var that = this
+    var targetUserId = this.data.userId
+    if (!targetUserId) return
+    this.setData({ createdLoading: true })
+    wx.cloud.callFunction({
+      name: 'template-manager',
+      data: {
+        action: 'getUserPublished',
+        targetUserId: targetUserId,
+        page: 1,
+        pageSize: 20
+      },
+      success: function(res) {
+        var r = res.result || {}
+        if (r.ok) {
+          that.setData({
+            createdTemplates: r.templates || [],
+            createdLoading: false
+          })
+        } else {
+          that.setData({ createdLoading: false })
+          wx.showToast({ title: r.error || '加载失败', icon: 'none' })
+        }
+      },
+      fail: function() {
+        that.setData({ createdLoading: false })
+        wx.showToast({ title: '网络错误', icon: 'none' })
+      }
     })
   },
 

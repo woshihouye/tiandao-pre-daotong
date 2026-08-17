@@ -258,5 +258,10 @@ Page({
     })
   },
 
+  goToUserHome: function(e) {
+    var userId = e.currentTarget.dataset.userId
+    if (userId) wx.navigateTo({ url: '/packageD/pages/user-home/user-home?userId=' + userId })
+  },
+
   preventBubble: function() {}
 })

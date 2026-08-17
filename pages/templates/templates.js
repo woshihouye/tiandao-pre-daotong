@@ -370,6 +370,11 @@ Page({
     wx.navigateTo({ url: '/packageC/pages/wish-detail/wish-detail?wishId=' + wishId })
   },
 
+  goToUserHome: function(e) {
+    var userId = e.currentTarget.dataset.userId
+    if (userId) wx.navigateTo({ url: '/packageD/pages/user-home/user-home?userId=' + userId })
+  },
+
   onPullDownRefresh: function() {
     if (this.data.activeTab === 'plaza') {
       this.loadCloudTemplates(true)

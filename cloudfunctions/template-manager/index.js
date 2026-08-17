@@ -119,6 +119,7 @@ exports.main = async function (event, context) {
       case 'unpublishTemplate':  return await unpublishTemplate(event);
       case 'deleteTemplate':     return await deleteTemplate(event);
       case 'getMyPublished':     return await getMyPublished(event);
+      case 'getUserPublished':   return await getUserPublished(event);
       case 'getCreatorStats':    return await getCreatorStats(event);
       case 'getLeaderboard':     return await getLeaderboard(event);
       case 'getFavorites':       return await getFavorites(event);
@@ -1369,6 +1370,30 @@ async function getMyPublished(event) {
     ok: true, templates: res.data,
     total: countRes.total,
     hasMore: (page * pageSize) < countRes.total
+  };
+}
+
+/** 查指定用户的公开已发布模板（公开查询，targetUserId 不改为 OPENID） */
+async function getUserPublished(event) {
+  var targetUserId = event.targetUserId;
+  var page = Math.min(Math.max(1, parseInt(event.page) || 1), 100)
+  var pageSize = Math.min(Math.max(1, parseInt(event.pageSize) || 20), 50)
+  if (!targetUserId) return { ok: false, error: '缺少 targetUserId' };
+
+  var where = { creatorId: targetUserId, status: 'published' };
+  var countRes = await db.collection('public_templates').where(where).count();
+
+  var res = await db.collection('public_templates')
+    .where(where)
+    .orderBy('updatedAt', 'desc')
+    .skip((page - 1) * pageSize)
+    .limit(pageSize)
+    .get();
+
+  return {
+    ok: true, templates: res.data,
+    total: countRes.total,
+    hasMore: res.data.length === pageSize
   };
 }
 

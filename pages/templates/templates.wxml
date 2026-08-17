@@ -141,8 +141,10 @@
         bindtap="goWishDetail"
       >
         <view class="wish-card-header">
-          <image class="wish-avatar" src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"/>
-          <text class="wish-nickname">{{item.nickName || '无名修士'}}</text>
+          <view data-user-id="{{item.userId}}" catchtap="goToUserHome" class="wish-user-info">
+            <image class="wish-avatar" src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"/>
+            <text class="wish-nickname">{{item.nickName || '无名修士'}}</text>
+          </view>
           <text class="wish-status" wx:if="{{item.status === 'fulfilled'}}">已满足</text>
         </view>
         <view class="wish-card-content">{{item.content}}</view>

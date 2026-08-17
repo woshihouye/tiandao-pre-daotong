@@ -267,3 +267,31 @@
   color: var(--primary);
   line-height: 1.5;
 }
+
+/* 此人所创板块（模块7） */
+.section {
+  padding: 20rpx 24rpx;
+  border-radius: 20rpx;
+  background: var(--card-bg);
+  border: 1rpx solid var(--border-color);
+}
+.created-tpl-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid var(--border-color);
+}
+.created-tpl-item:last-child {
+  border-bottom: none;
+}
+.created-tpl-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+.created-tpl-meta {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+}
