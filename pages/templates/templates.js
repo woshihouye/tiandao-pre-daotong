@@ -24,7 +24,17 @@ Page({
     sortTabs: templateConfig.sortTabs,
     categoryTabs: templateConfig.categoryTabs,
     // 标签页切换
-    activeTab: 'mytmpl', // 'mytmpl' | 'plaza'
+    activeTab: 'mytmpl', // 'mytmpl' | 'plaza' | 'wish'
+    // 许愿池
+    wishes: [],
+    wishPage: 1,
+    wishPageSize: 20,
+    wishHasMore: false,
+    wishTotal: 0,
+    wishLoading: false,
+    wishContent: '',
+    wishUserNickName: '',
+    wishUserAvatar: '',
     // 自建模板
     customTemplates: [],
     customTemplatesFiltered: [],
@@ -38,8 +48,16 @@ Page({
   onShow: function() {
     this.applyTheme()
     this.loadCustomTemplates()
+    var up = (app.globalData && app.globalData.userProfile) || {}
+    this.setData({
+      wishUserNickName: up.nickName || '',
+      wishUserAvatar: up.avatarUrl || ''
+    })
     if (this.data.activeTab === 'plaza') {
       this.loadCloudTemplates(true)
+    }
+    if (this.data.activeTab === 'wish' && this.data.wishes.length === 0) {
+      this._loadWishes(true)
     }
   },
 
@@ -224,10 +242,156 @@ Page({
   // >>> 标签切换
   switchTab: function(e) {
     var tab = e.currentTarget.dataset.tab
-    if (tab !== 'mytmpl' && tab !== 'plaza') return
+    if (tab !== 'mytmpl' && tab !== 'plaza' && tab !== 'wish') return
     this.setData({ activeTab: tab })
     if (tab === 'plaza') {
       this.loadCloudTemplates(true)
+    }
+    if (tab === 'wish' && this.data.wishes.length === 0) {
+      this._loadWishes(true)
+    }
+  },
+
+  // ==================== 许愿池 Tab ====================
+
+  _loadWishes: function(reset) {
+    if (this.data.wishLoading) return
+    var page = reset ? 1 : this.data.wishPage
+    var that = this
+    this.setData({ wishLoading: true })
+    wx.cloud.callFunction({
+      name: 'wish-manager',
+      data: {
+        action: 'listWishes',
+        page: page,
+        pageSize: this.data.wishPageSize
+      },
+      success: function(res) {
+        var r = res.result || {}
+        if (r.ok) {
+          var list = r.wishes || []
+          var newList = reset ? list : that.data.wishes.concat(list)
+          that.setData({
+            wishes: newList,
+            wishTotal: r.total || 0,
+            wishHasMore: !!r.hasMore,
+            wishPage: reset ? 1 : page,
+            wishLoading: false
+          })
+        } else {
+          that.setData({ wishLoading: false })
+          wx.showToast({ title: r.error || '加载失败', icon: 'none' })
+        }
+      },
+      fail: function() {
+        that.setData({ wishLoading: false })
+        wx.showToast({ title: '网络错误', icon: 'none' })
+      },
+      complete: function() {
+        try { wx.stopPullDownRefresh() } catch(e) {}
+      }
+    })
+  },
+
+  onWishInput: function(e) {
+    this.setData({ wishContent: e.detail.value })
+  },
+
+  onPublishWish: function() {
+    var content = (this.data.wishContent || '').trim()
+    if (!content || content.length < 1) {
+      wx.showToast({ title: '请输入许愿内容', icon: 'none' })
+      return
+    }
+    if (content.length > 100) {
+      wx.showToast({ title: '许愿最多100字', icon: 'none' })
+      return
+    }
+    var that = this
+    wx.showLoading({ title: '提交中', mask: true })
+    wx.cloud.callFunction({
+      name: 'wish-manager',
+      data: {
+        action: 'publishWish',
+        content: content,
+        nickName: this.data.wishUserNickName || '',
+        avatar: this.data.wishUserAvatar || ''
+      },
+      success: function(res) {
+        wx.hideLoading()
+        var r = res.result || {}
+        if (r.ok) {
+          that.setData({ wishContent: '' })
+          wx.showToast({ title: '许愿成功', icon: 'success' })
+          that._loadWishes(true)
+        } else {
+          wx.showToast({ title: r.error || '提交失败', icon: 'none' })
+        }
+      },
+      fail: function() {
+        wx.hideLoading()
+        wx.showToast({ title: '网络错误', icon: 'none' })
+      }
+    })
+  },
+
+  onLikeWish: function(e) {
+    var that = this
+    var wishId = e.currentTarget.dataset.id
+    var idx = -1
+    for (var i = 0; i < this.data.wishes.length; i++) {
+      if (this.data.wishes[i].wishId === wishId) { idx = i; break }
+    }
+    if (idx < 0) return
+    wx.cloud.callFunction({
+      name: 'wish-manager',
+      data: { action: 'likeWish', wishId: wishId },
+      success: function(res) {
+        var r = res.result || {}
+        if (r.ok) {
+          var key1 = 'wishes[' + idx + '].likeCount'
+          var key2 = 'wishes[' + idx + ']._isLiked'
+          var obj = {}
+          obj[key1] = typeof r.likeCount === 'number' ? r.likeCount : (that.data.wishes[idx].likeCount || 0)
+          obj[key2] = !!r.liked
+          that.setData(obj)
+          wx.showToast({ title: r.liked ? '已点赞' : '已取消', icon: 'none' })
+        } else {
+          wx.showToast({ title: r.error || '操作失败', icon: 'none' })
+        }
+      },
+      fail: function() { wx.showToast({ title: '网络错误', icon: 'none' }) }
+    })
+  },
+
+  goWishDetail: function(e) {
+    var wishId = e.currentTarget.dataset.id
+    if (!wishId) return
+    wx.navigateTo({ url: '/packageC/pages/wish-detail/wish-detail?wishId=' + wishId })
+  },
+
+  onPullDownRefresh: function() {
+    if (this.data.activeTab === 'plaza') {
+      this.loadCloudTemplates(true)
+      return
+    }
+    if (this.data.activeTab === 'wish') {
+      this._loadWishes(true)
+      return
+    }
+    this.loadCustomTemplates()
+    try { wx.stopPullDownRefresh() } catch(e) {}
+  },
+
+  onReachBottom: function() {
+    if (this.data.activeTab === 'plaza') {
+      this.loadMoreCloud()
+      return
+    }
+    if (this.data.activeTab === 'wish') {
+      if (!this.data.wishHasMore || this.data.wishLoading) return
+      this.setData({ wishPage: this.data.wishPage + 1 })
+      this._loadWishes(false)
     }
   },
 

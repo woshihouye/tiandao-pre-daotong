@@ -12,6 +12,7 @@
   <view class="tab-bar">
     <view class="tab-item {{activeTab === 'mytmpl' ? 'active' : ''}}" data-tab="mytmpl" bindtap="switchTab">我的模板</view>
     <view class="tab-item {{activeTab === 'plaza' ? 'active' : ''}}" data-tab="plaza" bindtap="switchTab">模板广场</view>
+    <view class="tab-item {{activeTab === 'wish' ? 'active' : ''}}" data-tab="wish" bindtap="switchTab">许愿池</view>
   </view>
 
   <!-- ===== 我的模板 ===== -->
@@ -109,6 +110,62 @@
     <view class="plaza-total" wx:if="{{cloudTotal > 0}}">
       <text>共 {{cloudTotal}} 条道则</text>
     </view>
+  </view>
+
+  <!-- ===== 许愿池 ===== -->
+  <view wx:if="{{activeTab === 'wish'}}">
+
+    <!-- 顶部发布框 -->
+    <view class="wish-publish-wrap card">
+      <textarea
+        class="wish-publish-input"
+        placeholder="说一句你想要的模板吧（1-100字）"
+        value="{{wishContent}}"
+        bindinput="onWishInput"
+        maxlength="100"
+        auto-height
+      />
+      <view class="wish-publish-footer">
+        <text class="wish-publish-count">{{wishContent.length}}/100</text>
+        <view class="wish-publish-btn" bindtap="onPublishWish">许愿</view>
+      </view>
+    </view>
+
+    <!-- 许愿卡列表 -->
+    <view class="wish-list" wx:if="{{wishes.length > 0}}">
+      <view
+        class="wish-card card"
+        wx:for="{{wishes}}"
+        wx:key="wishId"
+        data-id="{{item.wishId}}"
+        bindtap="goWishDetail"
+      >
+        <view class="wish-card-header">
+          <image class="wish-avatar" src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"/>
+          <text class="wish-nickname">{{item.nickName || '无名修士'}}</text>
+          <text class="wish-status" wx:if="{{item.status === 'fulfilled'}}">已满足</text>
+        </view>
+        <view class="wish-card-content">{{item.content}}</view>
+        <view class="wish-card-footer">
+          <view class="wish-card-stats">
+            <text class="wish-stat">❤ {{item.likeCount || 0}}</text>
+            <text class="wish-stat">💬 {{item.commentCount || 0}}</text>
+            <text class="wish-stat">⭐ {{item.favCount || 0}}</text>
+          </view>
+          <view class="wish-card-actions">
+            <text class="wish-like-btn {{item._isLiked ? 'liked' : ''}}" catchtap="onLikeWish" data-id="{{item.wishId}}">{{item._isLiked ? '♥' : '♡'}}</text>
+            <text class="wish-comment-entry">评论</text>
+          </view>
+        </view>
+      </view>
+      <view class="wish-loadmore" wx:if="{{wishHasMore}}" bindtap="_loadWishes" data-reset="false">加载更多...</view>
+    </view>
+
+    <!-- 空态 -->
+    <view class="wish-empty" wx:if="{{wishes.length === 0 && !wishLoading}}">
+      <text>还没有许愿，来许第一个愿吧</text>
+    </view>
+
   </view>
 
   <!-- 悬浮创建按钮（非空状态） -->

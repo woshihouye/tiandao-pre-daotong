@@ -1,0 +1,79 @@
+<view class="container theme-page {{themeClass}}">
+  <block wx:if="{{wish}}">
+
+    <!-- 详情主体（含发布者 + 内容 + 三数 + 赞藏按钮） -->
+    <view class="detail-header-wrap card">
+      <view class="detail-header" wx:if="{{isOwner}}">
+        <text class="del-btn" catchtap="onDeleteWish">删除</text>
+      </view>
+      <view class="publisher-row">
+        <image class="wish-avatar" src="{{wish.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"/>
+        <view class="publisher-col">
+          <text class="wish-nickname">{{wish.nickName || '无名修士'}}</text>
+          <text class="wish-time">{{wish.createdAt}}</text>
+        </view>
+        <text class="wish-status" wx:if="{{wish.status === 'fulfilled'}}">已满足</text>
+      </view>
+
+      <view class="detail-content">{{wish.content}}</view>
+
+      <view class="stats-row">
+        <text class="stat-item">❤ {{wish.likeCount || 0}}</text>
+        <text class="stat-item">⭐ {{wish.favCount || 0}}</text>
+        <text class="stat-item">💬 {{wish.commentCount || 0}}</text>
+      </view>
+
+      <view class="action-row">
+        <view class="act-btn {{isLiked ? 'liked' : ''}}" catchtap="onLike">
+          <text class="act-icon">{{isLiked ? '♥' : '♡'}}</text>
+          <text class="act-label">{{isLiked ? '已赞' : '点赞'}}</text>
+        </view>
+        <view class="act-btn {{isFavorited ? 'faved' : ''}}" catchtap="onFav">
+          <text class="act-icon">{{isFavorited ? '★' : '☆'}}</text>
+          <text class="act-label">{{isFavorited ? '已藏' : '收藏'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 评论列表 -->
+    <view class="comment-list">
+      <view class="comment-title">
+        <text>评论 ({{wish.commentCount || 0}})</text>
+      </view>
+
+      <view class="comment-item" wx:for="{{comments}}" wx:key="_id">
+        <image class="comment-avatar" src="{{item.avatar || '/assets/images/default-avatar.png'}}" mode="aspectFill"/>
+        <view class="comment-body">
+          <text class="comment-name">{{item.nickName || '无名修士'}}</text>
+          <text class="comment-text">{{item.content}}</text>
+          <text class="comment-time">{{item._timeText}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{comments.length === 0 && !commentLoading}}" class="comment-empty">
+        暂无评论，来抢沙发吧
+      </view>
+
+      <view class="comment-loadmore" wx:if="{{commentHasMore}}" bindtap="_loadComments" data-reset="false">加载更多评论...</view>
+    </view>
+
+  </block>
+
+  <!-- 空加载态 -->
+  <view class="detail-empty" wx:if="{{!wish}}">加载中...</view>
+
+  <!-- 底部固定评论输入栏 -->
+  <view class="comment-input-bar">
+    <input
+      class="comment-input"
+      placeholder="说说你的看法（1-500字）..."
+      value="{{commentInput}}"
+      bindinput="onCommentInput"
+      maxlength="500"
+      confirm-type="send"
+      bindconfirm="onSendComment"
+    />
+    <view class="send-btn" bindtap="onSendComment">发送</view>
+  </view>
+
+</view>

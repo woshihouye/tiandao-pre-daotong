@@ -1036,3 +1036,112 @@
   font-size: var(--font-lg); display: flex;
   align-items: center; justify-content: center;
 }
+
+/* ===== 许愿池 ===== */
+.wish-publish-wrap {
+  margin: 0 var(--space-xl) var(--space-md);
+  padding: var(--space-lg);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1rpx solid var(--border-color);
+}
+.wish-publish-input {
+  width: 100%;
+  min-height: 120rpx;
+  font-size: var(--font-md);
+  color: var(--text-primary);
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+.wish-publish-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: var(--space-sm);
+}
+.wish-publish-count {
+  font-size: var(--font-xs); color: var(--text-muted);
+}
+.wish-publish-btn {
+  padding: 10rpx 36rpx;
+  background: var(--primary);
+  color: #fff;
+  font-size: var(--font-md);
+  font-weight: var(--weight-semibold);
+  border-radius: 40rpx;
+}
+.wish-list {
+  display: flex; flex-direction: column; gap: var(--space-md);
+  padding: 0 var(--space-xl);
+}
+.wish-card {
+  padding: var(--space-lg);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1rpx solid var(--border-color);
+}
+.wish-card-header {
+  display: flex; align-items: center; gap: 12rpx; margin-bottom: var(--space-sm);
+}
+.wish-avatar {
+  width: 56rpx; height: 56rpx; border-radius: 50%;
+  background: var(--surface-soft);
+}
+.wish-nickname {
+  flex: 1;
+  font-size: var(--font-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+.wish-status {
+  padding: 2rpx 16rpx;
+  background: #dcfce7;
+  color: #15803d;
+  border-radius: 20rpx;
+  font-size: var(--font-xs);
+}
+.wish-card-content {
+  font-size: var(--font-md);
+  color: var(--text-primary);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  margin-bottom: var(--space-md);
+}
+.wish-card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.wish-card-stats {
+  display: flex; gap: 20rpx;
+}
+.wish-stat {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+}
+.wish-card-actions {
+  display: flex; align-items: center; gap: 24rpx;
+}
+.wish-like-btn {
+  font-size: 40rpx;
+  color: #9ca3af;
+  line-height: 1;
+}
+.wish-like-btn.liked {
+  color: #ef4444;
+}
+.wish-comment-entry {
+  font-size: var(--font-sm);
+  color: var(--primary);
+}
+.wish-loadmore {
+  text-align: center;
+  padding: var(--space-md) 0;
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+.wish-empty {
+  text-align: center;
+  padding: 160rpx 0;
+  color: var(--text-muted);
+  font-size: var(--font-md);
+}

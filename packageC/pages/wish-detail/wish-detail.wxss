@@ -1,0 +1,172 @@
+/* 许愿详情页 */
+.container { padding-bottom: 140rpx; }
+
+/* 主体 */
+.detail-header-wrap {
+  position: relative;
+  margin: var(--space-xl);
+  padding: var(--space-xl);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1rpx solid var(--border-color);
+}
+.detail-header {
+  display: flex; justify-content: flex-end;
+  margin-bottom: var(--space-md);
+}
+.del-btn {
+  font-size: var(--font-sm);
+  color: #ef4444;
+  padding: 6rpx 18rpx;
+  border: 1rpx solid #ef4444;
+  border-radius: 30rpx;
+}
+.publisher-row {
+  display: flex; align-items: center; gap: 16rpx;
+  margin-bottom: var(--space-lg);
+}
+.wish-avatar {
+  width: 72rpx; height: 72rpx; border-radius: 50%;
+  background: var(--surface-soft);
+}
+.publisher-col { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
+.wish-nickname {
+  font-size: var(--font-lg); font-weight: var(--weight-semibold); color: var(--text-primary);
+}
+.wish-time { font-size: var(--font-xs); color: var(--text-muted); }
+.wish-status {
+  padding: 4rpx 20rpx;
+  background: #dcfce7;
+  color: #15803d;
+  border-radius: 24rpx;
+  font-size: var(--font-xs);
+  font-weight: var(--weight-medium);
+}
+.detail-content {
+  font-size: 32rpx;
+  line-height: 1.7;
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+  margin-bottom: var(--space-xl);
+}
+.stats-row {
+  display: flex; gap: 32rpx;
+  padding: var(--space-md) 0;
+  border-top: 1rpx solid var(--border-color);
+  border-bottom: 1rpx solid var(--border-color);
+  margin-bottom: var(--space-lg);
+}
+.stat-item {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  font-weight: var(--weight-medium);
+}
+.action-row {
+  display: flex; gap: 24rpx;
+}
+.act-btn {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 8rpx;
+  padding: 18rpx 0;
+  border-radius: var(--radius-md);
+  background: var(--surface-soft);
+  border: 1rpx solid var(--border-color);
+  transition: all 0.2s;
+}
+.act-btn:active { opacity: 0.8; }
+.act-icon { font-size: 36rpx; color: var(--text-secondary); line-height: 1; }
+.act-label { font-size: var(--font-md); color: var(--text-secondary); }
+.act-btn.liked { background: #fef2f2; border-color: #fecaca; }
+.act-btn.liked .act-icon { color: #ef4444; }
+.act-btn.liked .act-label { color: #ef4444; }
+.act-btn.faved { background: #fffbeb; border-color: #fde68a; }
+.act-btn.faved .act-icon { color: #f59e0b; }
+.act-btn.faved .act-label { color: #f59e0b; }
+
+/* 评论区 */
+.comment-list { padding: 0 var(--space-xl); }
+.comment-title {
+  font-size: var(--font-lg);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+}
+.comment-item {
+  display: flex; gap: 16rpx;
+  padding: var(--space-md) 0;
+  border-bottom: 1rpx solid var(--border-color);
+}
+.comment-avatar {
+  width: 64rpx; height: 64rpx; border-radius: 50%;
+  background: var(--surface-soft);
+  flex-shrink: 0;
+}
+.comment-body {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 6rpx;
+}
+.comment-name {
+  font-size: var(--font-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+.comment-text {
+  font-size: var(--font-md);
+  color: var(--text-primary);
+  line-height: 1.5;
+  word-break: break-all;
+}
+.comment-time {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  margin-top: 2rpx;
+}
+.comment-empty {
+  text-align: center;
+  padding: 120rpx 0;
+  color: var(--text-muted);
+  font-size: var(--font-md);
+}
+.comment-loadmore {
+  text-align: center;
+  padding: var(--space-md) 0;
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+}
+
+/* 底部输入栏 */
+.comment-input-bar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; gap: 16rpx;
+  padding: 16rpx var(--space-xl) calc(env(safe-area-inset-bottom) + 16rpx);
+  background: var(--surface);
+  border-top: 1rpx solid var(--border-color);
+  z-index: 50;
+}
+.comment-input {
+  flex: 1;
+  height: 72rpx;
+  padding: 0 24rpx;
+  background: var(--surface-soft);
+  border-radius: 36rpx;
+  font-size: var(--font-md);
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+.send-btn {
+  padding: 0 36rpx;
+  height: 72rpx;
+  display: flex; align-items: center;
+  background: var(--primary);
+  color: #fff;
+  font-size: var(--font-md);
+  font-weight: var(--weight-semibold);
+  border-radius: 36rpx;
+}
+
+.detail-empty {
+  text-align: center;
+  padding: 200rpx 0;
+  color: var(--text-muted);
+  font-size: var(--font-md);
+}
