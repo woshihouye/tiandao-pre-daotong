@@ -120,6 +120,7 @@ exports.main = async function (event, context) {
       case 'deleteTemplate':     return await deleteTemplate(event);
       case 'getMyPublished':     return await getMyPublished(event);
       case 'getUserPublished':   return await getUserPublished(event);
+      case 'getMyDailyTemplates':return await getMyDailyTemplates(event);
       case 'getCreatorStats':    return await getCreatorStats(event);
       case 'getLeaderboard':     return await getLeaderboard(event);
       case 'getFavorites':       return await getFavorites(event);
@@ -1397,6 +1398,18 @@ async function getUserPublished(event) {
     total: countRes.total,
     hasMore: res.data.length === pageSize
   };
+}
+
+/** 查指定用户已发布的日模板（歌单创建页「云端日模板」tab，一次查询 type='daily'，禁止循环 fetchTemplateDetail） */
+async function getMyDailyTemplates(event) {
+  var creatorId = event.creatorId;
+  if (!creatorId) return { ok: false, error: '缺少 creatorId' };
+  var res = await db.collection('public_templates')
+    .where({ creatorId: creatorId, status: 'published', type: 'daily' })
+    .orderBy('updatedAt', 'desc')
+    .limit(100)
+    .get();
+  return { ok: true, templates: res.data };
 }
 
 async function getCreatorStats(event) {

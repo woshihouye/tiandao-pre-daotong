@@ -1,0 +1,46 @@
+<view class="container">
+  <view class="hero card" wx:if="{{playlist}}">
+    <view class="hero-title-row">
+      <text class="hero-name">{{playlist.name}}</text>
+      <view class="hero-badge" wx:if="{{playlist.playMode === 'random'}}">🔀 随机</view>
+      <view class="hero-badge hero-badge-loop" wx:else>↻ 顺序循环</view>
+    </view>
+    <view class="progress-row" wx:if="{{playlist.scoreTarget > 0}}">
+      <text class="progress-label">今日进度 {{todayScore}} / {{playlist.scoreTarget}}</text>
+      <view class="progress-bar">
+        <view class="progress-fill" style="width:{{progressPct}}%;"></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="today-card card" bindtap="openTodayPlay">
+    <view class="today-kicker">今日播放</view>
+    <block wx:if="{{todayTemplate}}">
+      <view class="today-name">🗓️ {{todayTemplate.name}}</view>
+      <view class="today-hint">点击进入日模板打卡 →</view>
+    </block>
+    <view class="today-skipped" wx:elif="{{todaySkipped}}">今日无可用模板（所有日模板均被禁用）</view>
+    <view class="today-loading" wx:elif="{{loading}}">加载中...</view>
+    <view class="today-skipped" wx:else>暂无</view>
+  </view>
+
+  <view class="section card">
+    <view class="section-title">歌单内容</view>
+    <view class="section-sub" wx:if="{{playlist}}">共 {{playlist.items.length}} 首</view>
+    <view class="empty-hint" wx:if="{{!playlist || !playlist.items.length}}">还没有添加日模板，去编辑吧～</view>
+    <view class="song-item" wx:for="{{playlist.items}}" wx:key="templateId">
+      <view class="song-left" data-tid="{{item.templateId}}" bindtap="openItem">
+        <text class="song-idx">{{index + 1}}</text>
+        <view class="song-info">
+          <text class="song-name">{{item.templateId}}</text>
+        </view>
+      </view>
+      <switch class="song-switch" checked="{{item.enabled}}" color="#10B981" data-tid="{{item.templateId}}" bindchange="toggleItemEnable"/>
+    </view>
+  </view>
+
+  <view class="bottom-bar">
+    <view class="btn btn-ghost" bindtap="deletePlaylist">删除歌单</view>
+    <view class="btn btn-primary" bindtap="editPlaylist">编辑</view>
+  </view>
+</view>

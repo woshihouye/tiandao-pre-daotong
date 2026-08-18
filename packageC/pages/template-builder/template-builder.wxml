@@ -11,6 +11,7 @@
       <view class="type-tab {{templateType === 'daily' ? 'active' : ''}}" bindtap="switchType" data-type="daily">日模板</view>
       <view class="type-tab {{templateType === 'weekly' ? 'active' : ''}}" bindtap="switchType" data-type="weekly">周模板</view>
       <view class="type-tab {{templateType === 'pool' ? 'active' : ''}}" bindtap="switchType" data-type="pool">合道模板</view>
+      <view class="type-tab {{templateType === 'playlist' ? 'active' : ''}}" bindtap="switchType" data-type="playlist">周期模板</view>
     </view>
   </view>
 

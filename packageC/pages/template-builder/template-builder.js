@@ -128,6 +128,13 @@ Page({
 
   switchType: function(e) {
     var type = e.currentTarget.dataset.type
+    if (type === 'playlist') {
+      // 周期模板（歌单）跳独立创建页，不进入 builder 的时段/活动编辑逻辑
+      wx.navigateTo({
+        url: '/packageC/pages/cycle-create/cycle-create'
+      })
+      return
+    }
     this.setData({
       templateType: type,
       currentSlotId: 'dawn',

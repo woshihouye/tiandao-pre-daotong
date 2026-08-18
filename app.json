@@ -54,6 +54,8 @@
         "pages/activity-edit/activity-edit",
         "pages/activity-detail/activity-detail",
         "pages/template-builder/template-builder",
+        "pages/cycle-template/cycle-template",
+        "pages/cycle-create/cycle-create",
         "pages/wish-detail/wish-detail"
       ]
     },

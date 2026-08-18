@@ -1,0 +1,74 @@
+<view class="container">
+  <view class="card">
+    <view class="field">
+      <text class="label">歌单名称</text>
+      <input class="input" placeholder="如：增肌四日循环" value="{{name}}" bindinput="onNameInput" maxlength="20" />
+    </view>
+
+    <view class="field mode-row">
+      <text class="label">播放模式</text>
+      <view class="mode-switch">
+        <view class="mode-btn {{playMode === 'loop' ? 'active' : ''}}" data-mode="loop" bindtap="switchMode">↻ 顺序循环</view>
+        <view class="mode-btn {{playMode === 'random' ? 'active random' : ''}}" data-mode="random" bindtap="switchMode">🔀 随机</view>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="label">目标修为（0=无）</text>
+      <input class="input" type="number" placeholder="比如 40" value="{{scoreTarget}}" bindinput="onTargetInput" />
+    </view>
+  </view>
+
+  <view class="card items-card">
+    <view class="section-title-row">
+      <text class="section-title">已加入歌单（{{items.length}}）</text>
+    </view>
+    <view class="empty-hint" wx:if="{{!items.length}}">从下方「我的日模板」点「＋」加入</view>
+    <view class="item-row" wx:for="{{items}}" wx:key="templateId">
+      <view class="item-idx">{{index + 1}}</view>
+      <view class="item-main">
+        <text class="item-name {{!item.enabled ? 'disabled' : ''}}">{{item.name || item.templateId}}</text>
+      </view>
+      <view class="item-actions">
+        <view class="order-btn" data-idx="{{index}}" data-dir="up" bindtap="moveItem">↑</view>
+        <view class="order-btn" data-idx="{{index}}" data-dir="down" bindtap="moveItem">↓</view>
+        <switch class="item-switch" checked="{{item.enabled}}" color="#10B981" data-idx="{{index}}" bindchange="toggleItem"/>
+        <view class="remove-btn" data-idx="{{index}}" bindtap="removeItem">✕</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card library-card">
+    <view class="tabs-row">
+      <view class="tab-btn {{tabIndex === 0 ? 'active' : ''}}" data-idx="0" bindtap="switchTab">本地日模板（{{localDaily.length}}）</view>
+      <view class="tab-btn {{tabIndex === 1 ? 'active' : ''}}" data-idx="1" bindtap="switchTab">云端已发布（{{cloudDaily.length}}）</view>
+    </view>
+
+    <block wx:if="{{tabIndex === 0}}">
+      <view class="lib-row" wx:for="{{localDaily}}" wx:key="id">
+        <view class="lib-info">
+          <text class="lib-name">{{item.name}}</text>
+          <text class="lib-meta" wx:if="{{item.timeSlots && item.timeSlots.length}}">{{item.timeSlots.length}} 时段</text>
+        </view>
+        <view class="add-btn" data-tid="{{item.id}}" data-tname="{{item.name}}" catchtap="addTemplate">＋</view>
+      </view>
+      <view class="empty-hint" wx:if="{{!localDaily.length}}">还没有本地日模板，去创建一个吧～</view>
+    </block>
+
+    <block wx:else>
+      <view class="lib-loading" wx:if="{{loadingCloud}}">加载中...</view>
+      <view class="lib-row" wx:for="{{cloudDaily}}" wx:key="id">
+        <view class="lib-info">
+          <text class="lib-name">{{item.name}}</text>
+          <text class="lib-meta">已发布</text>
+        </view>
+        <view class="add-btn" data-tid="{{item.id}}" data-tname="{{item.name}}" catchtap="addTemplate">＋</view>
+      </view>
+      <view class="empty-hint" wx:if="{{!loadingCloud && !cloudDaily.length}}">暂无云端已发布日模板</view>
+    </block>
+  </view>
+
+  <view class="bottom-bar">
+    <view class="btn btn-primary" bindtap="savePlaylist">保存歌单</view>
+  </view>
+</view>
