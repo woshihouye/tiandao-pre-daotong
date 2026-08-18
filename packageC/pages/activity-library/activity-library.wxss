@@ -87,7 +87,7 @@ page { height: 100%; }
 .tag-count { font-size: 18rpx; margin-left: 4rpx; opacity: 0.7; }
 
 /* ---- 右侧宫格区 ---- */
-.grid-area { flex: 1; }
+.grid-area { flex: 1; min-height: 0; }
 .grid-container {
   display: flex; flex-direction: column; align-content: flex-start;
   padding: 4rpx 0; gap: 16rpx;

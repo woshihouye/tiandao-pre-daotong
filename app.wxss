@@ -101,7 +101,6 @@ view, text, input, textarea, button, picker, scroll-view {
   background-color: var(--page-bg);
   color: var(--text-primary);
   position: relative;
-  overflow: hidden;
 }
 
 .theme-page,

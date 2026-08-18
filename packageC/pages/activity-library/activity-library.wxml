@@ -87,7 +87,7 @@
       </scroll-view>
 
       <!-- 右侧 单列商品卡列表 -->
-      <view class="grid-area">
+      <scroll-view scroll-y class="grid-area">
         <view class="grid-container">
           <block wx:for="{{activities}}" wx:for-item="act" wx:key="id">
             <!-- 分组头 -->
@@ -220,7 +220,7 @@
             <view wx:if="{{searchKeyword}}" class="empty-sub">换个关键词试试</view>
           </view>
         </view>
-      </view>
+      </scroll-view>
 
     </view>
   </view>
