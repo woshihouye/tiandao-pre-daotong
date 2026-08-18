@@ -11,6 +11,7 @@ const {
   postComment,
   getComments,
   deleteComment,
+  notifyTemplateImport,
 } = require('../../../utils/life-template.js')
 
 const eliteModule = require('../../../utils/elite-template.js')
@@ -432,6 +433,9 @@ Page({
         list.push(daily)
         wx.setStorageSync('tiandao_custom_templates_' + uid, list)
         wx.showToast({ title: '已复制为你的模板', icon: 'success' })
+        if (that.data.fromPlaza && that.data.cloudSourceId) {
+          notifyTemplateImport(that.data.cloudSourceId)
+        }
         that.setData({ copied: true })
       }
     })
@@ -507,7 +511,7 @@ Page({
       id: 'custom_' + now + '_' + Math.random().toString(36).slice(2, 6),
       name: (t.name || '模板'),
       type: 'daily',
-      categoryKey: '',
+      categoryKey: (activities[0] && activities[0].tabKey) || '',
       timeSlots: timeSlots,
       sourceId: t.id || '',
       sourceName: t.name || '',

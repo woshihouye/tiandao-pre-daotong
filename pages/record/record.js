@@ -187,6 +187,19 @@ Page({
       })
     }
 
+    // 方案 3 · 启用模板置顶：把当前激活模板挪到第一个
+    var activeTpl = null
+    try { activeTpl = wx.getStorageSync('tiandao_active_custom_template') } catch(e) {}
+    if (activeTpl && activeTpl.id) {
+      for (var ai = 0; ai < templates.length; ai++) {
+        if (templates[ai].id === activeTpl.id) {
+          var at = templates.splice(ai, 1)[0]
+          templates.unshift(at)
+          break
+        }
+      }
+    }
+
     // 构建 actId → 解析后活动 映射，供 onSubmit 兜底解析公共库活动
     var templateActMap = {}
     for (var mi = 0; mi < templates.length; mi++) {

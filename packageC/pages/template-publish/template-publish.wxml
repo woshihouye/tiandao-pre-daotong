@@ -6,6 +6,19 @@
   </view>
 
   <view class="card">
+    <view class="section-title">分类与一句话介绍</view>
+    <view class="chip-group">
+      <view class="chip-item {{category === 'li' ? 'chip-on' : ''}}" data-value="li" bindtap="changeCategory">力之大道</view>
+      <view class="chip-item {{category === 'gong' ? 'chip-on' : ''}}" data-value="gong" bindtap="changeCategory">工之大道</view>
+      <view class="chip-item {{category === 'wu' ? 'chip-on' : ''}}" data-value="wu" bindtap="changeCategory">悟之大道</view>
+      <view class="chip-item {{category === 'yang' ? 'chip-on' : ''}}" data-value="yang" bindtap="changeCategory">养生道</view>
+      <view class="chip-item {{category === 'zi' ? 'chip-on' : ''}}" data-value="zi" bindtap="changeCategory">自由道</view>
+      <view class="chip-item {{category === 'hong' ? 'chip-on' : ''}}" data-value="hong" bindtap="changeCategory">红尘道</view>
+    </view>
+    <textarea class="longtext-input" placeholder="一句话介绍这个模板" value="{{description}}" bindinput="onDescriptionInput" maxlength="60" auto-height />
+  </view>
+
+  <view class="card">
     <view class="section-title">正文与素材</view>
     <textarea class="longtext-input" placeholder="写点正文，说说做这个模板的心情、由来（博主视角）" value="{{longTextContent}}" bindinput="onLongTextInput" maxlength="2000" auto-height />
     <input class="mini-input" placeholder="副标题（可选）" value="{{subtitle}}" bindinput="onSubtitleInput" maxlength="30" />

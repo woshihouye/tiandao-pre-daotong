@@ -439,6 +439,11 @@ function deleteComment(commentId) {
   return callTemplateManager('deleteComment', { commentId: commentId, userId: userId })
 }
 
+function notifyTemplateImport(templateId) {
+  if (!templateId) return Promise.resolve()
+  return callTemplateManager('importTemplate', { templateId: templateId }).catch(function() {})
+}
+
 /**
  * 发布模板到广场
  */
@@ -579,6 +584,7 @@ module.exports = {
   postComment,
   getComments,
   deleteComment,
+  notifyTemplateImport,
   publishTemplateCloud,
   unpublishTemplateCloud,
   deleteTemplateCloud,

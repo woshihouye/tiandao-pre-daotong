@@ -16,6 +16,8 @@ Page({
     externalLinks: [],
     linkTitle: '',
     linkUrl: '',
+    category: '',
+    description: '',
     // 共创乐观锁
     version: 0,
     lastEditorId: '',
@@ -54,8 +56,28 @@ Page({
   },
 
   _applyTemplate: function(template) {
+    var TAB_KEY_MAP = { sport: 'li', study: 'wu', work: 'gong', diet: 'yang', debuff: 'hong' }
+    var category = template.category || ''
+    if (!category) {
+      var firstAct = null
+      if (Array.isArray(template.activities) && template.activities.length > 0) firstAct = template.activities[0]
+      if (!firstAct && Array.isArray(template.timeSlots)) {
+        for (var si = 0; si < template.timeSlots.length; si++) {
+          var slot = template.timeSlots[si] || {}
+          var acts = slot.activities || []
+          if (acts.length > 0) { firstAct = acts[0]; break }
+        }
+      }
+      if (!firstAct && Array.isArray(template.tasks) && template.tasks.length > 0) firstAct = template.tasks[0]
+      var tabKey = (firstAct && (firstAct.tabKey || firstAct.category)) || ''
+      if (TAB_KEY_MAP[tabKey]) category = TAB_KEY_MAP[tabKey]
+    }
+    var description = this.data.description
+    if (!description) description = template.description || ''
     this.setData({
       template: template,
+      category: category,
+      description: description,
       longTextContent: template.longTextContent || '',
       subtitle: template.subtitle || '',
       slogan: template.slogan || '',
@@ -83,6 +105,8 @@ Page({
   onLongTextInput: function(e) { this.setData({ longTextContent: e.detail.value }) },
   onSubtitleInput: function(e) { this.setData({ subtitle: e.detail.value }) },
   onSloganInput: function(e) { this.setData({ slogan: e.detail.value }) },
+  onDescriptionInput: function(e) { this.setData({ description: e.detail.value }) },
+  changeCategory: function(e) { this.setData({ category: e.currentTarget.dataset.value }) },
 
   // 上传图片（最多 9 张，逐个传云存储）
   chooseImages: function() {
@@ -183,9 +207,9 @@ Page({
       baseScore: template.baseScore,
       realmNames: template.realmNames,
       themeClass: template.themeClass,
-      category: template.category,
+      category: this.data.category,
       goal: template.goal || '',
-      description: template.description || '',
+      description: this.data.description || '',
       tags: template.tags || [],
       tasks: template.tasks || [],
       founderName: template.founderName || '',

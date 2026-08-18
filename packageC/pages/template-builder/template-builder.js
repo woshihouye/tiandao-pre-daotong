@@ -918,29 +918,6 @@ Page({
       template.scoreTarget = parseInt(this.data.scoreTarget) || 0
     }
 
-    // 保存到本地存储
-    var key = this._getStorageKey()
-    var templates = []
-    try { templates = wx.getStorageSync(key) || [] } catch(e) {}
-
-    var found = false
-    for (var i = 0; i < templates.length; i++) {
-      if (templates[i].id === template.id) {
-        var existing = templates[i] || {}
-        if (existing.inheritedFrom) {
-          template.inheritedFrom = existing.inheritedFrom
-          template.inheritedAt = existing.inheritedAt || Date.now()
-          template.dirty = true
-        }
-        templates[i] = template
-        found = true
-        break
-      }
-    }
-    if (!found) {
-      templates.unshift(template)
-    }
-
     // 写入最优区间（日模板/合道模板）
     if (template.type === 'daily' || template.type === 'pool') {
       template.optimalTargets = this.data.optimalTargets

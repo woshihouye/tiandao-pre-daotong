@@ -174,7 +174,11 @@ async function getTemplates(event) {
   }
 
   // category 筛选
-  if (category) where.category = category;
+  if (category) {
+    var CATEGORY_MAP = { li: 'fitness', wu: 'learning', gong: 'career', hong: 'life' };
+    var mapped = CATEGORY_MAP[category];
+    where.category = mapped ? _.in([category, mapped]) : category;
+  }
 
   // 子分类筛选（industry 或 subcategory）
   if (subcategory) {
@@ -1022,6 +1026,77 @@ async function initOfficialTemplates() {
         { id: 'goal_abandoned', name: '目标搁置不推进', reward: 3, path: 'richang', desc: '设好的目标一直搁置，完全没推进' },
         { id: 'break_promise', name: '承诺的事拖延不做', reward: 3, path: 'richang', desc: '答应了的事一拖再拖迟迟不行动' },
         { id: 'slacking_at_work', name: '上班摸鱼划水', reward: 3, path: 'richang', desc: '上班时间摸鱼偷懒不干活' }
+      ]
+    },
+    {
+      id: 'yang_fasting_168', name: '轻断食16:8', category: 'yang', subcategory: '饮食', industry: '健康养生',
+      cover: '食', description: '16小时禁食、8小时进食窗，重启身体代谢，适合久坐创业者',
+      tags: ['官方'], creatorName: '天道宗', isOfficial: true, isPublic: true, status: 'published',
+      visibility: 'public', commentPerm: 'all', hotScore: 0, likeCount: 0, favCount: 0, commentCount: 0, importCount: 0,
+      realmNames: ['入门', '小成', '大成', '圆满'], dailyCap: 20, baseScore: 20, createdAt: now, updatedAt: now,
+      tasks: [
+        { id: 'skip_breakfast', name: '跳过早餐（16小时禁食）', reward: 2, path: 'diet', desc: '延长夜间禁食窗口，让胰岛素休息' },
+        { id: 'clean_lunch', name: '午餐清淡高蛋白', reward: 1.5, path: 'diet', desc: '蛋白质为主，少油少糖' },
+        { id: 'light_dinner', name: '晚餐七分饱', reward: 1.5, path: 'diet', desc: '睡前3小时结束进食' },
+        { id: 'no_snack', name: '不吃夜宵零食', reward: 2, path: 'diet', desc: '守住禁食窗口，杜绝宵夜' },
+        { id: 'drink_2l_water', name: '喝够2L水', reward: 1, path: 'diet', desc: '禁食期多喝水缓解饥饿' }
+      ]
+    },
+    {
+      id: 'yang_early_sleep', name: '早睡打卡', category: 'yang', subcategory: '作息', industry: '健康养生',
+      cover: '眠', description: '23点前入睡，戒掉睡前刷手机，重拾规律作息',
+      tags: ['官方'], creatorName: '天道宗', isOfficial: true, isPublic: true, status: 'published',
+      visibility: 'public', commentPerm: 'all', hotScore: 0, likeCount: 0, favCount: 0, commentCount: 0, importCount: 0,
+      realmNames: ['入门', '小成', '大成', '圆满'], dailyCap: 20, baseScore: 20, createdAt: now, updatedAt: now,
+      tasks: [
+        { id: 'sleep_before_23', name: '23点前上床', reward: 2, path: 'richang', desc: '固定入睡时间，生物钟归位' },
+        { id: 'no_phone_bed', name: '睡前30分钟不看手机', reward: 1.5, path: 'richang', desc: '蓝光褪去，助眠入睡' },
+        { id: 'wake_early', name: '7点前起床', reward: 1, path: 'richang', desc: '早起倒逼早睡' }
+      ]
+    },
+    {
+      id: 'yang_no_sugar', name: '控糖30天', category: 'yang', subcategory: '饮食', industry: '健康养生',
+      cover: '糖', description: '戒掉含糖饮料和甜食，稳住血糖和体重',
+      tags: ['官方'], creatorName: '天道宗', isOfficial: true, isPublic: true, status: 'published',
+      visibility: 'public', commentPerm: 'all', hotScore: 0, likeCount: 0, favCount: 0, commentCount: 0, importCount: 0,
+      realmNames: ['入门', '小成', '大成', '圆满'], dailyCap: 20, baseScore: 20, createdAt: now, updatedAt: now,
+      tasks: [
+        { id: 'no_sugary_drink', name: '不喝含糖饮料', reward: 2, path: 'diet', desc: '奶茶可乐统统换掉' },
+        { id: 'sugar_free_tea', name: '改喝无糖茶/黑咖啡', reward: 1, path: 'diet', desc: '用无糖饮品替代' },
+        { id: 'no_dessert', name: '不吃甜点', reward: 1.5, path: 'diet', desc: '拒绝下午茶甜点诱惑' }
+      ]
+    },
+    {
+      id: 'zi_weekend_charge', name: '周末充电日', category: 'zi', subcategory: '休闲', industry: '生活修行',
+      cover: '闲', description: '睡到自然醒，散步晒太阳，陪家人，给自己充满电',
+      tags: ['官方'], creatorName: '天道宗', isOfficial: true, isPublic: true, status: 'published',
+      visibility: 'public', commentPerm: 'all', hotScore: 0, likeCount: 0, favCount: 0, commentCount: 0, importCount: 0,
+      realmNames: ['入门', '小成', '大成', '圆满'], dailyCap: 20, baseScore: 20, createdAt: now, updatedAt: now,
+      tasks: [
+        { id: 'sleep_in', name: '睡到自然醒', reward: 1, path: 'richang', desc: '不设闹钟，补足睡眠' },
+        { id: 'walk_outside', name: '户外散步30分钟', reward: 1, path: 'richang', desc: '晒太阳，放松身心' },
+        { id: 'watch_movie', name: '看一部电影/剧', reward: 1, path: 'richang', desc: '沉浸式放松' },
+        { id: 'family_time', name: '陪家人/打电话', reward: 1.5, path: 'richang', desc: '陪伴是最长情的放松' }
+      ]
+    },
+    {
+      id: 'zi_free_reading', name: '自由阅读', category: 'zi', subcategory: '兴趣', industry: '生活修行',
+      cover: '读', description: '不设书单，随手翻开一本，让文字带你去远方',
+      tags: ['官方'], creatorName: '天道宗', isOfficial: true, isPublic: true, status: 'published',
+      visibility: 'public', commentPerm: 'all', hotScore: 0, likeCount: 0, favCount: 0, commentCount: 0, importCount: 0,
+      realmNames: ['入门', '小成', '大成', '圆满'], dailyCap: 20, baseScore: 20, createdAt: now, updatedAt: now,
+      tasks: [
+        { id: 'free_reading_1h', name: '自由阅读1小时', reward: 1.5, path: 'xiuxin', desc: '不设目标，纯享受阅读' }
+      ]
+    },
+    {
+      id: 'zi_hobby_day', name: '兴趣探索日', category: 'zi', subcategory: '兴趣', industry: '生活修行',
+      cover: '趣', description: '拾起你的爱好：摄影、乐器、画画、手工，随便玩',
+      tags: ['官方'], creatorName: '天道宗', isOfficial: true, isPublic: true, status: 'published',
+      visibility: 'public', commentPerm: 'all', hotScore: 0, likeCount: 0, favCount: 0, commentCount: 0, importCount: 0,
+      realmNames: ['入门', '小成', '大成', '圆满'], dailyCap: 20, baseScore: 20, createdAt: now, updatedAt: now,
+      tasks: [
+        { id: 'hobby_time_1h', name: '投入爱好1小时', reward: 1.5, path: 'richang', desc: '心流状态，忘却时间' }
       ]
     }
   ];
