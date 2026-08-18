@@ -705,27 +705,34 @@ Page({
     this.setData(updateData)
   },
 
-  // ========== 结果预估计算 ==========
+  // ========== 结果预估计算（综合化：不分类，一个综合结果）==========
   recalcResult: function () {
-    var categoryId = this.data.activeTab
     var template = this.data.currentTemplate
     var activityProgress = this.data.activityProgress
+    if (!template) { this.setData({ result: {} }); return }
 
-    if (!template) {
-      this.setData({ result: {} })
-      return
+    var wu = templateProgress.calcWuTemplateResult(template, activityProgress)
+    var shi = templateProgress.calcShiTemplateResult(template, activityProgress)
+    var study = templateProgress.calcStudyTemplateResult(template, activityProgress)
+    var work = templateProgress.calcWorkTemplateResult(template, activityProgress)
+    var debuff = templateProgress.calcDebuffTemplateResult(template, activityProgress)
+
+    var result = {
+      totalCalories: wu.totalCalories || 0,
+      totalGong: wu.totalGong + shi.totalGong,
+      muscleRows: wu.muscleRows || [],
+      trainedMuscleCount: wu.trainedMuscleCount || 0,
+      muscleActivation: wu.muscleActivation || {},
+      nutrition: shi.nutrition || null,
+      macroRatio: shi.macroRatio || null,
+      shiCalories: shi.totalCalories || 0,
+      shiGong: shi.totalGong || 0,
+      studyMinutes: study.totalMinutes || 0,
+      studyKnowledge: study.totalKnowledge || 0,
+      workOutput: work.totalOutput || 0,
+      debuffHours: debuff.totalTimeHours || 0,
+      debuffCalories: debuff.totalExtraCalories || 0
     }
-
-    var result
-    if (categoryId === 'wu') {
-      result = templateProgress.calcWuTemplateResult(template, activityProgress)
-    } else if (categoryId === 'shi') {
-      result = templateProgress.calcShiTemplateResult(template, activityProgress)
-    } else {
-      // 悟/工/煞：仅占位
-      result = { totalCalories: 0, totalGong: 0, muscleActivation: {}, trainedMuscleCount: 0, muscleRows: [] }
-    }
-
     this.setData({ result: result })
   },
 
