@@ -1,6 +1,7 @@
 // 模板进度计算引擎 — 计算模板总进度、武类结果、食类结果
 
 var activityMeta = require('./activity-meta.js')
+var optimalScore = require('./optimal-score.js')
 
 /**
  * 计算单个模板的总进度
@@ -132,6 +133,7 @@ function calcShiTemplateResult(template, activityProgress) {
   var totalCalories = 0
   var totalGong = 0
   var nutrition = { protein: 0, carbs: 0, fat: 0, fiber: 0 }
+  var supplementBonus = 0
 
   for (var i = 0; i < template.activities.length; i++) {
     var activity = template.activities[i]
@@ -140,26 +142,36 @@ function calcShiTemplateResult(template, activityProgress) {
 
     var meta = activityMeta.getActivityMeta(activity.id, 'shi', activity)
 
-    if (meta.caloriesPerUnit) {
+    var isSupplement = activity.sideFilter === 'supplement'
+    var isFunctionalSupplement = isSupplement && !(meta && meta.nutrition && (meta.nutrition.protein > 10 || meta.nutrition.fat > 10))
+
+    if (meta.caloriesPerUnit && !isFunctionalSupplement) {
       totalCalories += meta.caloriesPerUnit * factor
     }
 
-    totalGong += (activity.scorePerUnit || 0) * factor
-
-    if (meta.nutrition) {
+    if (meta.nutrition && !isFunctionalSupplement) {
       nutrition.protein += (meta.nutrition.protein || 0) * factor
       nutrition.carbs += (meta.nutrition.carbs || 0) * factor
       nutrition.fat += (meta.nutrition.fat || 0) * factor
       nutrition.fiber += (meta.nutrition.fiber || 0) * factor
+    }
+
+    if (isFunctionalSupplement) {
+      supplementBonus += factor * 0.2
     }
   }
 
   var totalGrams = nutrition.protein + nutrition.carbs + nutrition.fat
   var roundNut = function(v) { return Math.round(v * 10) / 10 }
 
+  var optimalNutrition = (template.optimalTargets && template.optimalTargets.nutrition) || null
+  var nutForScore = { protein: nutrition.protein, carbs: nutrition.carbs, fat: nutrition.fat, calories: totalCalories }
+  if (supplementBonus > 0.6) supplementBonus = 0.6
+  var shiGong = optimalScore.calcNutritionScore(nutForScore, optimalNutrition) + supplementBonus
+
   return {
     totalCalories: Math.round(totalCalories),
-    totalGong: roundNut(totalGong),
+    totalGong: roundNut(shiGong),
     nutrition: {
       protein: roundNut(nutrition.protein),
       carbs: roundNut(nutrition.carbs),

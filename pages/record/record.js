@@ -7,6 +7,8 @@ var DefaultTemplates = require('../../utils/default-templates.js')
 var templateProgress = require('../../utils/template-progress.js')
 var scoreUtil = require('../../utils/score.js')
 var CONST = require('../../utils/constants.js')
+var activityMeta = require('../../utils/activity-meta.js')
+var optimalScore = require('../../utils/optimal-score.js')
 
 // ========== 分类配置 ==========
 var CATEGORY_TABS = [
@@ -778,6 +780,12 @@ Page({
     var collectedRecords = []
     var totalScore = 0
 
+    var shiNutrition = { protein: 0, carbs: 0, fat: 0 }
+    var shiCalories = 0
+    var shiHasRecord = false
+    var shiOptimalNutrition = null
+    var shiSupplementBonus = 0
+
     for (var ti = 0; ti < templateIds.length; ti++) {
       var tplId = templateIds[ti]
       var progMap = allProgress[tplId]
@@ -819,6 +827,35 @@ Page({
 
         // 根据活动的 tabKey 确定 score.js 的 type 参数
         var scoreType = this.mapTabKeyToScoreType(act.tabKey)
+
+        if (scoreType === 'diet') {
+          shiHasRecord = true
+          var shiMeta = activityMeta.getActivityMeta(actId, 'shi', act)
+          var isSup = (act.sideFilter === 'supplement')
+          var isFuncSup = isSup && !(shiMeta && shiMeta.nutrition && (shiMeta.nutrition.protein > 10 || shiMeta.nutrition.fat > 10))
+          if (isFuncSup) {
+            shiSupplementBonus += factor * 0.2
+          } else {
+            if (shiMeta && shiMeta.nutrition) {
+              shiNutrition.protein += (shiMeta.nutrition.protein || 0) * factor
+              shiNutrition.carbs += (shiMeta.nutrition.carbs || 0) * factor
+              shiNutrition.fat += (shiMeta.nutrition.fat || 0) * factor
+            }
+            shiCalories += (shiMeta && shiMeta.caloriesPerUnit ? shiMeta.caloriesPerUnit : 0) * factor
+          }
+          if (shiOptimalNutrition == null) {
+            var shiTpl = null
+            var tplList = this.data.templates || []
+            for (var tq = 0; tq < tplList.length; tq++) {
+              if (tplList[tq].id === tplId) { shiTpl = tplList[tq]; break }
+            }
+            if (shiTpl && shiTpl.optimalTargets && shiTpl.optimalTargets.nutrition) {
+              shiOptimalNutrition = shiTpl.optimalTargets.nutrition
+            }
+          }
+          continue
+        }
+
         var scoreResult = this.calcScoreViaEngine(act, factor, scoreType)
         var score = scoreResult.score
         // 公共库活动 +10% 加成
@@ -843,6 +880,26 @@ Page({
           capReason: scoreResult.capReason || ''
         })
       }
+    }
+
+    if (shiHasRecord) {
+      if (shiSupplementBonus > 0.6) shiSupplementBonus = 0.6
+      var shiScore = optimalScore.calcNutritionScore(
+        { protein: shiNutrition.protein, carbs: shiNutrition.carbs, fat: shiNutrition.fat, calories: shiCalories },
+        shiOptimalNutrition
+      ) + shiSupplementBonus
+      totalScore += shiScore
+      collectedRecords.push({
+        activityId: 'diet_daily_total',
+        activityName: '今日饮食',
+        unit: '日',
+        progress: 100,
+        scorePerUnit: shiScore,
+        score: Math.round(shiScore * 10) / 10,
+        isNegative: false,
+        tabKey: 'diet',
+        formula: '营养偏离度：蛋白' + Math.round(shiNutrition.protein) + 'g · 碳水' + Math.round(shiNutrition.carbs) + 'g · 脂肪' + Math.round(shiNutrition.fat) + 'g · 热量' + Math.round(shiCalories) + 'kcal' + (shiSupplementBonus > 0 ? ' · 补剂+' + Math.round(shiSupplementBonus * 10) / 10 : '')
+      })
     }
 
     totalScore = Math.round(totalScore * 10) / 10
