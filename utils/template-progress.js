@@ -189,9 +189,146 @@ function distributeProgressToActivities(totalProgress, activities) {
   return result
 }
 
+/**
+ * 从模板 activities（支持 timeSlots 平铺）中抽取完整活动列表
+ */
+function _flattenActivities(template) {
+  if (!template) return []
+  if (Array.isArray(template.activities) && template.activities.length) return template.activities
+  var acts = []
+  var slots = template.timeSlots || []
+  for (var i = 0; i < slots.length; i++) {
+    var arr = (slots[i] && slots[i].activities) || []
+    for (var j = 0; j < arr.length; j++) acts.push(arr[j])
+  }
+  return acts
+}
+
+/**
+ * 计算学习类结果（不动原 calcWu/calcShi）
+ * @returns {Object} { totalMinutes, totalKnowledge, items: [{id, minutes, knowledge}] }
+ */
+function calcStudyTemplateResult(template, activityProgress) {
+  var activities = _flattenActivities(template)
+  var totalMinutes = 0
+  var totalKnowledge = 0
+  var items = []
+  for (var i = 0; i < activities.length; i++) {
+    var act = activities[i]
+    var progress = (activityProgress && activityProgress[act.id]) != null ? Number(activityProgress[act.id]) : 100
+    var factor = Math.max(0, Math.min(1, progress / 100))
+    var meta = activityMeta.getActivityMeta(act.id, act.category || 'study', act)
+    var mins = Number(meta.minutesPerUnit || 0) * (Number(act.capacity && act.capacity.value != null ? act.capacity.value : 1) || 1) * factor
+    var know = Number(meta.knowledgePerUnit || 0) * (Number(act.capacity && act.capacity.value != null ? act.capacity.value : 1) || 1) * factor
+    totalMinutes += mins
+    totalKnowledge += know
+    items.push({ id: act.id, minutes: Math.round(mins * 10) / 10, knowledge: Math.round(know * 10) / 10 })
+  }
+  return { totalMinutes: Math.round(totalMinutes), totalKnowledge: Math.round(totalKnowledge * 10) / 10, items: items }
+}
+
+/**
+ * 计算工作类结果（不动原 calcWu/calcShi）
+ */
+function calcWorkTemplateResult(template, activityProgress) {
+  var activities = _flattenActivities(template)
+  var totalOutput = 0
+  var items = []
+  for (var i = 0; i < activities.length; i++) {
+    var act = activities[i]
+    var progress = (activityProgress && activityProgress[act.id]) != null ? Number(activityProgress[act.id]) : 100
+    var factor = Math.max(0, Math.min(1, progress / 100))
+    var meta = activityMeta.getActivityMeta(act.id, act.category || 'work', act)
+    var out = Number(meta.outputPerUnit || 0) * (Number(act.capacity && act.capacity.value != null ? act.capacity.value : 1) || 1) * factor
+    totalOutput += out
+    items.push({ id: act.id, output: Math.round(out * 10) / 10 })
+  }
+  return { totalOutput: Math.round(totalOutput * 10) / 10, items: items }
+}
+
+/**
+ * 计算放纵类结果（不动原 calcWu/calcShi）——debuff 值越大越不好
+ */
+function calcDebuffTemplateResult(template, activityProgress) {
+  var activities = _flattenActivities(template)
+  var totalTimeHours = 0
+  var totalExtraCalories = 0
+  var items = []
+  for (var i = 0; i < activities.length; i++) {
+    var act = activities[i]
+    var progress = (activityProgress && activityProgress[act.id]) != null ? Number(activityProgress[act.id]) : 100
+    var factor = Math.max(0, Math.min(1, progress / 100))
+    var meta = activityMeta.getActivityMeta(act.id, act.category || 'debuff', act)
+    var hrs = Number(meta.timeCostPerUnit || 0) * (Number(act.capacity && act.capacity.value != null ? act.capacity.value : 1) || 1) * factor
+    var cals = Number(meta.calorieIntakePerUnit || 0) * (Number(act.capacity && act.capacity.value != null ? act.capacity.value : 1) || 1) * factor
+    totalTimeHours += hrs
+    totalExtraCalories += cals
+    items.push({ id: act.id, hours: Math.round(hrs * 10) / 10, extraCalories: Math.round(cals) })
+  }
+  return { totalTimeHours: Math.round(totalTimeHours * 10) / 10, totalExtraCalories: Math.round(totalExtraCalories), items: items }
+}
+
+/**
+ * 累加所有 activities 的武+食总量（偏离度引擎用），progress=100%（预测用）
+ * @returns {Object} { totalCalories: 活动千卡, nutrition:{protein,carbs,fat,calories} 饮食摄入 }
+ */
+function aggregateTemplateForPrediction(template) {
+  var activities = _flattenActivities(template)
+  var totalCalories = 0
+  var nutrition = { protein: 0, carbs: 0, fat: 0, calories: 0 }
+  var studyMinutes = 0
+  var workOutput = 0
+  var debuffHours = 0
+
+  for (var i = 0; i < activities.length; i++) {
+    var act = activities[i]
+    var qty = Number(act.capacity && act.capacity.value != null ? act.capacity.value : 1) || 1
+    var cat = String(act.category || '').toLowerCase()
+    var um = activityMeta.getUnifiedMeta(act.id, act.category, act)
+
+    // 武类（炼体）：卡路里按 caloriesPerUnit 计入活动消耗 totalCalories
+    // 食类（饮食）：nutrition + 饮食摄入 calories（营养+饮食摄入 calories 一并入营养摄入）
+    if (cat === 'shi' || cat === 'diet') {
+      nutrition.protein += Number((um.nutrition && um.nutrition.protein) || 0) * qty
+      nutrition.carbs   += Number((um.nutrition && um.nutrition.carbs)   || 0) * qty
+      nutrition.fat     += Number((um.nutrition && um.nutrition.fat)     || 0) * qty
+      nutrition.calories += Number(um.caloriesPerUnit || 0) * qty
+    } else {
+      // 武/其他所有：caloriesPerUnit 计为活动消耗
+      totalCalories += Number(um.caloriesPerUnit || 0) * qty
+    }
+
+    // debuff calorieIntakePerUnit：加到饮食摄入卡路里（放纵额外摄入）
+    if (um.calorieIntakePerUnit) nutrition.calories += Number(um.calorieIntakePerUnit) * qty
+
+    // 学/业/放纵现实价值（不参与偏离度修为，仅展示）
+    studyMinutes += Number(um.minutesPerUnit || 0) * qty
+    workOutput   += Number(um.outputPerUnit    || 0) * qty
+    debuffHours  += Number(um.timeCostPerUnit  || 0) * qty
+  }
+
+  var rnd = function(v) { return Math.round(v * 10) / 10 }
+  return {
+    totalCalories: Math.round(totalCalories),
+    nutrition: {
+      protein:  rnd(nutrition.protein),
+      carbs:    rnd(nutrition.carbs),
+      fat:      rnd(nutrition.fat),
+      calories: Math.round(nutrition.calories)
+    },
+    studyMinutes: Math.round(studyMinutes),
+    workOutput:   rnd(workOutput),
+    debuffHours:  rnd(debuffHours)
+  }
+}
+
 module.exports = {
   calcTemplateTotalProgress: calcTemplateTotalProgress,
   calcWuTemplateResult: calcWuTemplateResult,
   calcShiTemplateResult: calcShiTemplateResult,
+  calcStudyTemplateResult: calcStudyTemplateResult,
+  calcWorkTemplateResult: calcWorkTemplateResult,
+  calcDebuffTemplateResult: calcDebuffTemplateResult,
+  aggregateTemplateForPrediction: aggregateTemplateForPrediction,
   distributeProgressToActivities: distributeProgressToActivities
 }

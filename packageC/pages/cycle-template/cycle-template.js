@@ -9,7 +9,10 @@ Page({
     todaySkipped: false,
     loading: false,
     todayScore: 0,
-    progressPct: 0
+    progressPct: 0,
+    predictResult: null,
+    predictLoading: false,
+    runCount: 0
   },
 
   onLoad: function(options) {
@@ -134,6 +137,40 @@ Page({
       playlist: pl,
       todayScore: todayScore,
       progressPct: pct
+    });
+    // 歌单完整信息加载完后自动执行一次预测
+    this._runPredict();
+  },
+
+  _runPredict: function() {
+    var that = this;
+    var id = this.data.playlistId;
+    if (!id) return;
+    // 收集本地 ctmpl_ 草稿（云函数无 wx.getStorageSync 可用，需前端透传）
+    var localTpls = [];
+    try {
+      if (lifeTemplate && typeof lifeTemplate.getLocalCustomTemplates === 'function') {
+        localTpls = lifeTemplate.getLocalCustomTemplates() || [];
+      }
+    } catch (e) { localTpls = []; }
+    this.setData({ predictLoading: true, runCount: this.data.runCount + 1 });
+    wx.cloud.callFunction({
+      name: 'cycle-manager',
+      data: { action: 'predict', id: id, localTemplates: localTpls },
+      success: function(r) {
+        var ret = r.result || {};
+        if (ret.ok && ret.data) {
+          that.setData({ predictResult: ret.data, predictLoading: false });
+        } else {
+          that.setData({ predictLoading: false, predictResult: null });
+          var msg = (ret && ret.error) || '预测失败';
+          app.showSystemToast(msg);
+        }
+      },
+      fail: function() {
+        that.setData({ predictLoading: false });
+        app.showSystemToast('预测请求失败');
+      }
     });
   },
 

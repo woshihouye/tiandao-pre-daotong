@@ -167,6 +167,43 @@ var SHI_ACTIVITY_META = {
   blank_diet: { nutrition: { protein: 10, carbs: 20, fat: 8 }, caloriesPerUnit: 200 }
 }
 
+// 学·识类活动元数据
+var STUDY_ACTIVITY_META = {
+  read_book:        { minutesPerUnit: 30, knowledgePerUnit: 1, category: 'reading' },
+  read_paper:       { minutesPerUnit: 45, knowledgePerUnit: 1.5, category: 'reading' },
+  watch_course:     { minutesPerUnit: 60, knowledgePerUnit: 2, category: 'video' },
+  take_notes:       { minutesPerUnit: 20, knowledgePerUnit: 0.5, category: 'output' },
+  review_flashcard: { minutesPerUnit: 15, knowledgePerUnit: 0.3, category: 'review' },
+  foreign_lang:     { minutesPerUnit: 30, knowledgePerUnit: 1, category: 'language' },
+  write_essay:      { minutesPerUnit: 60, knowledgePerUnit: 2, category: 'output' },
+  problem_solving:  { minutesPerUnit: 45, knowledgePerUnit: 1.5, category: 'thinking' },
+  blank_study:      { minutesPerUnit: 30, knowledgePerUnit: 1, category: 'general' }
+}
+
+// 业·事类活动元数据
+var WORK_ACTIVITY_META = {
+  project_proposal: { outputPerUnit: 1, category: 'plan' },
+  code_commit:      { outputPerUnit: 1, category: 'engineering' },
+  meeting_sync:     { outputPerUnit: 0.3, category: 'sync' },
+  email_process:    { outputPerUnit: 0.2, category: 'admin' },
+  design_review:    { outputPerUnit: 0.8, category: 'review' },
+  product_design:   { outputPerUnit: 1.2, category: 'design' },
+  report_writing:   { outputPerUnit: 1, category: 'output' },
+  customer_talk:    { outputPerUnit: 0.5, category: 'communication' },
+  blank_work:       { outputPerUnit: 1, category: 'general' }
+}
+
+// 堕·放纵类活动元数据（debuff，反向计入现实价值）
+var DEBUFF_ACTIVITY_META = {
+  game_addiction:    { timeCostPerUnit: 2, calorieIntakePerUnit: 0, category: 'gaming' },
+  binge_scroll:      { timeCostPerUnit: 1, calorieIntakePerUnit: 0, category: 'social' },
+  late_night_snack:  { timeCostPerUnit: 0.2, calorieIntakePerUnit: 400, category: 'diet' },
+  alcohol:           { timeCostPerUnit: 0.5, calorieIntakePerUnit: 300, category: 'substance' },
+  skip_meal:         { timeCostPerUnit: 0.1, calorieIntakePerUnit: -500, category: 'diet' },
+  oversleep:         { timeCostPerUnit: 2, calorieIntakePerUnit: 0, category: 'rest' },
+  blank_debuff:      { timeCostPerUnit: 1, calorieIntakePerUnit: 0, category: 'general' }
+}
+
 // 肌群名称映射
 var MUSCLE_NAMES = {
   chest: '胸肌',
@@ -207,6 +244,23 @@ function getActivityMeta(activityId, category, act) {
       nutrition: { carbs: 10 },
       caloriesPerUnit: 50
     }
+  } else if (category === 'study' || category === 'knowledge') {
+    base = STUDY_ACTIVITY_META[activityId] || {
+      minutesPerUnit: 30,
+      knowledgePerUnit: 1,
+      category: 'general'
+    }
+  } else if (category === 'work' || category === 'career') {
+    base = WORK_ACTIVITY_META[activityId] || {
+      outputPerUnit: 1,
+      category: 'general'
+    }
+  } else if (category === 'debuff' || category === 'vice') {
+    base = DEBUFF_ACTIVITY_META[activityId] || {
+      timeCostPerUnit: 1,
+      calorieIntakePerUnit: 0,
+      category: 'general'
+    }
   }
 
   // 若活动自带 customMeta，浅合并覆盖内置元数据
@@ -222,10 +276,36 @@ function getActivityMeta(activityId, category, act) {
   return base
 }
 
+/**
+ * 根据活动 id/category 自动推断类型并返回可用元数据（按 category 优先兜底）
+ * 返回统一结构：{ caloriesPerUnit, nutrition, muscles, minutesPerUnit, knowledgePerUnit, outputPerUnit, timeCostPerUnit, calorieIntakePerUnit }
+ */
+function getUnifiedMeta(activityId, actCategory, act) {
+  var m = getActivityMeta(activityId, actCategory, act) || {}
+  // 尝试遍历所有分类（有些活动可能未带 category，按 id 模糊推断 study/work/debuff 不存在则走 wu）
+  if (!m || Object.keys(m).length === 0) {
+    m = STUDY_ACTIVITY_META[activityId] || WORK_ACTIVITY_META[activityId] || DEBUFF_ACTIVITY_META[activityId] || getActivityMeta(activityId, 'wu', act)
+  }
+  return {
+    caloriesPerUnit: Number(m.caloriesPerUnit || 0),
+    nutrition: m.nutrition || { protein: 0, carbs: 0, fat: 0 },
+    muscles: m.muscles || null,
+    minutesPerUnit: Number(m.minutesPerUnit || 0),
+    knowledgePerUnit: Number(m.knowledgePerUnit || 0),
+    outputPerUnit: Number(m.outputPerUnit || 0),
+    timeCostPerUnit: Number(m.timeCostPerUnit || 0),
+    calorieIntakePerUnit: Number(m.calorieIntakePerUnit || 0)
+  }
+}
+
 module.exports = {
   WU_ACTIVITY_META: WU_ACTIVITY_META,
   SHI_ACTIVITY_META: SHI_ACTIVITY_META,
+  STUDY_ACTIVITY_META: STUDY_ACTIVITY_META,
+  WORK_ACTIVITY_META: WORK_ACTIVITY_META,
+  DEBUFF_ACTIVITY_META: DEBUFF_ACTIVITY_META,
   MUSCLE_NAMES: MUSCLE_NAMES,
   MUSCLE_DISPLAY_ORDER: MUSCLE_DISPLAY_ORDER,
-  getActivityMeta: getActivityMeta
+  getActivityMeta: getActivityMeta,
+  getUnifiedMeta: getUnifiedMeta
 }

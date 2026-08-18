@@ -171,6 +171,66 @@
     </view>
   </view>
 
+  <!-- ═══════════ 修行目标（最优区间） ═══════════ -->
+  <view class="optimal-card" wx:if="{{templateType === 'daily' || templateType === 'pool'}}">
+    <view class="optimal-head">
+      <text class="optimal-title">🎯 修行目标（最优区间）</text>
+      <view class="optimal-apply" bindtap="applyDefaultOptimalTargets">使用系统推荐</view>
+    </view>
+    <view class="optimal-sub">偏离最优区间会按档位递减修为（活动封顶 5.0 / 饮食封顶 2.5）</view>
+
+    <view class="optimal-group">
+      <view class="optimal-row">
+        <text class="optimal-label">🔥 活动消耗</text>
+        <view class="optimal-range">
+          <input class="optimal-input" type="digit" value="{{optimalTargets.activity.min}}" data-field="activity.min" bindinput="onOptimalTargetInput"/>
+          <text class="optimal-range-tilde">~</text>
+          <input class="optimal-input" type="digit" value="{{optimalTargets.activity.max}}" data-field="activity.max" bindinput="onOptimalTargetInput"/>
+          <text class="optimal-unit">千卡/日</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="optimal-group optimal-nutrition-group">
+      <view class="optimal-row">
+        <text class="optimal-label">🥩 蛋白质</text>
+        <view class="optimal-range">
+          <input class="optimal-input" type="digit" value="{{optimalTargets.nutrition.protein.min}}" data-field="nutrition.protein.min" bindinput="onOptimalTargetInput"/>
+          <text class="optimal-range-tilde">~</text>
+          <input class="optimal-input" type="digit" value="{{optimalTargets.nutrition.protein.max}}" data-field="nutrition.protein.max" bindinput="onOptimalTargetInput"/>
+          <text class="optimal-unit">g/日</text>
+        </view>
+      </view>
+      <view class="optimal-row">
+        <text class="optimal-label">🍚 碳水</text>
+        <view class="optimal-range">
+          <input class="optimal-input" type="digit" value="{{optimalTargets.nutrition.carbs.min}}" data-field="nutrition.carbs.min" bindinput="onOptimalTargetInput"/>
+          <text class="optimal-range-tilde">~</text>
+          <input class="optimal-input" type="digit" value="{{optimalTargets.nutrition.carbs.max}}" data-field="nutrition.carbs.max" bindinput="onOptimalTargetInput"/>
+          <text class="optimal-unit">g/日</text>
+        </view>
+      </view>
+      <view class="optimal-row">
+        <text class="optimal-label">🥑 脂肪</text>
+        <view class="optimal-range">
+          <input class="optimal-input" type="digit" value="{{optimalTargets.nutrition.fat.min}}" data-field="nutrition.fat.min" bindinput="onOptimalTargetInput"/>
+          <text class="optimal-range-tilde">~</text>
+          <input class="optimal-input" type="digit" value="{{optimalTargets.nutrition.fat.max}}" data-field="nutrition.fat.max" bindinput="onOptimalTargetInput"/>
+          <text class="optimal-unit">g/日</text>
+        </view>
+      </view>
+      <view class="optimal-row">
+        <text class="optimal-label">⚖️ 总热量</text>
+        <view class="optimal-range">
+          <input class="optimal-input" type="digit" value="{{optimalTargets.nutrition.calories.min}}" data-field="nutrition.calories.min" bindinput="onOptimalTargetInput"/>
+          <text class="optimal-range-tilde">~</text>
+          <input class="optimal-input" type="digit" value="{{optimalTargets.nutrition.calories.max}}" data-field="nutrition.calories.max" bindinput="onOptimalTargetInput"/>
+          <text class="optimal-unit">千卡/日</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <!-- 分隔线 -->
   <view class="section-divider">
     <view class="divider-line"></view>

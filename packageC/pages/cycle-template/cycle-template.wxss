@@ -199,3 +199,128 @@
   border: 1rpx solid #ef4444;
   background: transparent;
 }
+
+/* ===== 预测卡 ===== */
+.predict-card {
+  background: linear-gradient(135deg, #fff7ed 0%, #ede9fe 100%);
+  border: 1rpx solid #c4b5fd;
+}
+.predict-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 18rpx;
+}
+.predict-title {
+  font-size: 30rpx; font-weight: 700; color: #6d28d9;
+}
+.predict-refresh {
+  padding: 10rpx 20rpx; background: #8b5cf6; color: #fff;
+  border-radius: 30rpx; font-size: 24rpx; font-weight: 500;
+}
+.predict-refresh.loading {
+  background: #d1d5db; color: #fff;
+}
+.predict-score-row {
+  background: rgba(255,255,255,0.7);
+  border-radius: 18rpx;
+  padding: 24rpx 22rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(139, 92, 246, 0.08);
+}
+.predict-score-main {
+  display: flex; align-items: baseline; justify-content: space-between;
+}
+.predict-score-label {
+  font-size: 26rpx; color: #6b7280; font-weight: 500;
+}
+.predict-score-val {
+  font-size: 56rpx; font-weight: 800; color: #7c3aed; letter-spacing: -1rpx;
+}
+.predict-score-val.predict-neg {
+  color: #dc2626;
+}
+.predict-score-sub {
+  display: flex; gap: 14rpx; margin-top: 14rpx;
+}
+.predict-chip {
+  padding: 6rpx 18rpx;
+  border-radius: 30rpx;
+  font-size: 22rpx; font-weight: 600;
+}
+.predict-chip.chip-wu {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+}
+.predict-chip.chip-shi {
+  background: rgba(245, 158, 11, 0.16);
+  color: #b45309;
+}
+.predict-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14rpx;
+  margin-bottom: 18rpx;
+}
+.predict-cell {
+  background: rgba(255,255,255,0.85);
+  border-radius: 16rpx;
+  padding: 16rpx 10rpx;
+  text-align: center;
+  position: relative;
+}
+.predict-cell-icon {
+  font-size: 32rpx;
+  display: block;
+  line-height: 1;
+}
+.predict-cell-value {
+  font-size: 30rpx; font-weight: 800; color: #1f2937;
+  margin-right: 4rpx;
+}
+.predict-cell-unit {
+  font-size: 18rpx; color: #6b7280;
+}
+.predict-cell-name {
+  margin-top: 4rpx;
+  font-size: 20rpx; color: #6b7280;
+  display: block;
+}
+.cell-burn { background: rgba(239, 68, 68, 0.08); }
+.cell-prot { background: rgba(16, 185, 129, 0.08); }
+.cell-carb { background: rgba(245, 158, 11, 0.08); }
+.cell-fat  { background: rgba(99, 102, 241, 0.08); }
+.predict-reality {
+  background: rgba(255,255,255,0.7);
+  border-radius: 14rpx;
+  padding: 14rpx 16rpx;
+  font-size: 22rpx;
+  color: #374151;
+  line-height: 1.6;
+  display: flex; flex-wrap: wrap; align-items: center;
+}
+.reality-item { flex: 1; min-width: 180rpx; }
+.reality-sep  { color: #c7d2fe; margin: 0 4rpx; }
+.predict-count {
+  margin-top: 14rpx;
+  font-size: 22rpx; color: #6b7280;
+  padding-left: 4rpx;
+}
+.predict-hint {
+  margin-top: 16rpx;
+  padding: 14rpx 16rpx;
+  background: rgba(124, 58, 237, 0.06);
+  border-radius: 12rpx;
+  border-left: 6rpx solid #a78bfa;
+}
+.predict-hint-line {
+  display: block;
+  font-size: 22rpx; color: #6d28d9; line-height: 1.7;
+}
+.predict-empty {
+  text-align: center;
+  padding: 36rpx 20rpx;
+  color: #9ca3af;
+  font-size: 24rpx;
+}
+.predict-empty.loading {
+  color: #8b5cf6;
+}

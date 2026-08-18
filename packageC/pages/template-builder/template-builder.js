@@ -1,6 +1,7 @@
 // 自建模板配置页
 var app = getApp()
 var Cart = require('../../../utils/cart.js')
+var optimalScore = require('../../../utils/optimal-score.js')
 
 /** 存储 key */
 var CUSTOM_TEMPLATES_KEY = 'tiandao_custom_templates_'
@@ -97,7 +98,14 @@ Page({
 
     // 历史导入浮层
     showHistoryPopup: false,
-    historyActivities: []
+    historyActivities: [],
+
+    // 修行目标（最优区间）
+    optimalTargets: (optimalScore && optimalScore.DEFAULT_OPTIMAL_TARGETS) ? JSON.parse(JSON.stringify(optimalScore.DEFAULT_OPTIMAL_TARGETS)) : {
+      activity: { min: 300, max: 600 },
+      nutrition: { protein: { min: 50, max: 80 }, carbs: { min: 200, max: 300 }, fat: { min: 40, max: 70 }, calories: { min: 1800, max: 2400 } }
+    },
+    defaultOptimalTargets: null
   },
 
   // ==================== 生命周期 ====================
@@ -933,10 +941,99 @@ Page({
       templates.unshift(template)
     }
 
+    // 写入最优区间（日模板/合道模板）
+    if (template.type === 'daily' || template.type === 'pool') {
+      template.optimalTargets = this.data.optimalTargets
+    }
+
+    // 保存到本地存储
+    var key = this._getStorageKey()
+    var templates = []
+    try { templates = wx.getStorageSync(key) || [] } catch(e) {}
+
+    var found = false
+    for (var i = 0; i < templates.length; i++) {
+      if (templates[i].id === template.id) {
+        var existing = templates[i] || {}
+        if (existing.inheritedFrom) {
+          template.inheritedFrom = existing.inheritedFrom
+          template.inheritedAt = existing.inheritedAt || Date.now()
+          template.dirty = true
+        }
+        templates[i] = template
+        found = true
+        break
+      }
+    }
+    if (!found) {
+      templates.unshift(template)
+    }
+
     try { wx.setStorageSync(key, templates) } catch(e) {}
 
     wx.showToast({ title: '保存成功', icon: 'success' })
     setTimeout(function() { wx.navigateBack() }, 800)
+  },
+
+  // 最优区间：输入某一项 min/max（field 形如 "activity.min" / "nutrition.protein.max"）
+  onOptimalTargetInput: function(e) {
+    var field = e.currentTarget.dataset.field || ''
+    var val = parseFloat(e.detail.value)
+    if (isNaN(val) || val < 0) return
+    var parts = field.split('.')
+    var t = JSON.parse(JSON.stringify(this.data.optimalTargets || {}))
+    if (parts.length === 2) {
+      if (!t[parts[0]]) t[parts[0]] = {}
+      t[parts[0]][parts[1]] = Math.round(val * 10) / 10
+    } else if (parts.length === 3) {
+      if (!t[parts[0]]) t[parts[0]] = {}
+      if (!t[parts[0]][parts[1]]) t[parts[0]][parts[1]] = {}
+      t[parts[0]][parts[1]][parts[2]] = Math.round(val * 10) / 10
+    }
+    this.setData({ optimalTargets: t })
+  },
+
+  // 使用系统推荐（按 bodyProfile 计算）作为默认最优区间
+  applyDefaultOptimalTargets: function() {
+    var def = this._buildDefaultTargetsFromProfile()
+    if (!def) return
+    this.setData({ optimalTargets: def })
+    wx.showToast({ title: '已应用推荐区间', icon: 'success' })
+  },
+
+  // 基于用户 bodyProfile 计算推荐默认区间（无则用全局 DEFAULT_OPTIMAL_TARGETS）
+  _buildDefaultTargetsFromProfile: function() {
+    var cached = this.data.defaultOptimalTargets
+    if (cached) return cached
+    var bp = null
+    try {
+      var profile = (app.globalData && app.globalData.userProfile) || {}
+      if (profile && (profile.weightKg || profile.bodyProfile)) {
+        bp = profile.bodyProfile || {
+          weightKg: profile.weightKg,
+          heightCm: profile.heightCm,
+          age: profile.age || 25,
+          gender: profile.gender || 'male',
+          goal: profile.goal || 'maintain',
+          activityLevel: profile.activityLevel || 1.375
+        }
+      }
+    } catch (e) { bp = null }
+    var def
+    if (optimalScore && typeof optimalScore.calcDefaultTargetsByBodyProfile === 'function' && bp) {
+      def = optimalScore.calcDefaultTargetsByBodyProfile(bp)
+    } else if (optimalScore && optimalScore.DEFAULT_OPTIMAL_TARGETS) {
+      def = JSON.parse(JSON.stringify(optimalScore.DEFAULT_OPTIMAL_TARGETS))
+    } else {
+      def = {
+        activity: { min: 300, max: 600 },
+        nutrition: {
+          protein: { min: 50, max: 80 }, carbs: { min: 200, max: 300 }, fat: { min: 40, max: 70 }, calories: { min: 1800, max: 2400 }
+        }
+      }
+    }
+    this.setData({ defaultOptimalTargets: def })
+    return def
   },
 
   // ==================== 编辑已有模板 ====================
@@ -965,7 +1062,11 @@ Page({
     })
 
     if (found.type === 'daily') {
-      this.setData({ timeSlots: found.timeSlots || DEFAULT_SLOTS, currentSlotId: 'dawn' })
+      this.setData({
+        timeSlots: found.timeSlots || DEFAULT_SLOTS,
+        currentSlotId: 'dawn',
+        optimalTargets: found.optimalTargets || (optimalScore && optimalScore.DEFAULT_OPTIMAL_TARGETS ? JSON.parse(JSON.stringify(optimalScore.DEFAULT_OPTIMAL_TARGETS)) : null) || this.data.optimalTargets
+      })
       this._initWeekData()
     } else if (found.type === 'weekly') {
       this._initTimeSlots()
@@ -975,7 +1076,8 @@ Page({
       this._initWeekData()
       this.setData({
         poolActivities: found.poolActivities || [],
-        scoreTarget: String(found.scoreTarget || '')
+        scoreTarget: String(found.scoreTarget || ''),
+        optimalTargets: found.optimalTargets || (optimalScore && optimalScore.DEFAULT_OPTIMAL_TARGETS ? JSON.parse(JSON.stringify(optimalScore.DEFAULT_OPTIMAL_TARGETS)) : null) || this.data.optimalTargets
       })
     }
 

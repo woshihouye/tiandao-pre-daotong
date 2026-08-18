@@ -24,6 +24,80 @@
     <view class="today-skipped" wx:else>暂无</view>
   </view>
 
+  <view class="predict-card card">
+    <view class="predict-head">
+      <text class="predict-title">🎲 执行一轮预测</text>
+      <view class="predict-refresh {{predictLoading ? 'loading' : ''}}" bindtap="_runPredict" wx:if="{{!predictLoading}}">↻ 刷新</view>
+      <view class="predict-refresh loading" wx:else>预测中...</view>
+    </view>
+
+    <block wx:if="{{predictResult}}">
+      <view class="predict-score-row">
+        <view class="predict-score-main">
+          <text class="predict-score-label">✨ 预计修为</text>
+          <text class="predict-score-val {{predictResult.totalScore >= 0 ? '' : 'predict-neg'}}">+{{predictResult.totalScore}}</text>
+        </view>
+        <view class="predict-score-sub">
+          <text class="predict-chip chip-wu">活动 +{{predictResult.totalActivityScore}}</text>
+          <text class="predict-chip chip-shi">饮食 +{{predictResult.totalNutritionScore}}</text>
+        </view>
+      </view>
+
+      <view class="predict-grid">
+        <view class="predict-cell cell-burn">
+          <text class="predict-cell-icon">🔥</text>
+          <view>
+            <text class="predict-cell-value">{{predictResult.reality.totalCalories}}</text>
+            <text class="predict-cell-unit">千卡</text>
+          </view>
+          <text class="predict-cell-name">活动消耗</text>
+        </view>
+        <view class="predict-cell cell-prot">
+          <text class="predict-cell-icon">🥩</text>
+          <view>
+            <text class="predict-cell-value">{{predictResult.reality.protein}}</text>
+            <text class="predict-cell-unit">g</text>
+          </view>
+          <text class="predict-cell-name">蛋白</text>
+        </view>
+        <view class="predict-cell cell-carb">
+          <text class="predict-cell-icon">🍚</text>
+          <view>
+            <text class="predict-cell-value">{{predictResult.reality.carbs}}</text>
+            <text class="predict-cell-unit">g</text>
+          </view>
+          <text class="predict-cell-name">碳水</text>
+        </view>
+        <view class="predict-cell cell-fat">
+          <text class="predict-cell-icon">🥑</text>
+          <view>
+            <text class="predict-cell-value">{{predictResult.reality.fat}}</text>
+            <text class="predict-cell-unit">g</text>
+          </view>
+          <text class="predict-cell-name">脂肪</text>
+        </view>
+      </view>
+
+      <view class="predict-reality">
+        <text class="reality-item">📖 学习 {{predictResult.reality.studyMinutes}} 分钟</text>
+        <text class="reality-sep">｜</text>
+        <text class="reality-item">💼 成果 {{predictResult.reality.workOutput}} 项</text>
+        <text class="reality-sep">｜</text>
+        <text class="reality-item">⚠️ 放纵 {{predictResult.reality.debuffHours}} 小时</text>
+      </view>
+
+      <view class="predict-count">已启用 {{predictResult.itemCount}} 首日模板参与预测</view>
+
+      <view class="predict-hint">
+        <text class="predict-hint-line">💡 换算说明：每 150 千卡 ≈ 1 修为分 · 蛋白 10g ≈ 0.15 营养分</text>
+        <text class="predict-hint-line">🎯 偏离最优区间会按档位递减 · 大幅偏离将倒扣修为（活动封顶 5.0 / 饮食封顶 2.5）</text>
+      </view>
+    </block>
+
+    <view class="predict-empty" wx:elif="{{!predictLoading}}">点击右上刷新，或加载完成自动预测</view>
+    <view class="predict-empty loading" wx:else>正在分析歌单修为产出...</view>
+  </view>
+
   <view class="section card">
     <view class="section-title">歌单内容</view>
     <view class="section-sub" wx:if="{{playlist}}">共 {{playlist.items.length}} 首</view>
