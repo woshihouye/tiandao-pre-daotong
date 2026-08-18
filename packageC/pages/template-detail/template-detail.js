@@ -104,6 +104,48 @@ Page({
         return
       }
 
+      // ==== 【单向同步】继承副本（读取时同步 + 1h 本地短路） ====
+      if (template && template.inheritedFrom) {
+        var that = this
+        var now = Date.now()
+        // 【阻塞点1】本地短路：inheritedAt 存在且距今 < 3600000（1 小时） → 跳过云端拉取
+        if (template.inheritedAt != null && (now - Number(template.inheritedAt)) < 3600000) {
+          that._renderLocalTemplate(template)
+          // （广场来源仍可单独加载互动数据）
+          if (that.data.fromPlaza) that.loadCloudDetail()
+          return
+        }
+        // 异步拉师父新版：不阻塞首屏渲染
+        that._renderLocalTemplate(template)
+        if (that.data.fromPlaza) that.loadCloudDetail()
+        fetchTemplateDetail(template.inheritedFrom).then(function(mr) {
+          var mentorLatest = mr && mr.template
+          if (!mentorLatest) return
+          var mentorUpdatedAt = Number(mentorLatest.updatedAt || 0)
+          var inheritedAt = Number(template.inheritedAt || 0)
+          if (!(mentorUpdatedAt > inheritedAt)) return
+          if (template.dirty === true) {
+            // dirty=true：徒弟改了自己的副本，不自动覆盖，顶部提示
+            wx.showModal({
+              title: '师父更新了模板',
+              content: '你的副本已有自定义改动，是否采纳师父的最新版？（采纳会覆盖你当前的修改）',
+              confirmText: '采纳',
+              cancelText: '忽略',
+              success: function(mr2) {
+                if (!mr2.confirm) return
+                that._applyMentorLatest(template, mentorLatest, { keepDirty: true })
+              }
+            })
+            return
+          }
+          // dirty=false：师父更新了，直接覆盖本地副本（保留 id/inheritedFrom/inheritedAt，dirty 仍 false）
+          that._applyMentorLatest(template, mentorLatest, { keepDirty: false })
+        }).catch(function(e) {
+          console.warn('[inherit sync] 拉取师父模板失败', e && e.message)
+        })
+        return
+      }
+
       const profile = (app.globalData && app.globalData.userProfile) || {}
       const totalCultivation = Number(profile.totalCultivation || 0)
       const stageInfo = require('../../../utils/cultivation-config.js').getCultivationStage(totalCultivation)
@@ -148,6 +190,70 @@ Page({
       console.error('加载模板详情失败', error)
       app.showSystemToast('模板加载失败')
     }
+  },
+
+  _renderLocalTemplate: function(template) {
+    try {
+      var profile = (app.globalData && app.globalData.userProfile) || {}
+      var totalCultivation = Number(profile.totalCultivation || 0)
+      var stageInfo = require('../../../utils/cultivation-config.js').getCultivationStage(totalCultivation)
+      var realm = { name: stageInfo.stage.name, stage: stageInfo.subStageIndex + 1, remaining: 0 }
+      var todayScore = Number((app.globalData && app.globalData.todayScore) || 0)
+      var dailyCap = Number(template.dailyCap || 40)
+      var streakDays = Number(profile.streakDays || 0)
+      var buffTip = ''
+      if (template.extras && template.extras.streakBuffDays) {
+        buffTip = streakDays >= template.extras.streakBuffDays
+          ? '已激活「' + (template.extras.streakBuffName || '养颜buff') + '」：日常积分+' + Math.round((template.extras.streakBuffRate || 0) * 100) + '%'
+          : '连续修行 ' + template.extras.streakBuffDays + ' 天可解锁「' + (template.extras.streakBuffName || '养颜buff') + '」'
+      } else if (template.extras && template.extras.streakRewardDays) {
+        buffTip = '连续学习每满 ' + template.extras.streakRewardDays + ' 天，额外 +' + template.extras.streakRewardScore + ' 修为'
+      } else if (template.extras && template.extras.weeklyPlanReward) {
+        buffTip = '完成周计划可额外 +' + template.extras.weeklyPlanReward + ' 修为'
+      }
+      var taskStates = (template.tasks || []).map(function(t) { return Object.assign({}, t) })
+      this.setData({
+        template: template,
+        todayScore: todayScore,
+        dailyCap: dailyCap,
+        remainScore: Math.max(0, dailyCap - todayScore),
+        realm: realm,
+        taskStates: taskStates,
+        timeSlotGroups: this.buildTimeSlotGroups(template),
+        streakDays: streakDays,
+        buffTip: buffTip,
+        canEdit: template.category === 'custom'
+      })
+      wx.setNavigationBarTitle({ title: template.name || '人生模板' })
+    } catch(e) {
+      console.error('[render local]', e && e.message)
+    }
+  },
+
+  _applyMentorLatest: function(oldCopy, mentorLatest, opts) {
+    opts = opts || {}
+    var converted = this.convertTasksToDaily(mentorLatest)
+    converted.id = oldCopy.id
+    converted.inheritedFrom = oldCopy.inheritedFrom
+    converted.inheritedAt = Date.now()
+    converted.dirty = opts.keepDirty ? true : false
+    converted.name = (oldCopy && oldCopy.name) ? oldCopy.name.replace(/·师父版$/, '') + '·师父版' : ((mentorLatest.name || '传承模板') + '·师父版')
+    var uid = ((app.globalData && app.globalData.userId) || 'default')
+    var key = 'tiandao_custom_templates_' + uid
+    var list = []
+    try { list = wx.getStorageSync(key) || [] } catch(e) {}
+    var found = -1
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === converted.id) { found = i; break }
+    }
+    if (found >= 0) list.splice(found, 1, converted)
+    else list.unshift(converted)
+    try { wx.setStorageSync(key, list) } catch(e) {}
+    this._renderLocalTemplate(converted)
+    wx.showToast({
+      title: opts.keepDirty ? '已采纳师父最新版' : '已同步师父最新版',
+      icon: 'success'
+    })
   },
 
   loadEliteTemplate() {

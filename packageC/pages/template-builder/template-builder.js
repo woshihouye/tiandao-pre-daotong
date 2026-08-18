@@ -918,6 +918,12 @@ Page({
     var found = false
     for (var i = 0; i < templates.length; i++) {
       if (templates[i].id === template.id) {
+        var existing = templates[i] || {}
+        if (existing.inheritedFrom) {
+          template.inheritedFrom = existing.inheritedFrom
+          template.inheritedAt = existing.inheritedAt || Date.now()
+          template.dirty = true
+        }
         templates[i] = template
         found = true
         break

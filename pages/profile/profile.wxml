@@ -204,6 +204,85 @@
     </view>
   </view>
 
+  <!-- ============================================================
+       模块7: 师徒传承区
+       ============================================================ -->
+  <view class="card mentor-card" wx:if="{{mentor || disciples.length > 0 || !mentor}}">
+    <!-- 我的师父 -->
+    <block wx:if="{{!mentor}}">
+      <view class="mentor-header">
+        <view class="mentor-section-title">🫂 我的师父</view>
+        <view class="mentor-btn" bindtap="openBind">＋ 拜师</view>
+      </view>
+      <view class="disciple-empty">尚未拜师，输入师父的邀请码即可开启传承</view>
+    </block>
+    <block wx:else>
+      <view class="mentor-header">
+        <view class="mentor-section-title">🫂 我的师父</view>
+        <view class="mentor-remove-btn" bindtap="unbindMentor">解除</view>
+      </view>
+      <view class="mentor-info-row">
+        <view class="mentor-avatar" wx:if="{{mentor.avatarUrl}}">
+          <image src="{{mentor.avatarUrl}}"/>
+        </view>
+        <view class="mentor-avatar" wx:else>{{mentor.nickName ? mentor.nickName.charAt(0) : '道'}}</view>
+        <view class="mentor-info-body">
+          <view class="mentor-info-name">{{mentor.nickName || '无名修士'}}</view>
+          <view class="mentor-info-meta">修为 {{mentor.totalCultivation || 0}}</view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 师父的传承 -->
+    <block wx:if="{{mentor}}">
+      <view class="mentor-tpl-title">📜 师父的传承</view>
+      <view class="mentor-tpl-list" wx:if="{{mentorTemplates.length > 0}}">
+        <view class="mentor-tpl-item" wx:for="{{mentorTemplates}}" wx:key="id" data-tpl="{{item}}" bindtap="inheritTemplate">
+          <view class="mentor-tpl-cover">{{item.cover || '道'}}</view>
+          <view class="mentor-tpl-body">
+            <view class="mentor-tpl-name">{{item.name}}</view>
+            <view class="mentor-tpl-meta">{{item.likeCount || 0}} 赞 · 日上限 {{item.dailyCap || 0}}</view>
+          </view>
+          <view class="mentor-tpl-inherit" catchtap="inheritTemplate" data-tpl="{{item}}">继承</view>
+        </view>
+      </view>
+      <view class="tpl-empty" wx:else>师父暂无传承模板</view>
+    </block>
+
+    <!-- 我的徒儿 -->
+    <view style="height:32rpx"></view>
+    <view class="mentor-header">
+      <view class="mentor-section-title">🧑‍🎓 我的徒儿（{{disciples.length}}）</view>
+      <view class="mentor-btn" bindtap="createInvite">收徒</view>
+    </view>
+    <view class="disciple-list" wx:if="{{disciples.length > 0}}">
+      <view class="disciple-item" wx:for="{{disciples}}" wx:key="discipleId">
+        <view class="disciple-avatar" wx:if="{{item.avatarUrl}}">
+          <image src="{{item.avatarUrl}}"/>
+        </view>
+        <view class="disciple-avatar" wx:else>{{item.nickName ? item.nickName.charAt(0) : '修'}}</view>
+        <view class="disciple-body">
+          <view class="disciple-name">{{item.nickName || '无名修士'}}</view>
+          <view class="disciple-score">修为 {{item.totalCultivation || 0}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="disciple-empty" wx:else>点击右上角「收徒」生成邀请码</view>
+  </view>
+
+  <!-- 输入邀请码弹窗 -->
+  <view class="bind-modal-mask" wx:if="{{showBind}}" catchtap="closeBind">
+    <view class="bind-modal" catchtap="noop">
+      <view class="bind-modal-title">输入邀请码</view>
+      <view class="bind-modal-desc">向你的师父索取 6 位邀请码</view>
+      <input class="bind-modal-input" type="number" maxlength="6" placeholder="请输入 6 位邀请码" value="{{bindCode}}" bindinput="onBindCodeInput"/>
+      <view class="bind-modal-actions">
+        <view class="bind-modal-cancel" bindtap="closeBind">取消</view>
+        <view class="bind-modal-confirm" bindtap="confirmBind">{{bindLoading ? '提交中...' : '确认拜师'}}</view>
+      </view>
+    </view>
+  </view>
+
   <!-- 底部操作栏 -->
   <view class="bottom-actions">
     <view class="ba-item" bindtap="goToFavorites">

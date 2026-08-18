@@ -40,6 +40,14 @@ Page({
     // >>> 模块6: 模板
     mainTemplate: null,
     sideTemplates: [],
+    // >>> 模块7: 师徒
+    mentor: null,
+    disciples: [],
+    mentorTemplates: [],
+    inviteCode: '',
+    bindLoading: false,
+    bindCode: '',
+    showBind: false,
     // >>> 状态统计
     sportCount: 0,
     dietCount: 0,
@@ -126,6 +134,167 @@ Page({
     this.loadSignaturePoem()
     this.loadTemplateInfo()
     this.loadSpiritSummary()
+    this.loadMentorRelations()
+  },
+
+  // ==== 师徒模块 ====
+  loadMentorRelations: function() {
+    var that = this
+    wx.cloud.callFunction({
+      name: 'relation-manager',
+      data: { action: 'getMentor' }
+    }).then(function(res) {
+      var r = res.result || {}
+      if (r.ok) {
+        that.setData({ mentor: r.mentor || null })
+        if (r.mentor && r.mentor.mentorId) {
+          that._loadMentorTemplates(r.mentor.mentorId)
+        }
+      }
+    }).catch(function() {})
+    wx.cloud.callFunction({
+      name: 'relation-manager',
+      data: { action: 'getDisciples' }
+    }).then(function(res) {
+      var r = res.result || {}
+      if (r.ok) {
+        that.setData({ disciples: r.disciples || [] })
+      }
+    }).catch(function() {})
+  },
+
+  _loadMentorTemplates: function(mentorId) {
+    var that = this
+    wx.cloud.callFunction({
+      name: 'relation-manager',
+      data: { action: 'getMentorTemplates', mentorId: mentorId }
+    }).then(function(res) {
+      var r = res.result || {}
+      if (r.ok) that.setData({ mentorTemplates: r.templates || [] })
+    }).catch(function() {})
+  },
+
+  createInvite: function() {
+    var that = this
+    wx.cloud.callFunction({
+      name: 'relation-manager',
+      data: { action: 'createInvite' }
+    }).then(function(res) {
+      var r = res.result || {}
+      if (r.ok) {
+        that.setData({ inviteCode: r.code || '' })
+        wx.showModal({
+          title: '收徒邀请码',
+          content: '邀请码 ' + (r.code || '') + '（24小时有效）',
+          showCancel: false,
+          confirmText: '复制'
+        }).then(function(mr) {
+          if (mr && mr.confirm && r.code) {
+            wx.setClipboardData({
+              data: r.code,
+              success: function() { wx.showToast({ title: '邀请码已复制', icon: 'none' }) }
+            })
+          }
+        })
+      } else {
+        wx.showToast({ title: r.error || '生成失败', icon: 'none' })
+      }
+    }).catch(function() { wx.showToast({ title: '网络错误', icon: 'none' }) })
+  },
+
+  openBind: function() {
+    this.setData({ showBind: true, bindCode: '' })
+  },
+
+  closeBind: function() {
+    this.setData({ showBind: false, bindCode: '' })
+  },
+
+  onBindCodeInput: function(e) {
+    this.setData({ bindCode: (e.detail.value || '').trim() })
+  },
+
+  confirmBind: function() {
+    var that = this
+    var code = (this.data.bindCode || '').trim()
+    if (!code) { wx.showToast({ title: '请输入邀请码', icon: 'none' }); return }
+    if (this.data.bindLoading) return
+    this.setData({ bindLoading: true })
+    wx.cloud.callFunction({
+      name: 'relation-manager',
+      data: { action: 'acceptInvite', code: code }
+    }).then(function(res) {
+      that.setData({ bindLoading: false })
+      var r = res.result || {}
+      if (r.ok) {
+        wx.showToast({ title: r.alreadyBound ? '已是该师父的徒弟' : '拜师成功！', icon: 'success' })
+        that.setData({ showBind: false, bindCode: '' })
+        that.loadMentorRelations()
+      } else {
+        wx.showToast({ title: r.error || '拜师失败', icon: 'none' })
+      }
+    }).catch(function() {
+      that.setData({ bindLoading: false })
+      wx.showToast({ title: '网络错误', icon: 'none' })
+    })
+  },
+
+  inheritTemplate: function(e) {
+    var that = this
+    var mtpl = e.currentTarget.dataset.tpl
+    if (!mtpl) return
+    var mid = mtpl.id
+    var lifeTemplate = null
+    try { lifeTemplate = require('../../utils/life-template.js') } catch(e) {}
+    if (!lifeTemplate || !lifeTemplate.fetchTemplateDetail) { wx.showToast({ title: '功能不可用', icon: 'none' }); return }
+    lifeTemplate.fetchTemplateDetail(mid).then(function(res) {
+      var mt = res && res.template
+      if (!mt) { wx.showToast({ title: '模板不存在', icon: 'none' }); return }
+      var page = getCurrentPages().slice(-1)[0] || that
+      if (!page.convertTasksToDaily) {
+        wx.redirectTo({ url: '/packageC/pages/template-detail/template-detail?id=' + mid })
+        wx.showToast({ title: '请手动复制为我的模板', icon: 'none' })
+        return
+      }
+      var daily = page.convertTasksToDaily(mt)
+      daily.name = (mt.name || '传承模板') + '·师父版'
+      daily.inheritedFrom = mid
+      daily.inheritedAt = Date.now()
+      daily.dirty = false
+      var uid = ((app.globalData && app.globalData.userId) || 'default')
+      var list = []
+      try { list = wx.getStorageSync('tiandao_custom_templates_' + uid) || [] } catch(e) {}
+      list.push(daily)
+      wx.setStorageSync('tiandao_custom_templates_' + uid, list)
+      wx.showToast({ title: '已继承师父的模板', icon: 'success' })
+    }).catch(function() { wx.showToast({ title: '继承失败', icon: 'none' }) })
+  },
+
+  unbindMentor: function() {
+    var that = this
+    var men = this.data.mentor
+    if (!men || !men.mentorId) return
+    wx.showModal({
+      title: '解除师徒关系',
+      content: '确定与师父解除师徒关系？解除后不再同步模板。',
+      confirmColor: '#ef4444',
+      success: function(res) {
+        if (!res.confirm) return
+        var uid = ((app.globalData && app.globalData.userId) || '')
+        wx.cloud.callFunction({
+          name: 'relation-manager',
+          data: { action: 'unbind', relationId: men.mentorId + '_' + uid }
+        }).then(function(r) {
+          var rs = r.result || {}
+          if (rs.ok) {
+            wx.showToast({ title: '已解除', icon: 'success' })
+            that.loadMentorRelations()
+          } else {
+            wx.showToast({ title: rs.error || '解除失败', icon: 'none' })
+          }
+        }).catch(function() { wx.showToast({ title: '网络错误', icon: 'none' }) })
+      }
+    })
   },
 
   // 审核中心入口判定：仅管理员（admins 集合 openid）可见，前端不传/不读 adminToken
@@ -482,5 +651,7 @@ Page({
         }
       }
     })
-  }
+  },
+
+  noop: function() {}
 })
