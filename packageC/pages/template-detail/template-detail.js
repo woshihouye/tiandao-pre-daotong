@@ -11,7 +11,6 @@ const {
   postComment,
   getComments,
   deleteComment,
-  publishTemplateCloud
 } = require('../../../utils/life-template.js')
 
 const eliteModule = require('../../../utils/elite-template.js')
@@ -419,25 +418,12 @@ Page({
     })
   },
 
-  // >>> 社交：发布到广场（修改现有 shareTemplate 方法）
+  // >>> 社交：跳发布页（填富媒体 + 发布），不再直接 publishTemplateCloud
   shareTemplateV2: function() {
     var template = this.data.template
     if (!template) return
-    if (!publishTemplateCloud) {
-      // 降级为本地分享
-      wx.navigateTo({
-        url: '/packageC/pages/template-share/template-share?code=' + (template.shareCode || buildShareCode(template.id)) + '&mode=share'
-      })
-      return
-    }
-    var that = this
-    wx.showLoading({ title: '发布中...' })
-    publishTemplateCloud(template).then(function() {
-      wx.hideLoading()
-      app.showSystemToast('道则已发布至广场！', 'success')
-    }).catch(function() {
-      wx.hideLoading()
-      app.showSystemToast('发布失败，请稍后再试')
+    wx.navigateTo({
+      url: '/packageC/pages/template-publish/template-publish?id=' + (template.id || this.templateId)
     })
   },
 

@@ -29,11 +29,26 @@ Page({
   },
 
   loadTemplate: function() {
+    var that = this
     var template = lifeTemplate.getTemplateById(this.data.templateId, lifeTemplate.getLocalCustomTemplates())
-    if (!template) {
-      app.showSystemToast('模板不存在')
+    if (template) {
+      this._applyTemplate(template)
       return
     }
+    lifeTemplate.fetchTemplateDetail(this.data.templateId).then(function(res) {
+      var t = res && res.template
+      if (t) {
+        that._applyTemplate(t)
+      } else {
+        app.showSystemToast('模板不存在')
+      }
+    }).catch(function(err) {
+      console.error('[template-publish] fetchTemplateDetail failed', err)
+      app.showSystemToast('模板加载失败')
+    })
+  },
+
+  _applyTemplate: function(template) {
     this.setData({
       template: template,
       longTextContent: template.longTextContent || '',
