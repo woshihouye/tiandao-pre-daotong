@@ -279,12 +279,35 @@ Page({
 
   processTodayRecords(records, userInfo) {
     console.assert(Array.isArray(records), 'records 必须为数组')
-    const processed = records.map(r => ({
+
+    // ===== A3 / P0-1：先展开批量结构，再映射 =====
+    var flat = [];
+    for (var ri = 0; ri < records.length; ri++) {
+      var r = records[ri] || {};
+      if (Array.isArray(r.records) && r.records.length > 0) {
+        for (var si = 0; si < r.records.length; si++) {
+          var sub = r.records[si] || {};
+          var tabKey = String(sub.tabKey || 'sport');
+          var catMap = { sport: '武·炼体', diet: '食·丹食', study: '悟·修心', work: '工·功业', debuff: '煞·心魔' };
+          flat.push({
+            name: sub.activityName || sub.name || '未知',
+            category: catMap[tabKey] || (tabKey || ''),
+            score: typeof sub.score === 'number' ? sub.score : 0,
+            timestamp: r.timestamp || 0,
+            _id: sub._id || (r._id ? (r._id + '_' + si) : null)
+          });
+        }
+      } else {
+        flat.push(r);
+      }
+    }
+
+    const processed = flat.map(r => ({
       ...r,
       timeStr: this.formatTime(r.timestamp)
     }));
     
-    const todayScore = records.reduce((sum, r) => sum + r.score, 0);
+    const todayScore = processed.reduce((sum, r) => sum + (typeof r.score === 'number' ? r.score : 0), 0);
     const totalCultivation = userInfo.totalCultivation || 0;
     const realm = calculateRealm(totalCultivation);
     
@@ -373,14 +396,21 @@ Page({
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   },
 
-  startFirstRecord: function () {
+  startFirstRecord: function (e) {
+    var dim = e && e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.dim : null;
+    if (dim) getApp().globalData.recordInitialTab = dim;
     wx.switchTab({ url: '/pages/record/record' })
   },
 
   goToRecord(e) {
+    // A4 / P1-4：改走 recordInitialTab 预选 → switchTab 录卡页
     const type = e.currentTarget.dataset.type;
-    wx.navigateTo({
-      url: getDetailPageUrl(type)
+    try {
+      var app = getApp();
+      if (app && app.globalData) app.globalData.recordInitialTab = type;
+    } catch (err) {}
+    wx.switchTab({
+      url: '/pages/record/record'
     });
   },
 

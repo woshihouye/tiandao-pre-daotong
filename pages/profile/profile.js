@@ -16,6 +16,7 @@ Page({
   data: {
     // >>> 模块1: 形象头区
     nickName: '',
+    isDefaultNickname: true,
     avatarText: '修',
     currentRealm: { name: '炼气', stage: 1, index: 0 },
     realmProgress: 0,
@@ -369,6 +370,7 @@ Page({
 
         that.setData({
           nickName: nickName,
+          isDefaultNickname: !nickName || (typeof nickName === 'string' && nickName.indexOf('道友') === 0),
           avatarText: avatarText,
           currentRealm: realm,
           realmProgress: realmProgress,
@@ -391,6 +393,7 @@ Page({
       .catch(function() {
         that.setData({
           nickName: nickName,
+          isDefaultNickname: !nickName || (typeof nickName === 'string' && nickName.indexOf('道友') === 0),
           avatarText: avatarText,
           currentRealm: realm,
           realmProgress: realmProgress,

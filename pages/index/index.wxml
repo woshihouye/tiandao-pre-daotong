@@ -4,15 +4,7 @@
 
   <template is="theme-deco" data="{{themeClass}}"/>
 
-  <view class="vision-entry card-premium card" bindtap="goToVision">
-    <view class="vision-left">
-      <view class="vision-kicker">灵鉴识物</view>
-      <view class="vision-title">叮，系统提示：道眼已开，可勘万象</view>
-      <view class="vision-desc">拍照 / 相册上传 · 识别后手动确认入库</view>
-    </view>
-    <view class="vision-icon">眼</view>
-  </view>
-
+  <!-- 1. 修为面板 realm-card（最顶，保持原位置） -->
   <view class="realm-card card-premium card" bindtap="goToCultivationPage">
     <view class="realm-headline">
       <view class="realm-copy">
@@ -64,243 +56,7 @@
     </view>
   </view>
 
-  <!-- >>> 系统提示面板（使用 system-panel 组件） -->
-  <view wx:if="{{eliteSystemMsg}}" class="sys-panel-wrapper">
-    <system-panel
-      level="{{eliteSystemMsg.level}}"
-      title="{{eliteSystemMsg.title}}"
-      message="{{eliteSystemMsg.message}}"
-      showIcon="{{true}}"
-    />
-  </view>
-  <view wx:else class="system-card card">
-    <view class="panel-title">叮，系统提示</view>
-    <view class="system-message">{{slogan}}</view>
-  </view>
-
-  <!-- v4.0 补天计划入口 -->
-  <view class="butian-entry" wx:if="{{ buTianSummary }}" bindtap="onBuTianTap">
-    <view class="bte-header">
-      <text class="bte-icon">🪨</text>
-      <text class="bte-title">{{ buTianSummary.title }}</text>
-      <text class="bte-arrow">→</text>
-    </view>
-    <view class="bte-desc">{{ buTianSummary.description }}</view>
-    <view class="bte-phase">
-      <text class="bte-phase-name">{{ buTianSummary.phaseName }}阶段</text>
-      <view class="bte-progress-bg">
-        <view class="bte-progress-fill" style="width:{{ buTianSummary.progressPercent }}%"></view>
-      </view>
-      <text class="bte-phase-pct">{{ buTianSummary.progressPercent }}%</text>
-    </view>
-    <view class="bte-reward" wx:if="{{ buTianSummary.phaseGoalDesc }}">目标：{{ buTianSummary.phaseGoalDesc }}</view>
-  </view>
-
-  <!-- >>> 精英模板修炼进度卡（有追随模板时显示） -->
-  <view wx:if="{{eliteJourney && eliteTemplate}}" class="elite-card card" bindtap="goToEliteJourney">
-    <view class="elite-card-header">
-      <view class="elite-kicker">精英引路人</view>
-      <view class="elite-card-arrow">→</view>
-    </view>
-    <view class="elite-card-body">
-      <view class="elite-avatar-wrap">
-        <view class="elite-avatar">{{eliteTemplate.eliteAvatar}}</view>
-        <view class="elite-glow-ring"></view>
-      </view>
-      <view class="elite-info">
-        <view class="elite-name">{{eliteTemplate.eliteName}}</view>
-        <view class="elite-intro">{{eliteTemplate.eliteIntro}}</view>
-        <view class="elite-progress-row">
-          <view class="elite-progress-bar-wrap">
-            <view class="elite-progress-fill" style="width: {{eliteProgress}}%;"></view>
-          </view>
-          <text class="elite-progress-num">{{eliteProgress}}%</text>
-        </view>
-        <view class="elite-phase-name">
-          当前阶段：{{eliteTemplate.phases[eliteJourney.currentPhase - 1].name}}
-        </view>
-      </view>
-    </view>
-    <view class="elite-card-foot">
-      <view class="elite-stat">
-        <text class="elite-stat-val">{{eliteJourney.streakDays}}</text>
-        <text class="elite-stat-label">连续修炼</text>
-      </view>
-      <view class="elite-stat">
-        <text class="elite-stat-val">{{eliteJourney.totalScore}}</text>
-        <text class="elite-stat-label">累计修为</text>
-      </view>
-      <view class="elite-stat">
-        <text class="elite-stat-val highlight">{{eliteMatchRate}}%</text>
-        <text class="elite-stat-label">今日匹配</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- >>> 未追随模板时的引导入口 -->
-  <view wx:if="{{!eliteJourney}}" class="elite-entry-card card" bindtap="goToEliteMarket">
-    <view class="elite-entry-inner">
-      <view class="elite-entry-icon">🌟</view>
-      <view class="elite-entry-content">
-        <view class="elite-entry-title">追随一位精英引路人</view>
-        <view class="elite-entry-desc">选择一位运动、工作或学习精英，以TA的人生模板为蓝图，开启你的系统修炼之路</view>
-      </view>
-      <view class="elite-entry-arrow">→</view>
-    </view>
-  </view>
-
-  <!-- 系统面板：每日任务 -->
-  <view class="tasks-card card" wx:if="{{dailyTasks.length > 0}}">
-    <view class="card-title">叮，今日道途指引</view>
-    <view class="task-list">
-      <view 
-        class="task-item {{item.done ? 'task-done' : ''}}" 
-        wx:for="{{dailyTasks}}" 
-        wx:key="id"
-        data-id="{{item.id}}"
-        bindtap="onTapTask"
-      >
-        <view class="task-left">
-          <view class="task-emoji">{{item.emoji}}</view>
-          <view class="task-body">
-            <view class="task-label">{{item.label}}</view>
-            <view class="task-reward">{{item.rewardText}}</view>
-          </view>
-        </view>
-        <view class="task-check {{item.done ? 'checked' : ''}}">
-          {{item.done ? '✓' : ''}}
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <view class="action-grid">
-    <view class="action-card card" bindtap="goToRecord" data-type="sport">
-      <view class="action-emblem"><text class="action-emblem-text">武</text></view>
-      <view class="action-name">录入修为</view>
-      <view class="action-desc">录入运动修为</view>
-    </view>
-    <view class="action-card card" bindtap="goToRecord" data-type="diet">
-      <view class="action-emblem"><text class="action-emblem-text">食</text></view>
-      <view class="action-name">丹食记录</view>
-      <view class="action-desc">记录饮食摄入</view>
-    </view>
-    <view class="action-card card" bindtap="goToRecord" data-type="debuff">
-      <view class="action-emblem danger"><text class="action-emblem-text">煞</text></view>
-      <view class="action-name">心魔标记</view>
-      <view class="action-desc">标记负面状态</view>
-    </view>
-  </view>
-
-  <view class="action-grid">
-    <view class="action-card card" bindtap="goToDaoChat">
-      <view class="action-emblem"><text class="action-emblem-text">童</text></view>
-      <view class="action-name">道童侍立</view>
-      <view class="action-desc">AI道童对话</view>
-    </view>
-    <view class="action-card card" bindtap="goToDaoEdit">
-      <view class="action-emblem"><text class="action-emblem-text">卷</text></view>
-      <view class="action-name">我的道则</view>
-      <view class="action-desc">自定义维度境界</view>
-    </view>
-  </view>
-
-  <view class="status-card card">
-    <view class="card-title">当前状态</view>
-    <view class="status-chip-group" wx:if="{{records.length > 0}}">
-      <block wx:for="{{records}}" wx:key="_id">
-        <view class="status-chip buff" wx:if="{{item.score > 0}}">
-          {{item.name}}
-        </view>
-        <view class="status-chip debuff" wx:if="{{item.score < 0}}">
-          {{item.name}}
-        </view>
-      </block>
-    </view>
-    <view class="status-empty text-secondary" wx:else>
-      今日尚未生成任何增益或心魔标签
-    </view>
-  </view>
-
-  <!-- 系统面板：今日运势 -->
-  <view class="fortune-card card" wx:if="{{fortune}}">
-    <view class="card-title">今日天道运势</view>
-    <view class="fortune-main">
-      <view class="fortune-level fortune-{{fortune.level}}">{{fortune.label}}</view>
-      <view class="fortune-desc">{{fortune.desc}}</view>
-    </view>
-  </view>
-
-  <view class="template-status card" wx:if="{{learningTemplate}}">
-    <view class="template-panel-top">
-      <view>
-        <view class="panel-title">模板修习中</view>
-        <view class="template-name">{{learningTemplate.name}}</view>
-      </view>
-      <view class="template-meta">
-        <view class="match-badge">匹配 {{dailyMatch}}%</view>
-        <view class="template-sub">预计 {{estDays}} 天大成</view>
-      </view>
-    </view>
-
-    <view class="template-panel-body">
-      <view class="ring-shell">
-        <view class="ring-progress">
-          <view class="ring-inner">
-            <view class="ring-value">{{dailyMatch}}%</view>
-            <view class="ring-label">资质匹配</view>
-          </view>
-        </view>
-      </view>
-
-      <view class="ability-panel">
-        <view class="ability-row">
-          <view class="ability-head">
-            <text>运动完成率</text>
-            <text>{{dailyMatch}}%</text>
-          </view>
-          <view class="ability-track">
-            <view class="ability-fill" style="width: {{dailyMatch}}%;"></view>
-          </view>
-        </view>
-        <view class="ability-row">
-          <view class="ability-head">
-            <text>饮食匹配度</text>
-            <text>{{dailyMatch}}%</text>
-          </view>
-          <view class="ability-track">
-            <view class="ability-fill soft" style="width: {{dailyMatch}}%;"></view>
-          </view>
-        </view>
-        <view class="ability-row">
-          <view class="ability-head">
-            <text>作息合规度</text>
-            <text>{{dailyMatch}}%</text>
-          </view>
-          <view class="ability-track">
-            <view class="ability-fill faint" style="width: {{dailyMatch}}%;"></view>
-          </view>
-        </view>
-        <view class="ability-row">
-          <view class="ability-head">
-            <text>修为连续性</text>
-            <text>{{totalProgress}}%</text>
-          </view>
-          <view class="ability-track">
-            <view class="ability-fill solid" style="width: {{totalProgress}}%;"></view>
-          </view>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- 道牒定场诗 -->
-  <view class="poem-card card" wx:if="{{titlePoem}}">
-    <view class="poem-deco">「</view>
-    <view class="poem-text">{{titlePoem}}</view>
-    <view class="poem-deco right">」</view>
-  </view>
-
+  <!-- 2. 今日修为记录 timeline（上移到第 2 位） -->
   <view class="timeline-card card">
     <view class="card-header">
       <view class="card-title">今日修为记录</view>
@@ -332,6 +88,136 @@
       <view class="empty-text text-secondary">暂无记录，今日尚未开卷修为</view>
     </view>
   </view>
+
+  <!-- 3. 快捷录入横滑行（scroll-view scroll-x，6 入口）-->
+  <view class="quick-row card">
+    <scroll-view class="quick-scroll" scroll-x="true" show-scrollbar="false">
+      <view class="quick-list">
+        <view class="quick-item" bindtap="goToRecord" data-type="sport">
+          <view class="quick-emblem"><text class="qe-text">武</text></view>
+          <text class="quick-label">武·录入</text>
+        </view>
+        <view class="quick-item" bindtap="goToRecord" data-type="diet">
+          <view class="quick-emblem qe-orange"><text class="qe-text">食</text></view>
+          <text class="quick-label">食·丹食</text>
+        </view>
+        <view class="quick-item" bindtap="goToRecord" data-type="debuff">
+          <view class="quick-emblem qe-red"><text class="qe-text">煞</text></view>
+          <text class="quick-label">煞·心魔</text>
+        </view>
+        <view class="quick-item" bindtap="goToDaoChat">
+          <view class="quick-emblem qe-violet"><text class="qe-text">童</text></view>
+          <text class="quick-label">童·道童</text>
+        </view>
+        <view class="quick-item" bindtap="goToDaoEdit">
+          <view class="quick-emblem qe-ink"><text class="qe-text">卷</text></view>
+          <text class="quick-label">卷·道则</text>
+        </view>
+        <view class="quick-item" bindtap="goToVision">
+          <view class="quick-emblem qe-cyan"><text class="qe-text">眼</text></view>
+          <text class="quick-label">眼·灵鉴识物</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 4. 每日任务（保持） -->
+  <view class="tasks-card card" wx:if="{{dailyTasks.length > 0}}">
+    <view class="card-title">叮，今日道途指引</view>
+    <view class="task-list">
+      <view 
+        class="task-item {{item.done ? 'task-done' : ''}}" 
+        wx:for="{{dailyTasks}}" 
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onTapTask"
+      >
+        <view class="task-left">
+          <view class="task-emoji">{{item.emoji}}</view>
+          <view class="task-body">
+            <view class="task-label">{{item.label}}</view>
+            <view class="task-reward">{{item.rewardText}}</view>
+          </view>
+        </view>
+        <view class="task-check {{item.done ? 'checked' : ''}}">
+          {{item.done ? '✓' : ''}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 5. 系统提示（保持，原 L67-79） -->
+  <!-- >>> 系统提示面板（使用 system-panel 组件） -->
+  <view wx:if="{{eliteSystemMsg}}" class="sys-panel-wrapper">
+    <system-panel
+      level="{{eliteSystemMsg.level}}"
+      title="{{eliteSystemMsg.title}}"
+      message="{{eliteSystemMsg.message}}"
+      showIcon="{{true}}"
+    />
+  </view>
+  <view wx:else class="system-card card">
+    <view class="panel-title">叮，系统提示</view>
+    <view class="system-message">{{slogan}}</view>
+  </view>
+
+  <!-- 6. 功能入口胶囊行（scroll-view scroll-x，5 胶囊，按需渲染）-->
+  <view class="capsules-section" wx:if="{{buTianSummary || eliteJourney || !eliteJourney || fortune || learningTemplate || titlePoem}}">
+    <scroll-view class="capsules-scroll" scroll-x="true" show-scrollbar="false">
+      <view class="capsules-list">
+        <!-- 补天计划 -->
+        <view class="capsule cap-bu" wx:if="{{buTianSummary}}" bindtap="onBuTianTap">
+          <text class="cap-icon">🪨</text>
+          <view class="cap-body">
+            <text class="cap-title">{{buTianSummary.title}}</text>
+            <text class="cap-sub">{{buTianSummary.phaseName}}阶段 {{buTianSummary.progressPercent}}%</text>
+          </view>
+        </view>
+        <!-- 精英引路人（有→显示精英名+跳 Journey；无→「追随一位引路人」→跳 Market） -->
+        <view class="capsule cap-elite" wx:if="{{eliteJourney && eliteTemplate}}" bindtap="goToEliteJourney">
+          <text class="cap-icon">👤</text>
+          <view class="cap-body">
+            <text class="cap-title">精英引路人</text>
+            <text class="cap-sub">{{eliteTemplate.eliteName}}</text>
+          </view>
+        </view>
+        <view class="capsule cap-elite entry" wx:if="{{!eliteJourney}}" bindtap="goToEliteMarket">
+          <text class="cap-icon">🌟</text>
+          <view class="cap-body">
+            <text class="cap-title">精英引路人</text>
+            <text class="cap-sub">追随一位引路人</text>
+          </view>
+        </view>
+        <!-- 今日运势 -->
+        <view class="capsule cap-fortune" wx:if="{{fortune}}">
+          <text class="cap-icon">🎴</text>
+          <view class="cap-body">
+            <text class="cap-title">今日运势</text>
+            <text class="cap-sub">{{fortune.label}}</text>
+          </view>
+        </view>
+        <!-- 模板修习 -->
+        <view class="capsule cap-tpl" wx:if="{{learningTemplate}}">
+          <text class="cap-icon">📘</text>
+          <view class="cap-body">
+            <text class="cap-title">模板修习</text>
+            <text class="cap-sub">修习中：{{learningTemplate.name}}</text>
+          </view>
+        </view>
+        <!-- 定场诗 -->
+        <view class="capsule cap-poem" wx:if="{{titlePoem}}">
+          <text class="cap-icon">🏮</text>
+          <view class="cap-body">
+            <text class="cap-title">定场诗</text>
+            <text class="cap-sub poem-sub">{{titlePoem}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 【已删除】当前状态卡（L208-223 整块移除） -->
+
 </view>
 
   <view class="onboard-container" wx:if="{{isNewUser}}">
@@ -343,10 +229,10 @@
 
     <view class="onboard-dims-label">想从哪一维开始？</view>
     <scroll-view class="onboard-dims" scroll-x="true">
-      <view class="onboard-dim" bindtap="startFirstRecord">🏋️ 健身</view>
-      <view class="onboard-dim" bindtap="startFirstRecord">📚 学习</view>
-      <view class="onboard-dim" bindtap="startFirstRecord">🥗 饮食</view>
-      <view class="onboard-dim" bindtap="startFirstRecord">✍️ 写作</view>
+      <view class="onboard-dim" bindtap="startFirstRecord" data-dim="sport">🏋️ 健身</view>
+      <view class="onboard-dim" bindtap="startFirstRecord" data-dim="study">📚 学习</view>
+      <view class="onboard-dim" bindtap="startFirstRecord" data-dim="diet">🥗 饮食</view>
+      <view class="onboard-dim" bindtap="startFirstRecord" data-dim="work">✍️ 写作</view>
     </scroll-view>
 
     <view class="onboard-foot">拍照识物 · 道童对话 · 模板广场，记下第一笔后解锁完整首页</view>

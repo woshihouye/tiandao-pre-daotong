@@ -12,7 +12,10 @@
         <text>{{avatarText}}</text>
       </view>
       <view class="hero-meta">
-        <view class="hero-name">{{nickName}}</view>
+        <view class="hero-name-row">
+          <text class="hero-name">{{nickName}}</text>
+          <view class="hero-alias-chip" wx:if="{{isDefaultNickname}}" bindtap="goToSettings">✎ 起个道号</view>
+        </view>
         <view class="hero-realm">{{currentRealm.name}} · 第{{currentRealm.stage}}阶</view>
       </view>
       <view class="hero-edit-icon" bindtap="goToSettings">⚙</view>
@@ -207,7 +210,7 @@
   <!-- ============================================================
        模块7: 师徒传承区
        ============================================================ -->
-  <view class="card mentor-card" wx:if="{{mentor || disciples.length > 0 || !mentor}}">
+  <view class="card mentor-card">
     <!-- 我的师父 -->
     <block wx:if="{{!mentor}}">
       <view class="mentor-header">

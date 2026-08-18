@@ -327,9 +327,9 @@ App({
           try { wx.setStorageSync(STORAGE_KEYS.unreadBadge, total) } catch (e) {}
           // 更新tabBar角标
           if (total > 0) {
-            wx.setTabBarBadge({ index: 4, text: total > 99 ? '99+' : String(total) })
+            wx.setTabBarBadge({ index: 3, text: total > 99 ? '99+' : String(total) })
           } else {
-            wx.removeTabBarBadge({ index: 4 })
+            wx.removeTabBarBadge({ index: 3 })
           }
         }
       }).catch(function() {}).finally(function() {

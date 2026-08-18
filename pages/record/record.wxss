@@ -394,6 +394,16 @@ swiper-item {
 .submit-feedback {
   background: #fff; border-radius: 20rpx; padding: 40rpx 48rpx;
   text-align: center; box-shadow: 0 8rpx 40rpx rgba(0,0,0,0.15);
+  max-width: 600rpx;
 }
 .sf-score { font-size: 44rpx; font-weight: 700; color: #059669; }
-.sf-formula { font-size: 26rpx; color: #6b7280; margin-top: 12rpx; line-height: 1.6; }
+.sf-formula { font-size: 26rpx; color: #6b7280; margin-top: 12rpx; line-height: 1.6; text-align: left; }
+.sf-subtitle { font-size: 22rpx; color: #9ca3af; margin-top: 12rpx; }
+.sf-primary-btn {
+  margin-top: 28rpx;
+  height: 84rpx; line-height: 84rpx;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff; font-size: 28rpx; font-weight: 600;
+  border-radius: 42rpx;
+  box-shadow: 0 6rpx 18rpx rgba(99,102,241,0.3);
+}

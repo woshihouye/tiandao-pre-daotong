@@ -952,7 +952,6 @@ Page({
     var self = this
     var gongText = totalScore >= 0 ? '+' + totalScore : '-' + Math.abs(totalScore)
 
-    // 拼公式摘要：每条取「活动名：公式」，最多 3 条，超出加省略
     var list = collectedRecords || []
     var formulaList = []
     for (var i = 0; i < list.length && i < 3; i++) {
@@ -968,17 +967,20 @@ Page({
     }
 
     self.setData({
-      submitFeedback: { gongText: gongText, formulaList: formulaList }
+      submitFeedback: { gongText: gongText, formulaList: formulaList, totalCount: list.length }
     })
 
     if (app.emitAppEvent) {
       app.emitAppEvent('record-updated', { totalScore: totalScore })
     }
 
-    setTimeout(function () {
-      self.setData({ submitting: false, submitFeedback: null })
-      wx.switchTab({ url: '/pages/index/index' })
-    }, 1800)
+    self.setData({ submitting: false })
+  },
+
+  closeSubmitFeedback: function () {
+    var self = this
+    self.setData({ submitFeedback: null })
+    wx.switchTab({ url: '/pages/index/index' })
   },
 
   // ========== 自定义活动 ==========

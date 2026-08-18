@@ -51,6 +51,23 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.hero-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.hero-alias-chip {
+  flex-shrink: 0;
+  padding: 6rpx 18rpx;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  font-size: 22rpx;
+  font-weight: 600;
+  border-radius: 30rpx;
+  border: 1rpx solid #fcd34d;
 }
 
 .hero-realm {

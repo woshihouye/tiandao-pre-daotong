@@ -24,7 +24,7 @@ Page({
     sortTabs: templateConfig.sortTabs,
     categoryTabs: templateConfig.categoryTabs,
     // 标签页切换
-    activeTab: 'mytmpl', // 'mytmpl' | 'plaza' | 'wish'
+    activeTab: 'plaza', // 'mytmpl' | 'plaza' | 'wish'
     // 许愿池
     wishes: [],
     wishPage: 1,

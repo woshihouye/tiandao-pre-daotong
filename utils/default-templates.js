@@ -6,48 +6,48 @@ var DEFAULT_TEMPLATES = [
   {
     id: 'dflt_tpl_strength', name: '力量训练日', type: 'daily', categoryKey: 'sport',
     timeSlots: [
-      { id: 'dawn', name: '晨起', activities: [ { actId: 'meta_push', activityName: '推', capacity: { value: 3, unit: '组' }, tabKey: 'sport', category: 'sport' }, { actId: 'meta_squat', activityName: '蹲', capacity: { value: 3, unit: '组' }, tabKey: 'sport', category: 'sport' } ] },
-      { id: 'evening', name: '晚间', activities: [ { actId: 'meta_pull', activityName: '拉', capacity: { value: 3, unit: '组' }, tabKey: 'sport', category: 'sport' } ] }
+      { id: 'dawn', name: '晨起', activities: [ { actId: 'meta_push', activityName: '推举', capacity: { value: 3, unit: '组' }, tabKey: 'sport', category: 'sport' }, { actId: 'meta_squat', activityName: '深蹲', capacity: { value: 3, unit: '组' }, tabKey: 'sport', category: 'sport' } ] },
+      { id: 'evening', name: '晚间', activities: [ { actId: 'meta_pull', activityName: '引体', capacity: { value: 3, unit: '组' }, tabKey: 'sport', category: 'sport' } ] }
     ]
   },
   {
     id: 'dflt_tpl_running', name: '跑步日', type: 'daily', categoryKey: 'sport',
     timeSlots: [
-      { id: 'dawn', name: '晨起', activities: [ { actId: 'meta_steady_cardio', activityName: '稳态有氧', capacity: { value: 30, unit: '分钟' }, tabKey: 'sport', category: 'sport' } ] }
+      { id: 'dawn', name: '晨起', activities: [ { actId: 'meta_steady_cardio', activityName: '慢跑', capacity: { value: 30, unit: '分钟' }, tabKey: 'sport', category: 'sport' } ] }
     ]
   },
   {
     id: 'dflt_tpl_diet', name: '健康饮食', type: 'daily', categoryKey: 'diet',
     timeSlots: [
-      { id: 'morning', name: '上午', activities: [ { actId: 'meta_daily', activityName: '日常饮食', capacity: { value: 1, unit: '份' }, tabKey: 'diet', category: 'diet' } ] }
+      { id: 'morning', name: '上午', activities: [ { actId: 'meta_daily', activityName: '规律饮食', capacity: { value: 1, unit: '份' }, tabKey: 'diet', category: 'diet' } ] }
     ]
   },
   {
     id: 'dflt_tpl_academic', name: '学术日', type: 'daily', categoryKey: 'study',
     timeSlots: [
-      { id: 'morning', name: '上午', activities: [ { actId: 'meta_input', activityName: '输入', capacity: { value: 60, unit: '分钟' }, tabKey: 'study', category: 'study' } ] },
-      { id: 'afternoon', name: '下午', activities: [ { actId: 'meta_process', activityName: '处理', capacity: { value: 60, unit: '分钟' }, tabKey: 'study', category: 'study' } ] },
-      { id: 'evening', name: '晚间', activities: [ { actId: 'meta_output', activityName: '输出', capacity: { value: 60, unit: '分钟' }, tabKey: 'study', category: 'study' } ] }
+      { id: 'morning', name: '上午', activities: [ { actId: 'meta_input', activityName: '阅读', capacity: { value: 60, unit: '分钟' }, tabKey: 'study', category: 'study' } ] },
+      { id: 'afternoon', name: '下午', activities: [ { actId: 'meta_process', activityName: '整理复盘', capacity: { value: 60, unit: '分钟' }, tabKey: 'study', category: 'study' } ] },
+      { id: 'evening', name: '晚间', activities: [ { actId: 'meta_output', activityName: '写作输出', capacity: { value: 60, unit: '分钟' }, tabKey: 'study', category: 'study' } ] }
     ]
   },
   {
     id: 'dflt_tpl_create', name: '创作日', type: 'daily', categoryKey: 'study',
     timeSlots: [
-      { id: 'evening', name: '晚间', activities: [ { actId: 'meta_output', activityName: '输出', capacity: { value: 120, unit: '分钟' }, tabKey: 'study', category: 'study' } ] }
+      { id: 'evening', name: '晚间', activities: [ { actId: 'meta_output', activityName: '写作输出', capacity: { value: 120, unit: '分钟' }, tabKey: 'study', category: 'study' } ] }
     ]
   },
   {
     id: 'dflt_tpl_work', name: '创业工作日', type: 'daily', categoryKey: 'work',
     timeSlots: [
-      { id: 'morning', name: '上午', activities: [ { actId: 'meta_plan', activityName: '谋', capacity: { value: 60, unit: '分钟' }, tabKey: 'work', category: 'work' } ] },
-      { id: 'afternoon', name: '下午', activities: [ { actId: 'meta_execute', activityName: '行', capacity: { value: 60, unit: '分钟' }, tabKey: 'work', category: 'work' } ] },
-      { id: 'evening', name: '晚间', activities: [ { actId: 'meta_talk', activityName: '谈', capacity: { value: 30, unit: '分钟' }, tabKey: 'work', category: 'work' } ] }
+      { id: 'morning', name: '上午', activities: [ { actId: 'meta_plan', activityName: '规划', capacity: { value: 60, unit: '分钟' }, tabKey: 'work', category: 'work' } ] },
+      { id: 'afternoon', name: '下午', activities: [ { actId: 'meta_execute', activityName: '执行推进', capacity: { value: 60, unit: '分钟' }, tabKey: 'work', category: 'work' } ] },
+      { id: 'evening', name: '晚间', activities: [ { actId: 'meta_talk', activityName: '沟通洽谈', capacity: { value: 30, unit: '分钟' }, tabKey: 'work', category: 'work' } ] }
     ]
   },
   {
     id: 'dflt_tpl_debuff', name: '堕落监控', type: 'daily', categoryKey: 'debuff',
     timeSlots: [
-      { id: 'night', name: '晚上', activities: [ { actId: 'meta_inner_demon', activityName: '内耗', capacity: { value: 1, unit: '次' }, tabKey: 'debuff', category: 'debuff' }, { actId: 'meta_eat_chaos', activityName: '乱食', capacity: { value: 1, unit: '次' }, tabKey: 'debuff', category: 'debuff' }, { actId: 'meta_screen_lost', activityName: '溺屏', capacity: { value: 1, unit: '次' }, tabKey: 'debuff', category: 'debuff' } ] }
+      { id: 'night', name: '晚上', activities: [ { actId: 'meta_inner_demon', activityName: '精神内耗', capacity: { value: 1, unit: '次' }, tabKey: 'debuff', category: 'debuff' }, { actId: 'meta_eat_chaos', activityName: '暴食乱吃', capacity: { value: 1, unit: '次' }, tabKey: 'debuff', category: 'debuff' }, { actId: 'meta_screen_lost', activityName: '刷手机', capacity: { value: 1, unit: '次' }, tabKey: 'debuff', category: 'debuff' } ] }
     ]
   }
 ]

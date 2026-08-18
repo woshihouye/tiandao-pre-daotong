@@ -12,7 +12,7 @@
   <view class="tab-bar">
     <view class="tab-item {{activeTab === 'mytmpl' ? 'active' : ''}}" data-tab="mytmpl" bindtap="switchTab">我的模板</view>
     <view class="tab-item {{activeTab === 'plaza' ? 'active' : ''}}" data-tab="plaza" bindtap="switchTab">模板广场</view>
-    <view class="tab-item {{activeTab === 'wish' ? 'active' : ''}}" data-tab="wish" bindtap="switchTab">许愿池</view>
+    <view class="tab-item {{activeTab === 'wish' ? 'active' : ''}}" data-tab="wish" bindtap="switchTab">求模板</view>
   </view>
 
   <!-- ===== 我的模板 ===== -->
@@ -46,6 +46,12 @@
       </view>
       <view wx:if="{{customTemplatesFiltered.length === 0}}" class="empty-tip">暂无此类模板</view>
     </view>
+  </view>
+
+  <!-- D2 / P2-11：我的模板空状态 -->
+  <view class="mytmpl-empty card" wx:else bindtap="switchTab" data-tab="plaza">
+    <text class="mte-icon">📭</text>
+    <text class="mte-text">还没有模板，去广场逛逛 →</text>
   </view>
 
   </view>

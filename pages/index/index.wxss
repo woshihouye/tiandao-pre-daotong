@@ -219,6 +219,92 @@
   gap: 0;
 }
 
+/* 快捷录入横滑行（A1 顺序 3） */
+.quick-row { padding: 20rpx 24rpx 4rpx; }
+.quick-scroll { width: 100%; white-space: nowrap; }
+.quick-list {
+  display: inline-flex;
+  gap: 18rpx;
+  padding-right: 24rpx;
+}
+.quick-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  min-width: 144rpx;
+  padding: 18rpx 10rpx 16rpx;
+}
+.quick-emblem {
+  width: 84rpx; height: 84rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6rpx 18rpx rgba(16,185,129,0.25);
+}
+.qe-text { font-size: 34rpx; font-weight: 800; color: #fff; }
+.quick-emblem.qe-orange { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 6rpx 18rpx rgba(245,158,11,0.25); }
+.quick-emblem.qe-red    { background: linear-gradient(135deg, #ef4444, #b91c1c); box-shadow: 0 6rpx 18rpx rgba(239,68,68,0.25); }
+.quick-emblem.qe-violet { background: linear-gradient(135deg, #8b5cf6, #6d28d9); box-shadow: 0 6rpx 18rpx rgba(139,92,246,0.25); }
+.quick-emblem.qe-ink    { background: linear-gradient(135deg, #374151, #1f2937); box-shadow: 0 6rpx 18rpx rgba(55,65,81,0.25); }
+.quick-emblem.qe-cyan   { background: linear-gradient(135deg, #06b6d4, #0891b2); box-shadow: 0 6rpx 18rpx rgba(6,182,212,0.25); }
+.quick-label {
+  font-size: 24rpx; font-weight: 600; color: #374151;
+  white-space: nowrap;
+}
+
+/* 胶囊行（A1 顺序 6） */
+.capsules-section {
+  padding: 8rpx 20rpx 4rpx;
+}
+.capsules-scroll { width: 100%; white-space: nowrap; }
+.capsules-list {
+  display: inline-flex;
+  gap: 18rpx;
+  padding-right: 24rpx;
+}
+.capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 22rpx;
+  border-radius: 60rpx;
+  background: #fff;
+  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.06);
+  border: 1rpx solid #f3f4f6;
+  min-width: 280rpx;
+  max-width: 520rpx;
+}
+.cap-icon { font-size: 32rpx; flex-shrink: 0; }
+.cap-body {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2rpx;
+  min-width: 0;
+  flex: 1;
+  max-width: 420rpx;
+}
+.cap-title {
+  font-size: 24rpx; font-weight: 700; color: #111827;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cap-sub {
+  font-size: 22rpx; color: #6b7280;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cap-sub.poem-sub {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.capsule.cap-bu     { background: linear-gradient(135deg, #fef3c7, #fff7ed); border-color: #fde68a; }
+.capsule.cap-elite  { background: linear-gradient(135deg, #ede9fe, #f5f3ff); border-color: #c4b5fd; }
+.capsule.cap-elite.entry { background: linear-gradient(135deg, #fef9c3, #fefce8); border-color: #fde047; }
+.capsule.cap-fortune{ background: linear-gradient(135deg, #fee2e2, #fef2f2); border-color: #fecaca; }
+.capsule.cap-tpl    { background: linear-gradient(135deg, #dbeafe, #eff6ff); border-color: #bfdbfe; }
+.capsule.cap-poem   { background: linear-gradient(135deg, #ecfdf5, #f0fdf4); border-color: #a7f3d0; }
+
 .action-card {
   display: flex;
   flex-direction: column;
