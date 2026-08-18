@@ -283,6 +283,58 @@
     </view>
   </view>
 
+  <!-- ============================================================
+       模块8: 道友区（结道 · 共创）
+       ============================================================ -->
+  <view class="card mentor-card" style="background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, var(--card-bg) 100%); border-color: rgba(16,185,129,0.25);">
+    <view class="mentor-header">
+      <view class="mentor-section-title">🤝 结为道友</view>
+      <view class="mentor-btn" style="background: linear-gradient(135deg,#10B981 0%,#059669 100%);" bindtap="openBindDaoist">结为道友</view>
+    </view>
+
+    <!-- 道友列表 -->
+    <view class="disciple-list" wx:if="{{daoists.length > 0}}">
+      <view class="disciple-item" wx:for="{{daoists}}" wx:key="userId">
+        <view class="disciple-avatar" wx:if="{{item.avatarUrl}}">
+          <image src="{{item.avatarUrl}}"/>
+        </view>
+        <view class="disciple-avatar" wx:else style="border-color:#10B981; color:#10B981;">{{item.nickName ? item.nickName.charAt(0) : '道'}}</view>
+        <view class="disciple-body">
+          <view class="disciple-name">{{item.nickName || '无名修士'}}</view>
+          <view class="disciple-score">修为 {{item.totalCultivation || 0}}</view>
+        </view>
+        <view class="mentor-remove-btn" catchtap="unbindDaoist" data-relid="{{item.relationId}}">解绑</view>
+      </view>
+    </view>
+    <view class="disciple-empty" wx:else>点击右上角「结为道友」，输入对方 userId 开启共创</view>
+
+    <!-- 共创模板列表 -->
+    <view class="mentor-tpl-title" wx:if="{{daoistTpls.length > 0}}">📝 共创模板（{{daoistTpls.length}}）</view>
+    <view class="mentor-tpl-list" wx:if="{{daoistTpls.length > 0}}">
+      <view class="mentor-tpl-item" wx:for="{{daoistTpls}}" wx:key="id" data-id="{{item.id}}" bindtap="openDaoistTpl">
+        <view class="mentor-tpl-cover" style="color:#10B981;">{{item.cover || '道'}}</view>
+        <view class="mentor-tpl-body">
+          <view class="mentor-tpl-name">{{item.name}}</view>
+          <view class="mentor-tpl-meta">v{{item.version || 0}} · collaborators {{item.collaborators && item.collaborators.length || 0}}人</view>
+        </view>
+        <text class="tm-arrow" style="color:#10B981;">→</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 结为道友弹窗 -->
+  <view class="bind-modal-mask" wx:if="{{showBindDaoist}}" catchtap="closeBindDaoist">
+    <view class="bind-modal" catchtap="noop">
+      <view class="bind-modal-title">结为道友</view>
+      <view class="bind-modal-desc">输入对方 userId 即可开启双向共创</view>
+      <input class="bind-modal-input" type="text" placeholder="请输入道友 userId" value="{{bindDaoistUserId}}" bindinput="onBindDaoistIdInput" style="letter-spacing:1rpx; font-size:var(--font-md); font-weight:var(--weight-medium); color:var(--text-primary);"/>
+      <view class="bind-modal-actions">
+        <view class="bind-modal-cancel" bindtap="closeBindDaoist">取消</view>
+        <view class="bind-modal-confirm" style="background: linear-gradient(135deg,#10B981 0%,#059669 100%);" bindtap="confirmBindDaoist">{{bindDaoistLoading ? '提交中...' : '确认结道'}}</view>
+      </view>
+    </view>
+  </view>
+
   <!-- 底部操作栏 -->
   <view class="bottom-actions">
     <view class="ba-item" bindtap="goToFavorites">

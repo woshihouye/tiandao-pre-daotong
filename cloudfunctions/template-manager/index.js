@@ -124,6 +124,8 @@ exports.main = async function (event, context) {
       case 'getCreatorStats':    return await getCreatorStats(event);
       case 'getLeaderboard':     return await getLeaderboard(event);
       case 'getFavorites':       return await getFavorites(event);
+      case 'updateTemplate':     return await updateTemplate(event);
+      case 'setCollaborators':   return await setCollaborators(event);
 
       // --- 关注 ---
       case 'toggleFollow':       return await toggleFollow(event);
@@ -1289,8 +1291,33 @@ async function publishTemplate(event) {
   };
 
   if (isUpdate) {
+    // 更新已有模板：禁止通过 publishTemplate 改 collaborators（铁律），也不改 version/lastEditorId
     await db.collection('public_templates').where({ id: templateId }).update({ data: templateData });
     return { ok: true, templateId: templateId, message: '模板已更新' };
+  }
+
+  // 【阻塞点2】仅新建模板（!templateId）时允许入参 collaborators；且 collaborators 必须包含当前 userId，长度 ≤2
+  var collaborators = null;
+  if (Array.isArray(template.collaborators) && template.collaborators.length > 0) {
+    var cols = template.collaborators.slice().filter(function(c) { return typeof c === 'string' && c.length > 0; });
+    // 必须包含自己（openid）
+    if (cols.indexOf(userId) === -1) cols.push(userId);
+    // 去重
+    var uniqCols = [];
+    for (var ci = 0; ci < cols.length; ci++) {
+      if (uniqCols.indexOf(cols[ci]) === -1) uniqCols.push(cols[ci]);
+    }
+    // 长度 ≤2
+    if (uniqCols.length > 2) {
+      return { ok: false, error: '共创模板最多支持 2 人（你 + 1 位道友）' };
+    }
+    collaborators = uniqCols;
+  }
+  if (collaborators) {
+    templateData.collaborators = collaborators;
+    templateData.version = 0;
+    templateData.lastEditorId = userId;
+    templateData.lastEditAt = Date.now();
   }
 
   templateData.id = 'pub_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
@@ -1318,6 +1345,112 @@ async function publishTemplate(event) {
   } catch (e) { /* 称号发放静默失败，不影响发布 */ }
 
   return { ok: true, templateId: addRes._id, message: '发布成功，道友可去广场查看了' };
+}
+
+/* ========================================================= */
+/* updateTemplate：共创模板原子乐观锁更新                    */
+/* 【阻塞点3】禁止先 get 再 update（会使乐观锁失效），必须  */
+/* 用 where({ id, version }).update 原子更新 + stats.updated */
+/* ========================================================= */
+async function updateTemplate(event) {
+  var templateId = event.templateId;
+  var templateData = event.templateData || {};
+  var version = event.version;
+  var collaboratorId = event.collaboratorId || event.userId || '';
+  if (!templateId) return { ok: false, error: '缺少 templateId' };
+  if (version == null || isNaN(Number(version))) return { ok: false, error: '缺少 version' };
+  if (!collaboratorId) return { ok: false, error: '缺少 collaboratorId' };
+
+  // 先查一次：校验 collaborators 权限（但**不作为更新依据**，更新只用 where({id,version})）
+  var docRes = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  var doc = docRes.data && docRes.data[0];
+  if (!doc) return { ok: false, error: '模板不存在' };
+  var cols = doc.collaborators || [];
+  if (cols.indexOf(collaboratorId) === -1 && doc.creatorId !== collaboratorId) {
+    return { ok: false, error: '无权编辑该共创模板' };
+  }
+
+  // 构建允许写的字段白名单（防止越权改 creatorId/likeCount 等）
+  var upd = {};
+  var allowKeys = ['name','description','goal','subtitle','cover','tags','camp','cultivationSystem',
+    'themeClass','dailyCap','baseScore','realmNames','slogan','tasks','founderName','creatorName',
+    'visibility','commentPerm','blacklist','whitelist','updatedAt',
+    'externalLinks','longTextContent','imageUrls','videoUrls','timeSlots','creatorTitleInfo'];
+  for (var k = 0; k < allowKeys.length; k++) {
+    var key = allowKeys[k];
+    if (templateData[key] !== undefined) upd[key] = templateData[key];
+  }
+  // 乐观锁字段（必须原子自增，禁止用 templateData 传入的 version）
+  upd.updatedAt = new Date();
+  upd.lastEditorId = collaboratorId;
+  upd.lastEditAt = Date.now();
+
+  // 【阻塞点3】原子更新：where 条件必须同时带 id + version
+  var stats = await db.collection('public_templates')
+    .where({ id: templateId, version: Number(version) })
+    .update({
+      data: Object.assign({}, upd, {
+        version: db.command.inc(1)
+      })
+    });
+
+  if (stats.stats.updated === 1) {
+    return { ok: true, newVersion: Number(version) + 1, lastEditorId: collaboratorId, lastEditAt: Date.now() };
+  }
+
+  // updated === 0：版本冲突
+  var latestRes = await db.collection('public_templates').where({ id: templateId }).limit(1).field({ version: true, lastEditorId: true, lastEditAt: true, name: true, collaborators: true }).get();
+  var latest = latestRes.data && latestRes.data[0];
+  return {
+    ok: false,
+    conflict: true,
+    latestVersion: Number((latest && latest.version) != null ? latest.version : version),
+    lastEditorId: (latest && latest.lastEditorId) || '',
+    lastEditAt: Number((latest && latest.lastEditAt) || 0)
+  };
+}
+
+/* ========================================================= */
+/* setCollaborators：创建者邀请道友，单作者模板转共创          */
+/* 仅模板创建者可调用；collaborators 必须包含自己且长度 ≤2     */
+/* ========================================================= */
+async function setCollaborators(event) {
+  var templateId = event.templateId;
+  var newCollaborators = event.collaborators || [];
+  var userId = event.userId || '';
+  if (!templateId) return { ok: false, error: '缺少 templateId' };
+  if (!userId) return { ok: false, error: '缺少 userId' };
+  if (!Array.isArray(newCollaborators)) return { ok: false, error: 'collaborators 必须为数组' };
+
+  // 校验模板存在 + 创建者权限
+  var docRes = await db.collection('public_templates').where({ id: templateId }).limit(1).get();
+  var doc = docRes.data && docRes.data[0];
+  if (!doc) return { ok: false, error: '模板不存在' };
+  if (doc.creatorId !== userId) return { ok: false, error: '仅模板创建者可邀请道友共创' };
+
+  // 过滤 + 必须包含自己 + 去重
+  var cols = newCollaborators.slice().filter(function(c) { return typeof c === 'string' && c.length > 0; });
+  if (cols.indexOf(userId) === -1) cols.push(userId);
+  var uniqCols = [];
+  for (var ci = 0; ci < cols.length; ci++) {
+    if (uniqCols.indexOf(cols[ci]) === -1) uniqCols.push(cols[ci]);
+  }
+  // 长度 ≤2
+  if (uniqCols.length > 2) return { ok: false, error: '共创模板最多支持 2 人（你 + 1 位道友）' };
+  if (uniqCols.length < 1) return { ok: false, error: 'collaborators 不可为空' };
+
+  // 写库：如果原模板无 version 则同时初始化 version=0（兼容老模板）
+  var updData = {
+    collaborators: uniqCols,
+    updatedAt: new Date(),
+    lastEditorId: userId,
+    lastEditAt: Date.now()
+  };
+  if (doc.version == null || isNaN(Number(doc.version))) {
+    updData.version = 0;
+  }
+  await db.collection('public_templates').where({ id: templateId }).update({ data: updData });
+  return { ok: true, collaborators: uniqCols, version: Number(doc.version != null && !isNaN(Number(doc.version)) ? doc.version : 0) };
 }
 
 async function unpublishTemplate(event) {

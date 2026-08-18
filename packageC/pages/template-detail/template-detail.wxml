@@ -13,6 +13,20 @@
     </view>
     <view class="desc">{{template.description}}</view>
 
+    <!-- 道友共创卡 -->
+    <view class="daoist-collab-card" wx:if="{{isDaoistCollab}}">
+      <view class="daoist-collab-title">🤝 道友共创 · 版本 v{{version}}</view>
+      <view class="daoist-collab-meta" wx:if="{{lastEditAt > 0}}">
+        <text class="daoist-collab-editor">上次由 {{lastEditorId ? (lastEditorId === creatorId ? creatorName : '道友') : '未知'}} 编辑于 {{lastEditTimeText}}</text>
+      </view>
+      <view class="daoist-collab-peers">
+        <view class="daoist-peer-chip" wx:for="{{collaborators}}" wx:key="*this">
+          <text class="daoist-peer-dot">◎</text>
+          <text class="daoist-peer-name">{{item === creatorId ? creatorName : (item === currentUserId ? '我' : '道友')}}</text>
+        </view>
+      </view>
+    </view>
+
     <!-- 创作者（点头像跳主页） -->
     <view class="creator-row" wx:if="{{creatorName}}" data-user-id="{{creatorId}}" bindtap="goToUserHome">
       <image class="creator-avatar" src="{{creatorAvatar || '/assets/images/avatars/av_default.png'}}" mode="aspectFill"/>
@@ -108,6 +122,7 @@
   <view class="actions card">
     <view class="action-row">
       <view class="ghost-btn" bindtap="shareTemplate">分享</view>
+      <view class="ghost-btn daoist-ghost-btn" wx:if="{{fromPlaza && creatorId && creatorId === currentUserId && (!collaborators || collaborators.length <= 1)}}" bindtap="openInviteDaoist">邀请道友共创</view>
       <view class="ghost-btn" wx:if="{{canEdit}}" bindtap="editTemplate">编辑</view>
       <view class="ghost-btn" wx:if="{{template.id === 'thin_muscle'}}" bindtap="openAdvanced">进阶炼体</view>
     </view>
@@ -233,5 +248,30 @@
       <view class="elite-cta-text">追随此道，以精英为镜</view>
       <button class="btn btn-primary elite-action-btn" bindtap="adoptEliteTemplate">追随此道 · 开始修炼</button>
     </block>
+  </view>
+
+  <!-- ===== 邀请道友共创 Modal ===== -->
+  <view class="daoist-modal-mask" wx:if="{{showInviteDaoist}}" bindtap="closeInviteDaoist">
+    <view class="daoist-modal-card" catchtap="">
+      <view class="daoist-modal-header">
+        <text class="daoist-modal-title">邀请道友共创</text>
+        <text class="daoist-modal-close" bindtap="closeInviteDaoist">✕</text>
+      </view>
+      <view class="daoist-modal-body">
+        <view class="daoist-empty-tip" wx:if="{{!inviteDaoistList || !inviteDaoistList.length}}">
+          暂无已结为道友的修士，先去「我的主页」结为道友吧~
+        </view>
+        <view class="daoist-invite-list" wx:else>
+          <view class="daoist-invite-item" wx:for="{{inviteDaoistList}}" wx:key="relationId" data-peer-id="{{item.peerId}}" bindtap="confirmInviteDaoist">
+            <image class="daoist-invite-avatar" src="{{item.peerAvatar || '/assets/images/avatars/av_default.png'}}" mode="aspectFill"/>
+            <view class="daoist-invite-info">
+              <text class="daoist-invite-name">{{item.peerName || '无名修士'}}</text>
+              <text class="daoist-invite-sub">境界：{{item.peerRealm || '凡人'}}</text>
+            </view>
+            <text class="daoist-invite-act">邀请</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </view>

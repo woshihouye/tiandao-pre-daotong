@@ -17,6 +17,10 @@ exports.main = async (event) => {
       case 'getMentor':         return await getMentor(event, OPENID);
       case 'getMentorTemplates':return await getMentorTemplates(event, OPENID);
       case 'unbind':            return await unbindRelation(event, OPENID);
+      case 'bindDaoist':        return await bindDaoist(event, OPENID);
+      case 'unbindDaoist':      return await unbindDaoist(event, OPENID);
+      case 'getDaoists':        return await getDaoists(event, OPENID);
+      case 'getDaoistTemplates':return await getDaoistTemplates(event, OPENID);
       default:
         return { ok: false, error: '未知的 action: ' + action };
     }
@@ -204,4 +208,129 @@ async function unbindRelation(event, OPENID) {
   if (rel.mentorId !== OPENID && rel.discipleId !== OPENID) return { ok: false, error: '无权限' };
   await db.collection('mentor_relations').where({ relationId: relationId }).remove();
   return { ok: true };
+}
+
+/* ========================================================= */
+/* 7. bindDaoist：结为道友（双向，A-B 排序后同一条 relationId）*/
+/* ========================================================= */
+async function bindDaoist(event, OPENID) {
+  var peerId = event.peerId;
+  if (!peerId) return { ok: false, error: '缺少 peerId' };
+  // 【阻塞点1】禁止与自己结为道友
+  if (peerId === OPENID) return { ok: false, error: '不能与自己结为道友' };
+  var arr = [OPENID, peerId].sort();
+  var relationId = arr[0] + '_' + arr[1];
+  var userA = arr[0];
+  var userB = arr[1];
+  var dup = await db.collection('daoist_relations').where({ relationId: relationId }).get();
+  if (dup.data && dup.data.length) {
+    // 已存在，幂等返回（即使被 status 非 active，也激活）
+    var exist = dup.data[0];
+    if (exist.status !== 'active') {
+      try { await db.collection('daoist_relations').doc(exist._id).update({ data: { status: 'active' } }); } catch(e) {}
+    }
+    return { ok: true, alreadyBound: true, relationId: relationId };
+  }
+  var now = Date.now();
+  try {
+    await db.collection('daoist_relations').add({
+      data: {
+        relationId: relationId,
+        userA: userA,
+        userB: userB,
+        status: 'active',
+        createdAt: now
+      }
+    });
+  } catch(e) {
+    // 唯一键冲突兜底：再查一次
+    var re = await db.collection('daoist_relations').where({ relationId: relationId }).get();
+    if (!(re.data && re.data.length)) return { ok: false, error: '结为道友失败，请重试' };
+  }
+  return { ok: true, alreadyBound: false, relationId: relationId };
+}
+
+/* ========================================================= */
+/* 8. unbindDaoist：解除道友关系                               */
+/* ========================================================= */
+async function unbindDaoist(event, OPENID) {
+  var relationId = event.relationId;
+  if (!relationId) return { ok: false, error: '缺少 relationId' };
+  var chk = await db.collection('daoist_relations').where({ relationId: relationId }).limit(1).get();
+  var rel = chk.data && chk.data[0];
+  if (!rel) return { ok: false, error: '关系不存在' };
+  if (rel.userA !== OPENID && rel.userB !== OPENID) return { ok: false, error: '无权限' };
+  await db.collection('daoist_relations').where({ relationId: relationId }).remove();
+  return { ok: true };
+}
+
+/* ========================================================= */
+/* 9. getDaoists：查我的道友列表（过滤自己）                  */
+/* ========================================================= */
+async function getDaoists(event, OPENID) {
+  // 查 userA=我 或 userB=我 的所有记录
+  var relA = await db.collection('daoist_relations')
+    .where({ userA: OPENID, status: 'active' })
+    .orderBy('createdAt', 'desc')
+    .limit(200)
+    .get();
+  var relB = await db.collection('daoist_relations')
+    .where({ userB: OPENID, status: 'active' })
+    .orderBy('createdAt', 'desc')
+    .limit(200)
+    .get();
+  var rels = (relA.data || []).concat(relB.data || []);
+  // 【阻塞点1】过滤 peerId !== 自己
+  var peerIds = [];
+  var peerMap = {}; // peerId -> relationId
+  for (var i = 0; i < rels.length; i++) {
+    var r = rels[i];
+    var peer = (r.userA !== OPENID) ? r.userA : r.userB;
+    if (peer !== OPENID && !peerMap[peer]) {
+      peerMap[peer] = r.relationId;
+      peerIds.push(peer);
+    }
+  }
+  var daoists = [];
+  for (var j = 0; j < peerIds.length; j++) {
+    var pid = peerIds[j];
+    var info = null;
+    try {
+      var u = await db.collection('users').where({ userId: pid }).limit(1).get();
+      info = u.data && u.data[0];
+    } catch(e) { info = null; }
+    daoists.push({
+      userId: pid,
+      nickName: (info && (info.nickName || info.nickname)) || '无名修士',
+      avatarUrl: (info && info.avatarUrl) || '/assets/images/avatars/av_default.png',
+      totalCultivation: Number((info && info.totalCultivation) || 0),
+      relationId: peerMap[pid]
+    });
+  }
+  return { ok: true, daoists: daoists };
+}
+
+/* ========================================================= */
+/* 10. getDaoistTemplates：查我参与的共创模板列表             */
+/* ========================================================= */
+async function getDaoistTemplates(event, OPENID) {
+  var tpls = await db.collection('public_templates')
+    .where({ collaborators: _.elemMatch(_.eq(OPENID)), status: 'published' })
+    .orderBy('lastEditAt', 'desc')
+    .limit(200)
+    .field({ id: true, name: true, cover: true, version: true, lastEditorId: true, lastEditAt: true, creatorId: true, collaborators: true, updatedAt: true })
+    .get();
+  var list = (tpls.data || []).map(function(t) {
+    return {
+      id: t.id,
+      name: t.name || '',
+      cover: t.cover || '道',
+      version: Number(t.version || 0),
+      lastEditorId: t.lastEditorId || '',
+      lastEditAt: Number(t.lastEditAt || 0),
+      creatorId: t.creatorId || '',
+      collaborators: t.collaborators || []
+    };
+  });
+  return { ok: true, templates: list };
 }

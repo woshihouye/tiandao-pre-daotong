@@ -48,6 +48,16 @@ Page({
     videoUrls: [],
     externalLinks: [],
     isOfficial: false,
+    // >>> 道友共创
+    collaborators: [],
+    version: 0,
+    lastEditorId: '',
+    lastEditAt: 0,
+    lastEditTimeText: '',
+    isDaoistCollab: false,
+    showInviteDaoist: false,
+    inviteDaoistList: [],
+    currentUserId: '',
     // >>> 评论
     comments: [],
     commentPage: 1,
@@ -212,6 +222,9 @@ Page({
         buffTip = '完成周计划可额外 +' + template.extras.weeklyPlanReward + ' 修为'
       }
       var taskStates = (template.tasks || []).map(function(t) { return Object.assign({}, t) })
+      var col = (template.collaborators) || [];
+      var lei = Number(template.lastEditAt || 0);
+      var curUid = (app.globalData && app.globalData.userId) || '';
       this.setData({
         template: template,
         todayScore: todayScore,
@@ -222,7 +235,14 @@ Page({
         timeSlotGroups: this.buildTimeSlotGroups(template),
         streakDays: streakDays,
         buffTip: buffTip,
-        canEdit: template.category === 'custom'
+        canEdit: template.category === 'custom',
+        collaborators: col,
+        version: Number(template.version || 0),
+        lastEditorId: template.lastEditorId || '',
+        lastEditAt: lei,
+        lastEditTimeText: this._formatTimeAgo(lei),
+        isDaoistCollab: !!(col && col.length >= 2),
+        currentUserId: curUid
       })
       wx.setNavigationBarTitle({ title: template.name || '人生模板' })
     } catch(e) {
@@ -333,6 +353,9 @@ Page({
         var realm = { name: stageInfo.stage.name, stage: stageInfo.subStageIndex + 1, remaining: 0 }
         var todayScore = Number((app.globalData && app.globalData.todayScore) || 0)
         var dailyCap = Number(t.dailyCap || 40)
+        var col = (t.collaborators) || [];
+        var lei = Number(t.lastEditAt || 0);
+        var curUid = (app.globalData && app.globalData.userId) || '';
         that.setData({
           template: t,
           todayScore: todayScore,
@@ -342,10 +365,20 @@ Page({
           taskStates: taskStates,
           timeSlotGroups: that.buildTimeSlotGroups(t),
           streakDays: Number(profile.streakDays || 0),
-          canEdit: false
+          canEdit: false,
+          collaborators: col,
+          version: Number(t.version || 0),
+          lastEditorId: t.lastEditorId || '',
+          lastEditAt: lei,
+          lastEditTimeText: that._formatTimeAgo(lei),
+          isDaoistCollab: !!(col && col.length >= 2),
+          currentUserId: curUid
         })
         wx.setNavigationBarTitle({ title: t.name || '人生模板' })
       }
+      var col = (t && t.collaborators) || [];
+      var lei = Number((t && t.lastEditAt) || 0);
+      var curUid = (app.globalData && app.globalData.userId) || '';
       that.setData({
         likeCount: res.likeCount || (t && t.likeCount) || 0,
         favCount: res.favCount || (t && t.favCount) || 0,
@@ -362,7 +395,15 @@ Page({
         imageUrls: (t && t.imageUrls) || [],
         videoUrls: (t && t.videoUrls) || [],
         externalLinks: (t && t.externalLinks) || [],
-        isOfficial: !!(t && t.isOfficial)
+        isOfficial: !!(t && t.isOfficial),
+        // >>> 道友共创字段
+        collaborators: col,
+        version: Number((t && t.version) || 0),
+        lastEditorId: (t && t.lastEditorId) || '',
+        lastEditAt: lei,
+        lastEditTimeText: that._formatTimeAgo(lei),
+        isDaoistCollab: !!(col && col.length >= 2),
+        currentUserId: curUid
       })
     }).catch(function() {
       if (loadBody) {
@@ -617,5 +658,87 @@ Page({
   copyLink: function(e) {
     var url = e.currentTarget.dataset.url
     if (url) wx.setClipboardData({ data: url, success: function() { wx.showToast({ title: '链接已复制', icon: 'none' }) } })
+  },
+
+  // >>> 辅助：时间戳转相对文本（X 分钟前 / X 小时前 / X 天前）
+  _formatTimeAgo: function(ts) {
+    if (!ts) return ''
+    var diff = Date.now() - Number(ts)
+    if (diff < 60 * 1000) return '刚刚'
+    if (diff < 60 * 60 * 1000) return Math.floor(diff / 60000) + ' 分钟前'
+    if (diff < 24 * 60 * 60 * 1000) return Math.floor(diff / 3600000) + ' 小时前'
+    return Math.floor(diff / 86400000) + ' 天前'
+  },
+
+  // >>> 道友共创：打开邀请面板
+  openInviteDaoist: function() {
+    var that = this
+    var myUid = (app.globalData && app.globalData.userId) || ''
+    if (!myUid) { app.showSystemToast('未登录'); return }
+    // 权限校验：仅创建者可邀请
+    if (that.data.creatorId && that.data.creatorId !== myUid) { app.showSystemToast('仅模板创建者可邀请道友'); return }
+    // 已超过 2 人则不允许
+    if (that.data.collaborators && that.data.collaborators.length >= 2) { app.showSystemToast('共创模板最多 2 人'); return }
+    // 调云函数取道友列表（用于选择）
+    wx.cloud.callFunction({
+      name: 'relation-manager',
+      data: { action: 'getDaoists' }
+    }).then(function(res) {
+      var r = res.result || {}
+      if (r.ok) {
+        that.setData({ showInviteDaoist: true, inviteDaoistList: r.daoists || [] })
+      } else {
+        app.showSystemToast(r.error || '加载道友列表失败')
+      }
+    }).catch(function() {
+      app.showSystemToast('加载道友列表失败')
+    })
+  },
+
+  // >>> 道友共创：关闭邀请面板
+  closeInviteDaoist: function() {
+    this.setData({ showInviteDaoist: false })
+  },
+
+  // >>> 道友共创：确认邀请某位道友
+  confirmInviteDaoist: function(e) {
+    var that = this
+    var peerId = e.currentTarget.dataset.peerId
+    if (!peerId) return
+    var myUid = (app.globalData && app.globalData.userId) || ''
+    if (!myUid) { app.showSystemToast('未登录'); return }
+    var tplId = (that.data.template && that.data.template.id) || that.data.cloudSourceId
+    if (!tplId) { app.showSystemToast('模板 ID 缺失'); return }
+    wx.showLoading({ title: '邀请中...', mask: true })
+    wx.cloud.callFunction({
+      name: 'template-manager',
+      data: {
+        action: 'setCollaborators',
+        templateId: tplId,
+        collaborators: [myUid, peerId],
+        userId: myUid
+      }
+    }).then(function(res) {
+      wx.hideLoading()
+      var r = res.result || {}
+      if (r.ok) {
+        var nowTs = Date.now();
+        that.setData({
+          showInviteDaoist: false,
+          collaborators: r.collaborators || [myUid, peerId],
+          version: Number(r.version != null ? r.version : 0),
+          lastEditorId: myUid,
+          lastEditAt: nowTs,
+          lastEditTimeText: that._formatTimeAgo(nowTs),
+          isDaoistCollab: true
+        })
+        app.showSystemToast('已邀请道友共创', 'success')
+      } else {
+        app.showSystemToast(r.error || '邀请失败')
+      }
+    }).catch(function() {
+      wx.hideLoading()
+      app.showSystemToast('邀请失败，请稍后再试')
+    })
   }
 })

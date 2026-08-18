@@ -15,7 +15,12 @@ Page({
     videoUrls: [],
     externalLinks: [],
     linkTitle: '',
-    linkUrl: ''
+    linkUrl: '',
+    // 共创乐观锁
+    version: 0,
+    lastEditorId: '',
+    lastEditAt: 0,
+    collaborators: []
   },
 
   onLoad: function(options) {
@@ -56,7 +61,11 @@ Page({
       slogan: template.slogan || '',
       imageUrls: template.imageUrls || [],
       videoUrls: template.videoUrls || [],
-      externalLinks: template.externalLinks || []
+      externalLinks: template.externalLinks || [],
+      version: Number(template.version || 0),
+      lastEditorId: template.lastEditorId || '',
+      lastEditAt: Number(template.lastEditAt || 0),
+      collaborators: template.collaborators || []
     })
   },
 
@@ -191,7 +200,64 @@ Page({
       commentPerm: this.data.commentPerm
     }
 
-    // 调用云端发布
+    // ==== 共创模板：走乐观锁 updateTemplate ====
+    var cols = this.data.collaborators || []
+    if (cols && cols.length >= 2) {
+      var myUid = (app.globalData && app.globalData.userId) || ''
+      var version = Number(this.data.version || 0)
+      wx.cloud.callFunction({
+        name: 'template-manager',
+        data: {
+          action: 'updateTemplate',
+          templateId: publishData.id,
+          templateData: publishData,
+          version: version,
+          collaboratorId: myUid
+        }
+      }).then(function(res) {
+        wx.hideLoading()
+        that.setData({ submitting: false })
+        var r = res.result || {}
+        if (r.ok) {
+          that.setData({
+            version: Number(r.newVersion || (version + 1)),
+            lastEditorId: r.lastEditorId || myUid,
+            lastEditAt: Number(r.lastEditAt || Date.now())
+          })
+          app.showSystemToast('共创模板已提交')
+          setTimeout(function() { wx.navigateBack() }, 600)
+        } else if (r.conflict) {
+          // 【冲突】绝不覆盖用户已填内容；弹提示 + 静默拉最新版只更新本地 version
+          var msg = '道友 ' + (r.lastEditorId ? '刚刚' : '') + '已更新过，版本落后'
+          wx.showModal({
+            title: '版本冲突',
+            content: msg + '\n你的修改未被覆盖，请手动合并后再提交。',
+            showCancel: false,
+            confirmText: '我知道了'
+          })
+          if (lifeTemplate.fetchTemplateDetail) {
+            lifeTemplate.fetchTemplateDetail(publishData.id).then(function(lr) {
+              var lt = lr && lr.template
+              if (!lt) return
+              that.setData({
+                version: Number(lt.version || (version + 1)),
+                lastEditorId: lt.lastEditorId || '',
+                lastEditAt: Number(lt.lastEditAt || 0)
+              })
+            }).catch(function() {})
+          }
+        } else {
+          app.showSystemToast(r.error || '发布失败')
+        }
+      }).catch(function() {
+        wx.hideLoading()
+        that.setData({ submitting: false })
+        app.showSystemToast('网络错误')
+      })
+      return
+    }
+
+    // 调用云端发布（单作者 / 新建）
     if (lifeTemplate.publishTemplateCloud) {
       lifeTemplate.publishTemplateCloud(publishData).then(function() {
         wx.hideLoading()

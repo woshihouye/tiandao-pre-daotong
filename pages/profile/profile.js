@@ -48,6 +48,12 @@ Page({
     bindLoading: false,
     bindCode: '',
     showBind: false,
+    // >>> 模块8: 道友
+    daoists: [],
+    daoistTpls: [],
+    showBindDaoist: false,
+    bindDaoistUserId: '',
+    bindDaoistLoading: false,
     // >>> 状态统计
     sportCount: 0,
     dietCount: 0,
@@ -135,6 +141,7 @@ Page({
     this.loadTemplateInfo()
     this.loadSpiritSummary()
     this.loadMentorRelations()
+    this.loadDaoistRelations()
   },
 
   // ==== 师徒模块 ====
@@ -653,5 +660,87 @@ Page({
     })
   },
 
-  noop: function() {}
+  noop: function() {},
+
+  // ========== 模块8: 道友 ==========
+  loadDaoistRelations: function() {
+    var that = this
+    wx.cloud.callFunction({
+      name: 'relation-manager',
+      data: { action: 'getDaoists' }
+    }).then(function(res) {
+      var r = res.result || {}
+      if (r.ok) that.setData({ daoists: r.daoists || [] })
+    }).catch(function() {})
+    wx.cloud.callFunction({
+      name: 'relation-manager',
+      data: { action: 'getDaoistTemplates' }
+    }).then(function(res) {
+      var r = res.result || {}
+      if (r.ok) that.setData({ daoistTpls: r.templates || [] })
+    }).catch(function() {})
+  },
+
+  openBindDaoist: function() {
+    this.setData({ showBindDaoist: true, bindDaoistUserId: '' })
+  },
+  closeBindDaoist: function() {
+    this.setData({ showBindDaoist: false, bindDaoistUserId: '' })
+  },
+  onBindDaoistIdInput: function(e) {
+    this.setData({ bindDaoistUserId: (e.detail.value || '').trim() })
+  },
+  confirmBindDaoist: function() {
+    var that = this
+    var peerId = (this.data.bindDaoistUserId || '').trim()
+    if (!peerId) { wx.showToast({ title: '请输入道友 userId', icon: 'none' }); return }
+    if (this.data.bindDaoistLoading) return
+    this.setData({ bindDaoistLoading: true })
+    wx.cloud.callFunction({
+      name: 'relation-manager',
+      data: { action: 'bindDaoist', peerId: peerId }
+    }).then(function(res) {
+      that.setData({ bindDaoistLoading: false })
+      var r = res.result || {}
+      if (r.ok) {
+        wx.showToast({ title: r.alreadyBound ? '已是道友' : '结为道友成功！', icon: 'success' })
+        that.setData({ showBindDaoist: false, bindDaoistUserId: '' })
+        that.loadDaoistRelations()
+      } else {
+        wx.showToast({ title: r.error || '失败', icon: 'none' })
+      }
+    }).catch(function() {
+      that.setData({ bindDaoistLoading: false })
+      wx.showToast({ title: '网络错误', icon: 'none' })
+    })
+  },
+  unbindDaoist: function(e) {
+    var that = this
+    var relId = e.currentTarget.dataset.relid
+    if (!relId) return
+    wx.showModal({
+      title: '解除道友关系',
+      content: '确定解除该道友关系？（共创模板不会被删除，只是无法再同时编辑新版本）',
+      confirmColor: '#ef4444',
+      success: function(res) {
+        if (!res.confirm) return
+        wx.cloud.callFunction({
+          name: 'relation-manager',
+          data: { action: 'unbindDaoist', relationId: relId }
+        }).then(function(r) {
+          var rs = r.result || {}
+          if (rs.ok) {
+            wx.showToast({ title: '已解除', icon: 'success' })
+            that.loadDaoistRelations()
+          } else {
+            wx.showToast({ title: rs.error || '解除失败', icon: 'none' })
+          }
+        }).catch(function() { wx.showToast({ title: '网络错误', icon: 'none' }) })
+      }
+    })
+  },
+  openDaoistTpl: function(e) {
+    var id = e.currentTarget.dataset.id
+    if (id) wx.navigateTo({ url: '/packageC/pages/template-detail/template-detail?id=' + id })
+  }
 })
