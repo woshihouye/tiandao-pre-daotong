@@ -186,6 +186,7 @@ Page({
       imageUrls: this.data.imageUrls || [],
       videoUrls: this.data.videoUrls || [],
       externalLinks: this.data.externalLinks || [],
+      timeSlots: this.data.template ? (this.data.template.timeSlots || []) : [],
       visibility: this.data.visibility,
       commentPerm: this.data.commentPerm
     }

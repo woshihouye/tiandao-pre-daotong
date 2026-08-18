@@ -116,12 +116,27 @@
   <view class="section card">
     <view class="section-title">每日功课</view>
     <view class="section-sub">剩余可获 {{remainScore}} 修为</view>
-    <view class="task-list">
-      <view
-        class="task-item"
-        wx:for="{{taskStates}}"
-        wx:key="id"
-      >
+
+    <!-- 按时段分组（模板带 timeSlots 时） -->
+    <block wx:if="{{timeSlotGroups.length}}">
+      <view class="slot-group" wx:for="{{timeSlotGroups}}" wx:key="slotId" wx:for-item="slot">
+        <view class="slot-header">
+          <text class="slot-name">{{slot.name}}</text>
+          <text class="slot-time" wx:if="{{slot.startTime}}">{{slot.startTime}} - {{slot.endTime}}</text>
+        </view>
+        <view class="task-item" wx:for="{{slot.tasks}}" wx:key="id" wx:for-item="task">
+          <view class="task-main">
+            <view class="task-name">{{task.name}}</view>
+            <view class="task-desc">{{task.desc}}</view>
+          </view>
+          <view class="task-reward">{{task.reward > 0 ? '+' : ''}}{{task.reward}}</view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 平铺兜底（旧数据无 timeSlots） -->
+    <view class="task-list" wx:else>
+      <view class="task-item" wx:for="{{taskStates}}" wx:key="id">
         <view class="task-main">
           <view class="task-name">{{item.name}}</view>
           <view class="task-desc">{{item.desc}}</view>

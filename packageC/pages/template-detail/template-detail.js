@@ -24,6 +24,7 @@ Page({
     remainScore: 0,
     realm: { name: '炼精化气', stage: 1, remaining: 33 },
     taskStates: [],
+    timeSlotGroups: [],
     streakDays: 0,
     buffTip: '',
     canEdit: false,
@@ -131,6 +132,7 @@ Page({
         remainScore: Math.max(0, dailyCap - todayScore),
         realm,
         taskStates,
+        timeSlotGroups: this.buildTimeSlotGroups(template),
         streakDays,
         buffTip,
         canEdit: template.category === 'custom'
@@ -232,6 +234,7 @@ Page({
           remainScore: Math.max(0, dailyCap - todayScore),
           realm: realm,
           taskStates: taskStates,
+          timeSlotGroups: that.buildTimeSlotGroups(t),
           streakDays: Number(profile.streakDays || 0),
           canEdit: false
         })
@@ -287,6 +290,34 @@ Page({
     })
   },
 
+  // 从 template.timeSlots 构建时段分组；无 timeSlots 时返回空数组（走平铺兜底）
+  buildTimeSlotGroups: function(template) {
+    var slots = (template && template.timeSlots) || []
+    if (!slots.length) return []
+    var taskMap = {}
+    ;(template.tasks || []).forEach(function(t) { taskMap[t.id] = t })
+    return slots.map(function(slot) {
+      var acts = slot.activities || []
+      return {
+        slotId: slot.id,
+        name: slot.name || '全天',
+        startTime: slot.startTime || '',
+        endTime: slot.endTime || '',
+        tasks: acts.map(function(a) {
+          var tk = taskMap[a.actId || a.id]
+          return {
+            id: a.actId || a.id,
+            name: a.activityName || a.name || '任务',
+            reward: a.reward != null ? a.reward : (tk ? tk.reward : 0),
+            path: a.path || (tk ? tk.path : ''),
+            desc: a.desc || (tk ? tk.desc : ''),
+            capacity: a.capacity
+          }
+        })
+      }
+    })
+  },
+
   // >>> 云端模板 tasks → 我的 daily 模板（字段补齐：scorePerUnit/baseScore/type/isOfficial/_isMetaCard）
   convertTasksToDaily: function(t) {
     var now = Date.now()
@@ -304,14 +335,33 @@ Page({
         _isMetaCard: false
       }
     })
+    var timeSlots = (t.timeSlots && t.timeSlots.length)
+      ? t.timeSlots.map(function(slot) {
+          return {
+            id: slot.id, name: slot.name, startTime: slot.startTime, endTime: slot.endTime,
+            activities: (slot.activities || []).map(function(a) {
+              return {
+                actId: a.actId || a.id,
+                activityName: a.activityName || a.name || '任务',
+                scorePerUnit: a.scorePerUnit != null ? a.scorePerUnit : (a.reward != null ? a.reward : 1),
+                baseScore: a.baseScore != null ? a.baseScore : 1,
+                capacity: a.capacity || { value: 1, unit: '次' },
+                type: a.type || 'custom',
+                tabKey: a.tabKey || '',
+                category: a.category || '',
+                isOfficial: false,
+                _isMetaCard: false
+              }
+            })
+          }
+        })
+      : [ { id: 'whole', name: '全天', activities: activities } ]
     return {
       id: 'custom_' + now + '_' + Math.random().toString(36).slice(2, 6),
       name: (t.name || '模板'),
       type: 'daily',
       categoryKey: '',
-      timeSlots: [
-        { id: 'whole', name: '全天', activities: activities }
-      ],
+      timeSlots: timeSlots,
       sourceId: t.id || '',
       sourceName: t.name || '',
       sourceType: 'cloud',

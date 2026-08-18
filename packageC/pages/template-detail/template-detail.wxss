@@ -147,6 +147,41 @@
   color: #10b981;
 }
 
+.slot-group {
+  margin-top: 14rpx;
+  border: 1rpx solid var(--border-color);
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.slot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14rpx 20rpx;
+  background: var(--surface-soft);
+}
+
+.slot-name {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.slot-time {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}
+
+.slot-group .task-item {
+  padding-left: 20rpx;
+  padding-right: 20rpx;
+}
+
+.slot-group .task-item:last-child {
+  border-bottom: none;
+}
+
 .task-state {
   min-width: 72rpx;
   text-align: center;

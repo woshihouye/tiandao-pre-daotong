@@ -1283,6 +1283,7 @@ async function publishTemplate(event) {
     longTextContent: template.longTextContent || '',
     imageUrls: template.imageUrls || [],
     videoUrls: template.videoUrls || [],
+    timeSlots: template.timeSlots || [],
     creatorTitleInfo: template.creatorTitleInfo || null
   };
 
