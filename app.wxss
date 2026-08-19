@@ -57,6 +57,20 @@ page {
   --color-silver: #9ca3af;
   --color-blue: #60a5fa;
 
+  --color-primary-mist: #ecfdf5;
+  --color-primary-mist-strong: #d1fae5;
+  --color-danger-mist: #fee2e2;
+  --color-info-mist: #dbeafe;
+  --color-warning: #f59e0b;
+  --color-warning-mist: #fef3c7;
+
+  --primary-mist: var(--color-primary-mist);
+  --primary-mist-strong: var(--color-primary-mist-strong);
+  --danger-mist: var(--color-danger-mist);
+  --info-mist: var(--color-info-mist);
+  --warning: var(--color-warning);
+  --warning-mist: var(--color-warning-mist);
+
   /* ── 别名（向后兼容旧代码） ── */
   --page-bg: var(--color-page-bg);
   --card-bg: var(--color-card-bg);
@@ -300,6 +314,20 @@ view, text, input, textarea, button, picker, scroll-view {
   --color-silver: #b5a890;
   --color-blue: #a09070;
 
+  --color-primary-mist: #f7f0dd;
+  --color-primary-mist-strong: #e8dcc0;
+  --color-danger-mist: #f5e0dd;
+  --color-info-mist: #ece5d0;
+  --color-warning: #b8872a;
+  --color-warning-mist: #f5e8cc;
+
+  --primary-mist: var(--color-primary-mist);
+  --primary-mist-strong: var(--color-primary-mist-strong);
+  --danger-mist: var(--color-danger-mist);
+  --info-mist: var(--color-info-mist);
+  --warning: var(--color-warning);
+  --warning-mist: var(--color-warning-mist);
+
   --page-bg: var(--color-page-bg);
   --card-bg: var(--color-card-bg);
   --surface-soft: var(--color-surface-soft);
@@ -385,6 +413,20 @@ view, text, input, textarea, button, picker, scroll-view {
   --color-danger-rgb: 208, 64, 48;
   --color-silver: #b59070;
   --color-blue: #d48530;
+
+  --color-primary-mist: #fbead8;
+  --color-primary-mist-strong: #f5d9b0;
+  --color-danger-mist: #f8ddc8;
+  --color-info-mist: #f5e8d0;
+  --color-warning: #c07010;
+  --color-warning-mist: #f8e0c0;
+
+  --primary-mist: var(--color-primary-mist);
+  --primary-mist-strong: var(--color-primary-mist-strong);
+  --danger-mist: var(--color-danger-mist);
+  --info-mist: var(--color-info-mist);
+  --warning: var(--color-warning);
+  --warning-mist: var(--color-warning-mist);
 
   --page-bg: var(--color-page-bg);
   --card-bg: var(--color-card-bg);
@@ -472,6 +514,20 @@ view, text, input, textarea, button, picker, scroll-view {
   --color-silver: #685550;
   --color-blue: #ff6030;
 
+  --color-primary-mist: #2a1414;
+  --color-primary-mist-strong: #3a1a16;
+  --color-danger-mist: #33141a;
+  --color-info-mist: #1a1a2e;
+  --color-warning: #ff9030;
+  --color-warning-mist: #2e1a10;
+
+  --primary-mist: var(--color-primary-mist);
+  --primary-mist-strong: var(--color-primary-mist-strong);
+  --danger-mist: var(--color-danger-mist);
+  --info-mist: var(--color-info-mist);
+  --warning: var(--color-warning);
+  --warning-mist: var(--color-warning-mist);
+
   --page-bg: var(--color-page-bg);
   --card-bg: var(--color-card-bg);
   --surface-soft: var(--color-surface-soft);
@@ -557,6 +613,20 @@ view, text, input, textarea, button, picker, scroll-view {
   --color-danger-rgb: 239, 68, 68;
   --color-silver: #9ca3af;
   --color-blue: #111827;
+
+  --color-primary-mist: #ecfdf5;
+  --color-primary-mist-strong: #d1fae5;
+  --color-danger-mist: #fee2e2;
+  --color-info-mist: #dbeafe;
+  --color-warning: #f59e0b;
+  --color-warning-mist: #fef3c7;
+
+  --primary-mist: var(--color-primary-mist);
+  --primary-mist-strong: var(--color-primary-mist-strong);
+  --danger-mist: var(--color-danger-mist);
+  --info-mist: var(--color-info-mist);
+  --warning: var(--color-warning);
+  --warning-mist: var(--color-warning-mist);
 
   --page-bg: var(--color-page-bg);
   --card-bg: var(--color-card-bg);

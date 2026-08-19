@@ -1,7 +1,7 @@
 /* pages/record/record.wxss — 全屏卡片·修仙风格 */
 
 page {
-  background-color: #F5F5F5;
+  background-color: var(--page-bg);
 }
 
 .page-container {
@@ -16,7 +16,7 @@ page {
   align-items: center;
   justify-content: space-around;
   padding: 0 8px;
-  background-color: #FFFFFF;
+  background-color: var(--card-bg);
   border-radius: 16px;
   margin: 12px 16px 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -59,7 +59,7 @@ swiper-item {
   width: 100%;
   height: 92%;
   border-radius: 24rpx;
-  background: #E5E7EB;
+  background: var(--surface-soft);
   overflow: hidden;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
   transition: box-shadow 0.3s ease;
@@ -104,7 +104,7 @@ swiper-item {
 
 .card-name {
   font-size: 28rpx;
-  color: #6B7280;
+  color: var(--text-secondary);
   margin-bottom: 40rpx;
   opacity: 0.8;
 }
@@ -116,7 +116,7 @@ swiper-item {
 .card-progress {
   font-size: 96rpx;
   font-weight: 700;
-  color: #374151;
+  color: var(--text-secondary);
   line-height: 1;
   margin-bottom: 40rpx;
   transition: color 0.3s ease;
@@ -129,7 +129,7 @@ swiper-item {
 
 .card-score {
   font-size: 26rpx;
-  color: #9CA3AF;
+  color: var(--text-muted);
   opacity: 0.8;
 }
 
@@ -155,13 +155,13 @@ swiper-item {
 
 .empty-text {
   font-size: 30rpx;
-  color: #6B7280;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .empty-sub {
   font-size: 24rpx;
-  color: #9CA3AF;
+  color: var(--text-muted);
 }
 
 /* ========== 结果区 ========== */
@@ -222,8 +222,8 @@ swiper-item {
   align-items: center;
   justify-content: space-between;
   padding: 20rpx 24rpx;
-  background: #fff;
-  border-bottom: 1rpx solid #f0f0f0;
+  background: var(--card-bg);
+  border-bottom: 1rpx solid var(--border-color);
   flex-shrink: 0;
 }
 
@@ -236,18 +236,18 @@ swiper-item {
 
 .precise-back-icon {
   font-size: 36rpx;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .precise-back-text {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .precise-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #1F2937;
+  color: var(--text-primary);
   text-align: center;
 }
 
@@ -283,12 +283,12 @@ swiper-item {
 .slot-header-name {
   font-size: 30rpx;
   font-weight: 700;
-  color: #1F2937;
+  color: var(--text-primary);
 }
 
 .slot-header-time {
   font-size: 24rpx;
-  color: #9CA3AF;
+  color: var(--text-muted);
   margin-left: auto;
 }
 
@@ -297,7 +297,7 @@ swiper-item {
   position: relative;
   margin-bottom: 12rpx;
   border-radius: 16rpx;
-  background: #F3F4F6;
+  background: var(--surface-soft);
   overflow: hidden;
   min-height: 90rpx;
 }
@@ -330,12 +330,12 @@ swiper-item {
 .act-row-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #1F2937;
+  color: var(--text-primary);
 }
 
 .act-row-unit {
   font-size: 22rpx;
-  color: #9CA3AF;
+  color: var(--text-muted);
 }
 
 .public-badge {
@@ -343,8 +343,8 @@ swiper-item {
   font-size: 20rpx;
   padding: 2rpx 10rpx;
   border-radius: 6rpx;
-  background: #d1fae5;
-  color: #047857;
+  background: var(--primary-mist-strong);
+  color: var(--success);
 }
 
 .act-row-right {
@@ -355,7 +355,7 @@ swiper-item {
 .act-row-progress {
   font-size: 32rpx;
   font-weight: 700;
-  color: #374151;
+  color: var(--text-secondary);
   min-width: 70rpx;
   text-align: right;
 }
@@ -363,7 +363,7 @@ swiper-item {
 /* 卡片点击提示 */
 .card-hint {
   font-size: 20rpx;
-  color: #9CA3AF;
+  color: var(--text-muted);
   margin-top: 20rpx;
   opacity: 0.6;
 }
@@ -377,7 +377,7 @@ swiper-item {
   padding: 8rpx 28rpx;
   border-radius: 24rpx;
   background: rgba(255, 255, 255, 0.82);
-  color: #374151;
+  color: var(--text-secondary);
   font-size: 22rpx;
   font-weight: 600;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
@@ -390,18 +390,18 @@ swiper-item {
   z-index: 999;
 }
 .submit-feedback {
-  background: #fff; border-radius: 20rpx; padding: 40rpx 48rpx;
+  background: var(--card-bg); border-radius: 20rpx; padding: 40rpx 48rpx;
   text-align: center; box-shadow: 0 8rpx 40rpx rgba(0,0,0,0.15);
   max-width: 600rpx;
 }
-.sf-score { font-size: 44rpx; font-weight: 700; color: #059669; }
-.sf-formula { font-size: 26rpx; color: #6b7280; margin-top: 12rpx; line-height: 1.6; text-align: left; }
-.sf-subtitle { font-size: 22rpx; color: #9ca3af; margin-top: 12rpx; }
+.sf-score { font-size: 44rpx; font-weight: 700; color: var(--primary); }
+.sf-formula { font-size: 26rpx; color: var(--text-secondary); margin-top: 12rpx; line-height: 1.6; text-align: left; }
+.sf-subtitle { font-size: 22rpx; color: var(--text-muted); margin-top: 12rpx; }
 .sf-primary-btn {
   margin-top: 28rpx;
   height: 84rpx; line-height: 84rpx;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, var(--primary), var(--primary-soft));
   color: #fff; font-size: 28rpx; font-weight: 600;
   border-radius: 42rpx;
-  box-shadow: 0 6rpx 18rpx rgba(99,102,241,0.3);
+  box-shadow: 0 6rpx 18rpx rgba(var(--primary-rgb), 0.3);
 }

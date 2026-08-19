@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--surface-soft);
   padding-bottom: 40rpx;
 }
 
@@ -13,13 +13,13 @@
   padding: 200rpx 0;
 }
 .empty-icon { font-size: 80rpx; }
-.empty-text { font-size: 28rpx; color: #999; margin-top: 20rpx; }
+.empty-text { font-size: 28rpx; color: var(--text-muted); margin-top: 20rpx; }
 
 /* Tab 切换 */
 .tab-bar {
   display: flex;
-  background: #fff;
-  border-bottom: 1rpx solid #eee;
+  background: var(--card-bg);
+  border-bottom: 1rpx solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -29,25 +29,25 @@
   text-align: center;
   padding: 24rpx 0;
   font-size: 30rpx;
-  color: #666;
+  color: var(--text-secondary);
 }
 .tab-item.active {
-  color: #3B82F6;
+  color: var(--blue);
   font-weight: bold;
-  border-bottom: 4rpx solid #3B82F6;
+  border-bottom: 4rpx solid var(--blue);
 }
 
 /* 列表空态 */
 .empty-list {
   text-align: center;
-  color: #999;
+  color: var(--text-muted);
   font-size: 26rpx;
   padding: 100rpx 0;
 }
 
 /* 审核卡片 */
 .card {
-  background: #fff;
+  background: var(--card-bg);
   margin: 20rpx 24rpx;
   padding: 28rpx;
   border-radius: 16rpx;
@@ -55,21 +55,21 @@
 .card-name {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-primary);
 }
 .card-meta {
   font-size: 26rpx;
-  color: #3B82F6;
+  color: var(--blue);
   margin-top: 12rpx;
 }
 .card-desc {
   font-size: 26rpx;
-  color: #666;
+  color: var(--text-secondary);
   margin-top: 12rpx;
 }
 .card-applicant {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-muted);
   margin-top: 12rpx;
   word-break: break-all;
 }
@@ -85,10 +85,10 @@
   margin-left: 20rpx;
 }
 .btn.approve {
-  background: #ECFDF5;
-  color: #059669;
+  background: var(--primary-mist);
+  color: var(--primary);
 }
 .btn.reject {
-  background: #FEF2F2;
-  color: #DC2626;
+  background: var(--danger-mist);
+  color: var(--danger);
 }
