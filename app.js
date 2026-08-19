@@ -283,6 +283,7 @@ App({
           var safeId = res.result.openid
           wx.setStorageSync(STORAGE_KEYS.safeUserId, safeId)
           that.globalData.userId = safeId
+          that.migrateProfileToSafeId(safeId)
         }
       },
       fail: function(e) {
@@ -1750,6 +1751,39 @@ App({
     })()
 
     return this._ensureUserProfilePromise
+  },
+
+  async migrateProfileToSafeId(safeId) {
+    try {
+      const db = this.getDb()
+      if (!db || !safeId) return
+      const profile = this.globalData.userProfile
+      if (!profile || !profile.userId) return
+      if (profile.userId === safeId) return
+      const res = await db.collection('users').where({ userId: safeId }).limit(1).get()
+      if (res.data.length) {
+        const real = res.data[0]
+        this.globalData.userProfile = {
+          ...this.createDefaultUserProfile(),
+          ...real,
+          bodyProfile: this.normalizeBodyProfile(real.bodyProfile || this.getLocalBodyProfile())
+        }
+        this.globalData.bodyProfile = this.globalData.userProfile.bodyProfile
+        if (profile._id && profile._id !== real._id) {
+          db.collection('users').doc(profile._id).remove().catch(function() {})
+        }
+      } else {
+        if (profile._id) {
+          await db.collection('users').doc(profile._id).update({
+            data: { userId: safeId, updatedAt: Date.now() }
+          })
+          profile.userId = safeId
+          this.globalData.userProfile = profile
+        }
+      }
+    } catch (e) {
+      console.warn('档案迁移失败', e)
+    }
   },
 
   // 更新用户档案缓存，供页面在本地写回后快速同步全局状态。

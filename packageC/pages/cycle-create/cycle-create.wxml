@@ -69,6 +69,7 @@
   </view>
 
   <view class="bottom-bar">
+    <view class="btn btn-secondary" bindtap="onPredictPlaylist">🔮 预测效果</view>
     <view class="btn btn-primary" bindtap="savePlaylist">保存歌单</view>
   </view>
 </view>

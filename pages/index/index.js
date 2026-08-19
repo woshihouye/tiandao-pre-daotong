@@ -1,6 +1,7 @@
 // 天道修行首页逻辑 - v1.0.3 精英模板系统版
 const app = getApp();
 const { calculateRealm, calculateDailyCultivation } = require('../../utils/cultivation.js');
+var cultivationUtil = require('../../utils/cultivation.js')
 var systemModule = require('../../utils/system.js')
 const { getDetailPageUrl } = require('../../utils/detail-board.js');
 const eliteModule = require('../../utils/elite-template.js');
@@ -138,6 +139,15 @@ Page({
     this._lastLoadDate = today
 
     var userInfo = await this.getUserInfo(db);
+
+    try {
+      var streakPenalty = await cultivationUtil.checkAndApplyStreakPenalty(userInfo)
+      if (streakPenalty && streakPenalty.penalty > 0) {
+        wx.showToast({ title: '道心蒙尘 ' + streakPenalty.days + ' 天，修为-' + streakPenalty.penalty, icon: 'none' })
+      }
+    } catch (e) {
+      console.warn('断签惩罚判定异常', e)
+    }
 
     try {
       var records = await db.collection('records')

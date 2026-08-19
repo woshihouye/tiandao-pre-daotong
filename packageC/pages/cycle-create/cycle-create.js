@@ -197,5 +197,40 @@ Page({
         app.showSystemToast('保存失败');
       }
     });
+  },
+
+  onPredictPlaylist: function() {
+    var that = this
+    var plId = this.data.editId || ''
+    if (!plId) {
+      wx.showToast({ title: '请先保存歌单再预测', icon: 'none' })
+      return
+    }
+    wx.showLoading({ title: '预测中...', mask: true })
+    wx.cloud.callFunction({
+      name: 'cycle-manager',
+      data: { action: 'predict', id: plId, localTemplates: this.data.localDaily || [] },
+      success: function(r) {
+        wx.hideLoading()
+        var res = r.result || {}
+        if (res.ok !== false) {
+          var total = Math.round((res.totalScore || 0) * 10) / 10
+          var act = Math.round((res.totalActivityScore || 0) * 10) / 10
+          var nut = Math.round((res.totalNutritionScore || 0) * 10) / 10
+          var reality = res.reality || {}
+          var detail = '预计修为：' + total + '\n活动修为：' + act + ' · 营养修为：' + nut
+          detail += '\n现实产出：消耗' + Math.round(reality.totalCalories || 0) + 'kcal · 蛋白' + Math.round(reality.protein || 0) + 'g · 学习' + Math.round(reality.studyMinutes || 0) + '分钟 · 输出' + Math.round(reality.workOutput || 0)
+          if (res.itemCount === 0) detail += '\n（歌单暂无启用模板）'
+          if (res.failed && res.failed.length) detail += '\n' + res.failed.length + ' 个模板预测失败'
+          wx.showModal({ title: '歌单预测', content: detail, showCancel: false })
+        } else {
+          wx.showToast({ title: res.error || '预测失败', icon: 'none' })
+        }
+      },
+      fail: function() {
+        wx.hideLoading()
+        wx.showToast({ title: '网络错误', icon: 'none' })
+      }
+    })
   }
 });

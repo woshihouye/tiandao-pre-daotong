@@ -249,5 +249,48 @@ module.exports = {
   buildUserStats,
   getSystemMessage,
   checkCanCreateTemplate,
+  checkAndApplyStreakPenalty,
   TEMPLATE_TAG_MAP
 };
+
+async function checkAndApplyStreakPenalty(profile) {
+  try {
+    if (!profile || !profile.userId) return null
+    const db = wx.cloud.database()
+    const now = new Date()
+    const pad = function (n) { return String(n).padStart(2, '0') }
+    const todayStr = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate())
+    if (profile.lastPenaltyDate === todayStr) return null
+
+    const rec = await db.collection('records')
+      .where({ userId: profile.userId })
+      .orderBy('date', 'desc')
+      .limit(1)
+      .get()
+    const lastDate = (rec.data && rec.data[0] && rec.data[0].date) || ''
+    if (!lastDate || lastDate === todayStr) return null
+
+    const last = new Date(String(lastDate).replace(/-/g, '/'))
+    const daysGap = Math.floor((now - last) / 86400000)
+    if (daysGap < 2) return null
+
+    const penalty = calculatePenalty(
+      Math.max(0, Number(profile.totalCultivation || 0)),
+      daysGap - 1,
+      false, null
+    )
+    if (penalty <= 0) return null
+
+    await db.collection('users').where({ userId: profile.userId }).update({
+      data: {
+        totalCultivation: Math.max(0, Number(profile.totalCultivation || 0) - penalty),
+        lastPenaltyDate: todayStr,
+        updatedAt: Date.now()
+      }
+    })
+    return { penalty: penalty, days: daysGap - 1 }
+  } catch (e) {
+    console.warn('断签惩罚检测失败', e)
+    return null
+  }
+}
