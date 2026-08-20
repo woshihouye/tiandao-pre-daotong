@@ -133,7 +133,7 @@ Page({
     for (var fi = 0; fi < allDailyTemplates.length; fi++) {
       var tpl = allDailyTemplates[fi]
       if (!tpl) continue
-      if (tpl.type && tpl.type !== 'daily') continue
+      if (tpl.type && tpl.type !== 'daily' && !(tpl.type === 'hedao' && tpl.mode === 'day')) continue
       filtered.push(tpl)
     }
 

@@ -42,7 +42,7 @@ Page({
     // 自建模板
     customTemplates: [],
     customTemplatesFiltered: [],
-    customFilterType: 'all', // 'all' | 'daily' | 'weekly' | 'pool'
+    customFilterType: 'all', // 'all' | 'daily' | 'weekly' | 'hedao'
     hasCustomTemplates: false,
     showTypeSheet: false,
     showTemplateMenu: false,
@@ -100,6 +100,18 @@ Page({
     var key = this._getCustomStorageKey()
     var list = []
     try { list = wx.getStorageSync(key) || [] } catch(e) {}
+
+    // >>> 清理旧 pool 型合道模板（已废弃）
+    var cleaned = []
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].type === 'pool') continue
+      cleaned.push(list[i])
+    }
+    if (cleaned.length !== list.length) {
+      try { wx.setStorageSync(key, cleaned) } catch (e) {}
+      list = cleaned
+    }
+
     this.setData({ customTemplates: list, hasCustomTemplates: list.length > 0 })
     this._filterCustomTemplates()
   },
@@ -233,7 +245,7 @@ Page({
   getTemplateTypeLabel: function(type) {
     if (type === 'daily') return '日模板'
     if (type === 'weekly') return '周模板'
-    if (type === 'pool') return '合道模板'
+    if (type === 'hedao') return '合道模板'
     return type
   },
 
@@ -254,8 +266,20 @@ Page({
       }
       return c
     }
-    if (template.type === 'pool') {
-      return (template.poolActivities || []).length
+    if (template.type === 'hedao') {
+      var cnt = 0
+      if (template.timeSlots) {
+        for (var i = 0; i < template.timeSlots.length; i++) {
+          cnt += ((template.timeSlots[i] && template.timeSlots[i].activities) || []).length
+        }
+      } else if (template.weekData) {
+        var days = template.weekData
+        for (var d in days) {
+          var periods = days[d] || {}
+          for (var p in periods) { cnt += (periods[p] || []).length }
+        }
+      }
+      return cnt
     }
     return 0
   },

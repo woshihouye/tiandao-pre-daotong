@@ -69,6 +69,17 @@
   background: var(--surface-soft);
 }
 
+.hedao-rule {
+  margin-top: 12rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  background: var(--surface-soft);
+  border: 1rpx solid rgba(13,138,102,0.18);
+}
+
 .actions {
   display: flex;
   flex-direction: column;

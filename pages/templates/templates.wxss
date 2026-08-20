@@ -1486,6 +1486,17 @@
   background: linear-gradient(135deg, rgba(18,201,144,0.12), rgba(15,169,122,0.08));
   border: 1rpx solid rgba(13,138,102,0.18);
 }
+.ct-hedao-tag {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  height: 32rpx;
+  line-height: 24rpx;
+  border-radius: 999rpx;
+  color: #0d8a66;
+  font-weight: 600;
+  background: linear-gradient(135deg, rgba(18,201,144,0.16), rgba(15,169,122,0.10));
+  border: 1rpx solid rgba(13,138,102,0.22);
+}
 .ct-count {
   font-size: var(--font-xs);
   color: var(--text-muted);

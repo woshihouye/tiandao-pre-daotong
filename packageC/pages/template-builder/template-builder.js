@@ -54,9 +54,7 @@ Page({
     weekData: {},
 
     // 合道模板
-    poolActivities: [],
-    currentPoolIndex: 0,
-    scoreTarget: '',
+    hedaoMode: 'day', // 'day' 单日合道 | 'week' 周期合道
 
     // 当前选中时段的已添加活动
     currentSlotLabel: '',
@@ -95,10 +93,6 @@ Page({
     showPresetPopup: false,
     presetPopupTitle: '',
     presetOptions: [],
-
-    // 历史导入浮层
-    showHistoryPopup: false,
-    historyActivities: [],
 
     // 修行目标（最优区间）
     optimalTargets: (optimalScore && optimalScore.DEFAULT_OPTIMAL_TARGETS) ? JSON.parse(JSON.stringify(optimalScore.DEFAULT_OPTIMAL_TARGETS)) : {
@@ -149,7 +143,7 @@ Page({
       currentWeekDay: 'mon',
       currentWeekDayLabel: '周一',
       currentWeekSlot: 'morning',
-      currentPoolIndex: 0,
+      hedaoMode: 'day',
       currentSlotActivities: []
     })
     this._initWeekData()
@@ -259,33 +253,11 @@ Page({
 
   // ==================== 合道模板 ====================
 
-  selectPoolActivity: function(e) {
-    var idx = parseInt(e.currentTarget.dataset.index)
-    this.setData({ currentPoolIndex: idx, currentSlotActivities: [] })
-  },
-
-  onScoreTargetInput: function(e) {
-    this.setData({ scoreTarget: e.detail.value })
-  },
-
-  removePoolItem: function(e) {
-    var idx = parseInt(e.currentTarget.dataset.index)
-    var pool = this.data.poolActivities
-    pool.splice(idx, 1)
-    this.setData({ poolActivities: pool, currentPoolIndex: Math.max(0, idx - 1) })
-  },
-
-  movePoolItem: function(e) {
-    var idx = parseInt(e.currentTarget.dataset.index)
-    var dir = e.currentTarget.dataset.dir
-    var pool = this.data.poolActivities
-    if (dir === 'up' && idx > 0) {
-      var tmp = pool[idx - 1]; pool[idx - 1] = pool[idx]; pool[idx] = tmp
-      this.setData({ poolActivities: pool, currentPoolIndex: idx - 1 })
-    } else if (dir === 'down' && idx < pool.length - 1) {
-      var tmp2 = pool[idx + 1]; pool[idx + 1] = pool[idx]; pool[idx] = tmp2
-      this.setData({ poolActivities: pool, currentPoolIndex: idx + 1 })
-    }
+  switchHedaoMode: function(e) {
+    var mode = e.currentTarget.dataset.mode
+    if (mode === this.data.hedaoMode) return
+    this.setData({ hedaoMode: mode })
+    this._refreshCurrentSlotDisplay()
   },
 
   // ==================== 当前时段活动刷新 ====================
@@ -301,9 +273,14 @@ Page({
     } else if (type === 'weekly') {
       activities = (this.data.weekData[this.data.currentWeekDay] || {})[this.data.currentWeekSlot] || []
       label = this.data.currentWeekDayLabel + ' ' + (this._getWeekPeriodLabel(this.data.currentWeekSlot))
-    } else if (type === 'pool') {
-      label = '合道活动池'
-      activities = this.data.poolActivities || []
+    } else if (type === 'hedao') {
+      if (this.data.hedaoMode === 'day') {
+        var slot2 = this._findSlotById(this.data.currentSlotId)
+        if (slot2) { activities = slot2.activities; label = slot2.name }
+      } else {
+        activities = (this.data.weekData[this.data.currentWeekDay] || {})[this.data.currentWeekSlot] || []
+        label = this.data.currentWeekDayLabel + ' ' + (this._getWeekPeriodLabel(this.data.currentWeekSlot))
+      }
     }
 
     this.setData({
@@ -500,7 +477,7 @@ Page({
 
     var type = this.data.templateType
 
-    if (type === 'daily') {
+    if (type === 'daily' || (type === 'hedao' && this.data.hedaoMode === 'day')) {
       var slots = this.data.timeSlots
       for (var i = 0; i < slots.length; i++) {
         if (slots[i].id === this.data.currentSlotId) {
@@ -509,14 +486,10 @@ Page({
         }
       }
       this.setData({ timeSlots: slots })
-    } else if (type === 'weekly') {
+    } else if (type === 'weekly' || (type === 'hedao' && this.data.hedaoMode === 'week')) {
       var wd = this.data.weekData
       wd[this.data.currentWeekDay][this.data.currentWeekSlot].push(newEntry)
       this.setData({ weekData: wd })
-    } else if (type === 'pool') {
-      var pool = this.data.poolActivities
-      pool.push(newEntry)
-      this.setData({ poolActivities: pool })
     }
 
     this.setData({ showCapacityPopup: false, capacityTempInfo: null })
@@ -579,7 +552,7 @@ Page({
 
   _removeActivityFromCurrentSlot: function(idx) {
     var type = this.data.templateType
-    if (type === 'daily') {
+    if (type === 'daily' || (type === 'hedao' && this.data.hedaoMode === 'day')) {
       var slots = this.data.timeSlots
       for (var i = 0; i < slots.length; i++) {
         if (slots[i].id === this.data.currentSlotId) {
@@ -588,7 +561,7 @@ Page({
           return
         }
       }
-    } else if (type === 'weekly') {
+    } else if (type === 'weekly' || (type === 'hedao' && this.data.hedaoMode === 'week')) {
       var wd = this.data.weekData
       wd[this.data.currentWeekDay][this.data.currentWeekSlot].splice(idx, 1)
       this.setData({ weekData: wd })
@@ -601,7 +574,7 @@ Page({
     var type = this.data.templateType
     var arrKey = ''
 
-    if (type === 'daily') {
+    if (type === 'daily' || (type === 'hedao' && this.data.hedaoMode === 'day')) {
       var slots = this.data.timeSlots
       for (var i = 0; i < slots.length; i++) {
         if (slots[i].id === this.data.currentSlotId) {
@@ -612,7 +585,7 @@ Page({
           break
         }
       }
-    } else if (type === 'weekly') {
+    } else if (type === 'weekly' || (type === 'hedao' && this.data.hedaoMode === 'week')) {
       var wd = this.data.weekData
       var arr2 = wd[this.data.currentWeekDay][this.data.currentWeekSlot]
       if (dir === 'up' && idx > 0) { var u = arr2[idx-1]; arr2[idx-1] = arr2[idx]; arr2[idx] = u }
@@ -806,63 +779,6 @@ Page({
     this.setData({ showPresetPopup: false })
   },
 
-  // ==================== 导入历史活动 ====================
-
-  importHistoryActivities: function() {
-    // 模拟从打卡记录中提取历史活动
-    try {
-      var checkins = wx.getStorageSync('tiandao_checkin_cache_' + this._getUid()) || []
-    } catch(e) { var checkins = [] }
-
-    // 如果没有真实数据，提供模拟历史数据
-    var history = [
-      { actId: 'push_up', activityName: '俯卧撑', count: 15, capacity: { value: 3, unit: '组' }, tabKey: 'sport', category: 'sport' },
-      { actId: 'read_book', activityName: '阅读书籍', count: 12, capacity: { value: 3, unit: '次' }, tabKey: 'study', category: 'study' },
-      { actId: 'deep_work', activityName: '专注深度工作', count: 10, capacity: { value: 2, unit: '次' }, tabKey: 'work', category: 'work' },
-      { actId: 'running', activityName: '跑步', count: 8, capacity: { value: 30, unit: '分钟' }, tabKey: 'sport', category: 'sport' },
-      { actId: 'drink_8_water', activityName: '喝够8杯水', count: 20, capacity: { value: 1, unit: '次/天' }, tabKey: 'diet', category: 'diet' },
-      { actId: 'meditation', activityName: '正念冥想', count: 7, capacity: { value: 20, unit: '分钟' }, tabKey: 'study', category: 'study' },
-      { actId: 'bodyweight_squat', activityName: '深蹲', count: 6, capacity: { value: 3, unit: '组' }, tabKey: 'sport', category: 'sport' },
-      { actId: 'daily_journal', activityName: '每日复盘写日记', count: 9, capacity: { value: 1, unit: '次' }, tabKey: 'study', category: 'study' }
-    ]
-
-    for (var i = 0; i < history.length; i++) {
-      history[i].checked = i < 5
-    }
-
-    this.setData({ showHistoryPopup: true, historyActivities: history })
-  },
-
-  toggleHistoryOption: function(e) {
-    var idx = parseInt(e.currentTarget.dataset.index)
-    var list = this.data.historyActivities
-    list[idx].checked = !list[idx].checked
-    this.setData({ historyActivities: list })
-  },
-
-  closeHistoryPopup: function() {
-    this.setData({ showHistoryPopup: false })
-  },
-
-  confirmImportHistory: function() {
-    var history = this.data.historyActivities
-    var pool = this.data.poolActivities
-    for (var i = 0; i < history.length; i++) {
-      if (history[i].checked) {
-        pool.push({
-          actId: history[i].actId,
-          activityName: history[i].activityName,
-          capacity: history[i].capacity || { value: 1, unit: '次' },
-          tabKey: history[i].tabKey || 'sport',
-          category: history[i].category || 'sport'
-        })
-      }
-    }
-    this.setData({ poolActivities: pool, showHistoryPopup: false })
-    this._refreshCurrentSlotDisplay()
-    wx.showToast({ title: '已导入', icon: 'success' })
-  },
-
   // ==================== 保存模板 ====================
 
   _getUid: function() {
@@ -902,6 +818,41 @@ Page({
       }
     }
 
+    // 合道模板：全天所有时段必须填满且无空白卡
+    if (this.data.templateType === 'hedao') {
+      var blankIds = ['blank_sport', 'blank_diet', 'blank_study', 'blank_work', 'blank_debuff']
+      var missing = []
+      if (this.data.hedaoMode === 'day') {
+        var slots2 = this.data.timeSlots
+        for (var si2 = 0; si2 < slots2.length; si2++) {
+          var acts2 = (slots2[si2] && slots2[si2].activities) || []
+          if (acts2.length === 0) { missing.push(slots2[si2].name || ('时段' + (si2 + 1))) }
+          else if (acts2.some(function(a) { return a && blankIds.indexOf(a.id) >= 0 })) {
+            missing.push(slots2[si2].name + '（含空白卡）')
+          }
+        }
+      } else {
+        var wd = this.data.weekData || {}
+        var labels = { mon: '周一', tue: '周二', wed: '周三', thu: '周四', fri: '周五', sat: '周六', sun: '周日' }
+        var plabels = { morning: '早间', afternoon: '午间', evening: '晚间' }
+        for (var dd in labels) {
+          var periods2 = (wd[dd] || {})
+          for (var pp in plabels) {
+            var acts3 = periods2[pp] || []
+            if (acts3.length === 0) { missing.push(labels[dd] + plabels[pp]) }
+            else if (acts3.some(function(a) { return a && blankIds.indexOf(a.id) >= 0 })) {
+              missing.push(labels[dd] + plabels[pp] + '（含空白卡）')
+            }
+          }
+        }
+      }
+      if (missing.length > 0) {
+        var tip = missing.slice(0, 3).join('、') + (missing.length > 3 ? ' 等' + missing.length + ' 处' : '')
+        wx.showToast({ title: '合道需填满全天：' + tip, icon: 'none' })
+        return
+      }
+    }
+
     var template = {
       id: this.data.templateId || ('ctmpl_' + Date.now()),
       name: name,
@@ -913,13 +864,17 @@ Page({
       template.timeSlots = this.data.timeSlots
     } else if (template.type === 'weekly') {
       template.weekData = this.data.weekData
-    } else if (template.type === 'pool') {
-      template.poolActivities = this.data.poolActivities
-      template.scoreTarget = parseInt(this.data.scoreTarget) || 0
+    } else if (template.type === 'hedao') {
+      template.mode = this.data.hedaoMode
+      if (this.data.hedaoMode === 'day') {
+        template.timeSlots = this.data.timeSlots
+      } else {
+        template.weekData = this.data.weekData
+      }
     }
 
     // 写入最优区间（日模板/合道模板）
-    if (template.type === 'daily' || template.type === 'pool') {
+    if (template.type === 'daily' || template.type === 'hedao') {
       template.optimalTargets = this.data.optimalTargets
     }
 
@@ -1048,14 +1003,19 @@ Page({
     } else if (found.type === 'weekly') {
       this._initTimeSlots()
       this.setData({ weekData: found.weekData || {} })
-    } else if (found.type === 'pool') {
-      this._initTimeSlots()
-      this._initWeekData()
+    } else if (found.type === 'hedao') {
+      var isWeek = found.mode === 'week'
       this.setData({
-        poolActivities: found.poolActivities || [],
-        scoreTarget: String(found.scoreTarget || ''),
+        hedaoMode: isWeek ? 'week' : 'day',
         optimalTargets: found.optimalTargets || (optimalScore && optimalScore.DEFAULT_OPTIMAL_TARGETS ? JSON.parse(JSON.stringify(optimalScore.DEFAULT_OPTIMAL_TARGETS)) : null) || this.data.optimalTargets
       })
+      if (isWeek) {
+        this._initTimeSlots()
+        this.setData({ weekData: found.weekData || {} })
+      } else {
+        this.setData({ timeSlots: found.timeSlots || DEFAULT_SLOTS, currentSlotId: 'dawn' })
+        this._initWeekData()
+      }
     }
 
     this._refreshCurrentSlotDisplay()

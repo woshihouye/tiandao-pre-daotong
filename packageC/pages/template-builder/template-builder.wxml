@@ -10,7 +10,7 @@
     <view class="type-tabs">
       <view class="type-tab {{templateType === 'daily' ? 'active' : ''}}" bindtap="switchType" data-type="daily">日模板</view>
       <view class="type-tab {{templateType === 'weekly' ? 'active' : ''}}" bindtap="switchType" data-type="weekly">周模板</view>
-      <view class="type-tab {{templateType === 'pool' ? 'active' : ''}}" bindtap="switchType" data-type="pool">合道模板</view>
+      <view class="type-tab {{templateType === 'hedao' ? 'active' : ''}}" bindtap="switchType" data-type="hedao">合道模板</view>
       <view class="type-tab {{templateType === 'playlist' ? 'active' : ''}}" bindtap="switchType" data-type="playlist">周期模板</view>
     </view>
   </view>
@@ -18,7 +18,7 @@
   <!-- ═══════════ 上半屏：时间/配置区 ═══════════ -->
 
   <!-- 日模板：时间轴 + 活动卡片 -->
-  <view class="upper-area" wx:if="{{templateType === 'daily'}}">
+  <view class="upper-area" wx:if="{{templateType === 'daily' || (templateType === 'hedao' && hedaoMode === 'day')}}">
     <view class="preset-bar">
       <text class="section-label">时段安排</text>
       <text class="preset-btn" bindtap="fillPreset">一键填充推荐作息</text>
@@ -81,7 +81,7 @@
   </view>
 
   <!-- 周模板：7天 × 3时段网格 -->
-  <view class="upper-area" wx:if="{{templateType === 'weekly'}}">
+  <view class="upper-area" wx:if="{{templateType === 'weekly' || (templateType === 'hedao' && hedaoMode === 'week')}}">
     <view class="preset-bar">
       <text class="preset-btn" bindtap="fillWeeklyPreset">加载预设周计划</text>
     </view>
@@ -115,39 +115,17 @@
     </view>
   </view>
 
-  <!-- 合道模板：活动池 + 目标 -->
-  <view class="upper-area" wx:if="{{templateType === 'pool'}}">
-    <view class="preset-bar">
-      <text class="preset-btn" bindtap="importHistoryActivities">导入历史常用活动</text>
+  <!-- 合道模板：全天综合（单日/周期） -->
+  <view class="upper-area" wx:if="{{templateType === 'hedao'}}">
+    <view class="hedao-mode-tabs">
+      <view class="hedao-mode-tab {{hedaoMode === 'day' ? 'active' : ''}}" bindtap="switchHedaoMode" data-mode="day">单日合道</view>
+      <view class="hedao-mode-tab {{hedaoMode === 'week' ? 'active' : ''}}" bindtap="switchHedaoMode" data-mode="week">周期合道</view>
     </view>
-    <view class="pool-target-row">
-      <text class="pool-target-label">每日修为目标</text>
-      <input class="pool-target-input" type="digit" placeholder="可选" value="{{scoreTarget}}" bindinput="onScoreTargetInput"/>
-      <text class="pool-target-suffix">修为</text>
-    </view>
-    <scroll-view scroll-y class="slot-list">
-      <view
-        wx:for="{{poolActivities}}" wx:key="id"
-        class="slot-item {{currentPoolIndex === index ? 'selected' : ''}}"
-        data-index="{{index}}" bindtap="selectPoolActivity"
-      >
-        <view class="slot-left">
-          <view class="slot-name">{{item.activityName}}</view>
-          <view class="slot-time">默认 {{item.defaultCapacity.value}}{{item.defaultCapacity.unit}}</view>
-        </view>
-        <view class="slot-right">
-          <view class="slot-actions">
-            <text class="slot-move-btn" data-index="{{index}}" data-dir="up" catchtap="movePoolItem">▲</text>
-            <text class="slot-move-btn" data-index="{{index}}" data-dir="down" catchtap="movePoolItem">▼</text>
-          </view>
-          <text class="slot-arrow" data-index="{{index}}" catchtap="removePoolItem">✕</text>
-        </view>
-      </view>
-    </scroll-view>
+    <view class="hedao-tip">合道模板需填满全天所有时段（含休息安排），不能留空白</view>
   </view>
 
-  <!-- 当前选中时段的已添加活动（日模板已内嵌于时间线中，此处仅周模板/合道模板展示） -->
-  <view class="slot-activities" wx:if="{{currentSlotActivities.length > 0 && templateType !== 'daily'}}">
+  <!-- 当前选中时段的已添加活动（日模板已内嵌于时间线中，此处仅周模板/周期合道展示） -->
+  <view class="slot-activities" wx:if="{{currentSlotActivities.length > 0 && (templateType === 'weekly' || (templateType === 'hedao' && hedaoMode === 'week'))}}">
     <view class="sa-title">
       <text>{{currentSlotLabel}} · 已添加活动</text>
       <text class="sa-copy" wx:if="{{templateType === 'daily'}}" bindtap="copySlotToOthers">复制到其他时段</text>
@@ -172,7 +150,7 @@
   </view>
 
   <!-- ═══════════ 修行目标（最优区间） ═══════════ -->
-  <view class="optimal-card" wx:if="{{templateType === 'daily' || templateType === 'pool'}}">
+  <view class="optimal-card" wx:if="{{templateType === 'daily' || templateType === 'hedao'}}">
     <view class="optimal-head">
       <text class="optimal-title">🎯 修行目标（最优区间）</text>
       <view class="optimal-apply" bindtap="applyDefaultOptimalTargets">使用系统推荐</view>
@@ -268,7 +246,7 @@
           <view class="cart-item-cap">{{item.capacity.value}}{{item.capacity.unit}}</view>
         </view>
       </view>
-      <view class="cart-item-drop" wx:if="{{templateType === 'daily'}}" data-id="{{item.cartId}}" bindtap="startDrop">落位</view>
+      <view class="cart-item-drop" wx:if="{{templateType === 'daily' || (templateType === 'hedao' && hedaoMode === 'day')}}" data-id="{{item.cartId}}" bindtap="startDrop">落位</view>
       <text class="cart-item-del" data-id="{{item.cartId}}" bindtap="removeCartItem">✕</text>
     </view>
     <view class="cart-clear" bindtap="clearCart">清空</view>
@@ -379,20 +357,3 @@
   </view>
 </view>
 
-<!-- ═══════════ 浮层：导入历史活动 ═══════════ -->
-<view class="popup-overlay {{showHistoryPopup ? 'show' : ''}}" bindtap="closeHistoryPopup">
-  <view class="popup-sheet" catchtap="preventBubble">
-    <view class="popup-title">导入历史常用活动</view>
-    <view class="checkbox-list">
-      <view
-        wx:for="{{historyActivities}}" wx:key="actId"
-        class="checkbox-item {{item.checked ? 'checked' : ''}}"
-        data-index="{{index}}" bindtap="toggleHistoryOption"
-      >{{item.activityName}} ({{item.count}}次)</view>
-    </view>
-    <view class="popup-actions">
-      <view class="popup-btn cancel" bindtap="closeHistoryPopup">取消</view>
-      <view class="popup-btn confirm" bindtap="confirmImportHistory">确认导入</view>
-    </view>
-  </view>
-</view>

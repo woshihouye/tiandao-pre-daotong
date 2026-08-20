@@ -23,7 +23,7 @@
       <view class="ct-filter-tab {{customFilterType === 'all' ? 'active' : ''}}" data-type="all" bindtap="filterCustomType">全部</view>
       <view class="ct-filter-tab {{customFilterType === 'daily' ? 'active' : ''}}" data-type="daily" bindtap="filterCustomType">日模板</view>
       <view class="ct-filter-tab {{customFilterType === 'weekly' ? 'active' : ''}}" data-type="weekly" bindtap="filterCustomType">周模板</view>
-      <view class="ct-filter-tab {{customFilterType === 'pool' ? 'active' : ''}}" data-type="pool" bindtap="filterCustomType">合道模板</view>
+      <view class="ct-filter-tab {{customFilterType === 'hedao' ? 'active' : ''}}" data-type="hedao" bindtap="filterCustomType">合道模板</view>
     </view>
     <view class="ct-list">
       <view
@@ -37,7 +37,8 @@
           <view class="ct-card-name">{{item.name}}</view>
           <view class="ct-card-meta">
             <text class="ct-type-tag">{{item.type === 'daily' ? '日模板' : (item.type === 'weekly' ? '周模板' : '合道模板')}}</text>
-            <text class="ct-count">· {{item.type === 'daily' ? (item.timeSlots ? item.timeSlots.length : 0) + '时段' : (item.type === 'weekly' ? '7天' : (item.poolActivities ? item.poolActivities.length : 0) + '项')}}</text>
+            <text class="ct-hedao-tag" wx:if="{{item.type === 'hedao'}}">☯ 合道</text>
+            <text class="ct-count">· {{item.type === 'daily' ? (item.timeSlots ? item.timeSlots.length : 0) + '时段' : (item.type === 'weekly' ? '7天' : (item.type === 'hedao' ? (item.timeSlots ? '全天' : '周期') : ''))}}</text>
           </view>
         </view>
         <view class="ct-card-right">
@@ -219,10 +220,10 @@
           <view class="sc-name">周模板</view>
           <view class="sc-desc">整周周期循环计划</view>
         </view>
-        <view class="sheet-card" data-type="pool" bindtap="goToTemplateBuilder">
-          <view class="sc-icon">🔄</view>
+        <view class="sheet-card" data-type="hedao" bindtap="goToTemplateBuilder">
+          <view class="sc-icon">☯</view>
           <view class="sc-name">合道模板</view>
-          <view class="sc-desc">动态灵活的日常活动池</view>
+          <view class="sc-desc">全天综合计划，所有时段填满</view>
         </view>
       </view>
     </view>

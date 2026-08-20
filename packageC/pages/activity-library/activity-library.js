@@ -2187,16 +2187,6 @@ Page({
             }
           }
         }
-        // 合道模板
-        if (tmpl.poolActivities) {
-          for (var pa = 0; pa < tmpl.poolActivities.length; pa++) {
-            if (tmpl.poolActivities[pa].actId === actId) {
-              tmpl.poolActivities[pa].activityName = newName
-              tmpl.poolActivities[pa].score = newScore
-              updated = true
-            }
-          }
-        }
       }
 
       if (updated) {
@@ -2227,9 +2217,6 @@ Page({
               }
             }
           }
-        }
-        if (tmpl.poolActivities) {
-          allActs = allActs.concat(tmpl.poolActivities)
         }
         for (var a = 0; a < allActs.length; a++) {
           if (allActs[a].actId === actId) return true
@@ -2276,15 +2263,6 @@ Page({
               }
             }
           }
-        }
-        // 合道模板
-        if (tmpl.poolActivities) {
-          var poolFiltered = []
-          for (var pa = 0; pa < tmpl.poolActivities.length; pa++) {
-            if (tmpl.poolActivities[pa].actId !== actId) poolFiltered.push(tmpl.poolActivities[pa])
-            else updated = true
-          }
-          tmpl.poolActivities = poolFiltered
         }
       }
 

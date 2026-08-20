@@ -164,17 +164,20 @@ page { height: 100%; background: var(--page-bg); }
   background: var(--surface-soft); border-radius: 6rpx;
 }
 
-/* 合道模板 */
-.pool-target-row {
-  display: flex; align-items: center; padding: 12rpx 28rpx; gap: 12rpx;
+/* 合道模板：单日/周期模式切换 */
+.hedao-mode-tabs {
+  display: flex; gap: 12rpx; padding: 12rpx 28rpx;
 }
-.pool-target-label { font-size: 26rpx; color: var(--text-secondary); }
-.pool-target-input {
-  width: 120rpx; height: 56rpx; text-align: center;
-  background: var(--card-bg); border: 1rpx solid var(--border-color); border-radius: 10rpx;
-  font-size: 26rpx; color: var(--text-primary);
+.hedao-mode-tab {
+  flex: 1; height: 64rpx; border-radius: 14rpx;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26rpx; color: var(--text-secondary); background: var(--surface-soft);
+  transition: all 0.2s;
 }
-.pool-target-suffix { font-size: 22rpx; color: var(--text-muted); }
+.hedao-mode-tab.active { background: var(--primary); color: #fff; font-weight: 600; }
+.hedao-tip {
+  padding: 0 28rpx 12rpx; font-size: 22rpx; color: var(--text-muted); line-height: 1.5;
+}
 
 /* 周模板 */
 .week-day-bar {

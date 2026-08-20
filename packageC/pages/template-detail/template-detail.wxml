@@ -39,6 +39,9 @@
       <view class="meta">今日 {{todayScore}}/{{dailyCap}}</view>
     </view>
     <view class="buff-tip" wx:if="{{buffTip}}">{{buffTip}}</view>
+    <view class="hedao-rule" wx:if="{{template.type === 'hedao'}}">
+      ☯ 合道模板：全天活动轴填满的综合计划；日/周模板允许留白，合道不留白
+    </view>
   </view>
 
   <!-- ===== 富媒体正文（长文/图片/视频/链接）===== -->
