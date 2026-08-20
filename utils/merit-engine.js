@@ -25,7 +25,8 @@ var MERIT_WEIGHTS = {
   importReceived:     10,   // 原 5
   eliteFollowed:      10,   // 不变
   templateFeatured:   50,   // 不变（预留）
-  commentReceived:     2    // 原 1
+  commentReceived:     2,   // 原 1
+  wishFulfilled:      5    // 完成愿望（助人）
 }
 
 // ============================================================
@@ -108,6 +109,14 @@ function computeMerit(stats) {
     var commentMerit = comments * MERIT_WEIGHTS.commentReceived
     total += commentMerit
     breakdown.push({ label: '收到评论', count: comments, weight: MERIT_WEIGHTS.commentReceived, merit: commentMerit })
+  }
+
+  // 完成愿望
+  var fulfillCount = Number(s.wishFulfillCount || 0)
+  if (fulfillCount > 0) {
+    var fulfillMerit = fulfillCount * MERIT_WEIGHTS.wishFulfilled
+    total += fulfillMerit
+    breakdown.push({ label: '完成愿望', count: fulfillCount, weight: MERIT_WEIGHTS.wishFulfilled, merit: fulfillMerit })
   }
 
   // 匹配功德等级

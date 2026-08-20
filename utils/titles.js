@@ -478,7 +478,18 @@ const TITLE_DEFINITIONS = [
   { id: 'combat_top100',name: '斗战胜士', category: 'combat', level: 'superior', color: '#d35400',
     buffs: [ { type: 'combat', value: 0.05 } ],
     condition: function(s) { return (s.combatRank || 0) >= 11 && (s.combatRank || 0) <= 100 },
-    conditionText: '战力榜第 11-100 名', order: 52 }
+    conditionText: '战力榜第 11-100 名', order: 52 },
+
+  // ==================== 助人称号（完成愿望） ====================
+  { id: 'fulfill_1', name: '渡人者', category: 'merit', color: '#22c55e', bonus: 0.005,
+    condition: function(s) { return (s.wishFulfillCount || 0) >= 1 },
+    conditionText: '完成 1 个愿望', poem: '愿力所至，渡人渡己。', order: 101 },
+  { id: 'fulfill_5', name: '圆梦使者', category: 'merit', color: '#10b981', bonus: 0.01,
+    condition: function(s) { return (s.wishFulfillCount || 0) >= 5 },
+    conditionText: '完成 5 个愿望', poem: '五愿成真，梦启新章。', order: 102 },
+  { id: 'fulfill_20', name: '济世明灯', category: 'merit', color: '#059669', bonus: 0.015,
+    condition: function(s) { return (s.wishFulfillCount || 0) >= 20 },
+    conditionText: '完成 20 个愿望', poem: '廿愿皆偿，明灯照世。', order: 103 }
 ]
 
 function getTitlesByCategory(category) {

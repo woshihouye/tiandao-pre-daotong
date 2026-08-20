@@ -30,7 +30,7 @@ async function publishWish(event, OPENID) {
     data: {
       wishId: wishId, userId: OPENID, nickName: nickName, avatar: avatar,
       content: content, likeCount: 0, favCount: 0, commentCount: 0,
-      status: 'open', createdAt: now, updatedAt: now
+      status: 'open', hotScore: 0, createdAt: now, updatedAt: now
     }
   });
   return { ok: true, wishId: wishId };
@@ -42,8 +42,9 @@ async function listWishes(event) {
   var page = Math.min(Math.max(1, parseInt(event.page) || 1), 100);
   var pageSize = Math.min(Math.max(1, parseInt(event.pageSize) || 20), 50);
   var countRes = await db.collection('wishes').count();
+  var sortBy = event.sortBy === 'new' ? 'createdAt' : 'hotScore'
   var listRes = await db.collection('wishes')
-    .orderBy('createdAt', 'desc')
+    .orderBy(sortBy, 'desc')
     .skip((page - 1) * pageSize)
     .limit(pageSize)
     .get();
@@ -89,6 +90,29 @@ async function deleteWish(event, OPENID) {
   return { ok: true };
 }
 
+// ==================== 4b. fulfillWish ====================
+/** 完成愿望：许愿者之外的用户可将其标记为已满足 */
+async function fulfillWish(event, OPENID) {
+  var wishId = (event.wishId || '').trim();
+  if (!wishId) return { ok: false, error: '缺少愿望 id' };
+  var res = await db.collection('wishes').where({ wishId: wishId }).limit(1).get();
+  var wish = res.data && res.data[0];
+  if (!wish) return { ok: false, error: '愿望不存在' };
+  if (wish.status !== 'open') return { ok: false, error: '该愿望已被满足' };
+  if (wish.userId === OPENID) return { ok: false, error: '自己的愿望需由他人助成' };
+  var nickName = event.nickName || '无名修士';
+  await db.collection('wishes').doc(wish._id).update({
+    data: {
+      status: 'fulfilled',
+      fulfilledBy: OPENID,
+      fulfilledByNick: nickName,
+      fulfilledAt: new Date(),
+      updatedAt: new Date()
+    }
+  });
+  return { ok: true, wishId: wishId };
+}
+
 // ==================== 5. likeWish ====================
 /** 点赞 toggle */
 async function likeWish(event, OPENID) {
@@ -98,11 +122,11 @@ async function likeWish(event, OPENID) {
   var liked = false;
   if (existRes.data && existRes.data.length > 0) {
     await db.collection('wish_likes').doc(existRes.data[0]._id).remove();
-    await db.collection('wishes').where({ wishId: wishId }).update({ data: { likeCount: _.inc(-1), updatedAt: new Date() } });
+    await db.collection('wishes').where({ wishId: wishId }).update({ data: { likeCount: _.inc(-1), hotScore: _.inc(-2), updatedAt: new Date() } });
     liked = false;
   } else {
     await db.collection('wish_likes').add({ data: { wishId: wishId, userId: OPENID, createdAt: new Date() } });
-    await db.collection('wishes').where({ wishId: wishId }).update({ data: { likeCount: _.inc(1), updatedAt: new Date() } });
+    await db.collection('wishes').where({ wishId: wishId }).update({ data: { likeCount: _.inc(1), hotScore: _.inc(2), updatedAt: new Date() } });
     liked = true;
   }
   var t = await db.collection('wishes').where({ wishId: wishId }).limit(1).get();
@@ -118,11 +142,11 @@ async function favWish(event, OPENID) {
   var favorited = false;
   if (existRes.data && existRes.data.length > 0) {
     await db.collection('wish_favorites').doc(existRes.data[0]._id).remove();
-    await db.collection('wishes').where({ wishId: wishId }).update({ data: { favCount: _.inc(-1), updatedAt: new Date() } });
+    await db.collection('wishes').where({ wishId: wishId }).update({ data: { favCount: _.inc(-1), hotScore: _.inc(-3), updatedAt: new Date() } });
     favorited = false;
   } else {
     await db.collection('wish_favorites').add({ data: { wishId: wishId, userId: OPENID, createdAt: new Date() } });
-    await db.collection('wishes').where({ wishId: wishId }).update({ data: { favCount: _.inc(1), updatedAt: new Date() } });
+    await db.collection('wishes').where({ wishId: wishId }).update({ data: { favCount: _.inc(1), hotScore: _.inc(3), updatedAt: new Date() } });
     favorited = true;
   }
   var t = await db.collection('wishes').where({ wishId: wishId }).limit(1).get();
@@ -150,7 +174,7 @@ async function addWishComment(event, OPENID) {
     }
   });
   await db.collection('wishes').where({ wishId: wishId }).update({
-    data: { commentCount: _.inc(1), updatedAt: new Date() }
+    data: { commentCount: _.inc(1), hotScore: _.inc(2), updatedAt: new Date() }
   });
   return { ok: true, commentId: addRes._id };
 }
@@ -188,6 +212,7 @@ exports.main = async function(event, context) {
       case 'listWishes':      return await listWishes(event);
       case 'getWishDetail':   return await getWishDetail(event, OPENID);
       case 'deleteWish':      return await deleteWish(event, OPENID);
+      case 'fulfillWish':     return await fulfillWish(event, OPENID);
       case 'likeWish':        return await likeWish(event, OPENID);
       case 'favWish':         return await favWish(event, OPENID);
       case 'addWishComment':  return await addWishComment(event, OPENID);

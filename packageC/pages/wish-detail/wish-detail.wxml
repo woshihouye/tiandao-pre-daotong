@@ -15,9 +15,12 @@
           </view>
         </view>
         <text class="wish-status" wx:if="{{wish.status === 'fulfilled'}}">已满足</text>
+        <text class="wish-fulfilled-by" wx:if="{{wish.status === 'fulfilled'}}">由 {{wish.fulfilledByNick || '道友'}} 助成</text>
       </view>
 
       <view class="detail-content">{{wish.content}}</view>
+
+      <view class="fulfill-btn" wx:if="{{wish.status === 'open' && wish.userId !== myUserId}}" bindtap="onFulfillWish">✨ 我来完成</view>
 
       <view class="stats-row">
         <text class="stat-item">❤ {{wish.likeCount || 0}}</text>

@@ -36,8 +36,13 @@ exports.main = async (event) => {
       weekdayWorkHours: 0,
       workHoursCheckin: 0,
       weekendOnlyWeeks: 0,
-      makeupCount: 0
+      makeupCount: 0,
+      wishFulfillCount: 0
     }
+
+    // 完成愿望数（助人称号判定用）
+    const wishRes = await db.collection('wishes').where({ fulfilledBy: userId }).count()
+    stats.wishFulfillCount = wishRes.total || 0
 
     // 分页读取已印证记录，上限 2000 条
     const MAX_RECORDS = 2000

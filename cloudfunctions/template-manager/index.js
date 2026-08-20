@@ -1640,6 +1640,9 @@ async function getCreatorStats(event) {
   var meritRank = await getUserRank(userId, 'meritScore');
   var combatRank = await getUserRank(userId, 'combatPower');
 
+  // 完成愿望数（wishes 集合 fulfilledBy = 当前用户）
+  var fulfillRes = await db.collection('wishes').where({ fulfilledBy: userId }).count();
+
   return {
     ok: true,
     stats: {
@@ -1648,6 +1651,7 @@ async function getCreatorStats(event) {
       totalLikes: totalLikes,
       totalFavs: totalFavs,
       totalImports: totalImports,
+      wishFulfillCount: fulfillRes.total || 0,
       meritRank: meritRank,
       combatRank: combatRank
     }

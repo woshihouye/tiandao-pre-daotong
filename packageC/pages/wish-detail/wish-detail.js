@@ -24,7 +24,8 @@ Page({
     commentLoading: false,
     commentInput: '',
     userNickName: '',
-    userAvatar: ''
+    userAvatar: '',
+    myUserId: ''
   },
 
   onLoad: function(options) {
@@ -37,7 +38,8 @@ Page({
     this.setData({
       wishId: wishId,
       userNickName: up.nickName || '',
-      userAvatar: up.avatarUrl || ''
+      userAvatar: up.avatarUrl || '',
+      myUserId: (app.globalData && app.globalData.userId) || ''
     })
     this.applyTheme()
     this._loadDetail()
@@ -205,6 +207,38 @@ Page({
             wx.hideLoading()
             wx.showToast({ title: '网络错误', icon: 'none' })
           }
+        })
+      }
+    })
+  },
+
+  onFulfillWish: function() {
+    var that = this
+    wx.showModal({
+      title: '助人圆满',
+      content: '确定帮 TA 实现这个愿望？修行之道，助人即助己。',
+      confirmText: '助成',
+      success: function(res) {
+        if (!res.confirm) return
+        wx.showLoading({ title: '助成中...', mask: true })
+        wx.cloud.callFunction({
+          name: 'wish-manager',
+          data: {
+            action: 'fulfillWish',
+            wishId: that.data.wish.wishId,
+            nickName: ((app.globalData.userProfile && app.globalData.userProfile.nickName) || '')
+          },
+          success: function(r) {
+            wx.hideLoading()
+            var rs = r.result || {}
+            if (rs.ok) {
+              wx.showToast({ title: '愿力已成，功德自生', icon: 'success' })
+              that._loadDetail()
+            } else {
+              wx.showToast({ title: rs.error || '助成失败', icon: 'none' })
+            }
+          },
+          fail: function() { wx.hideLoading(); wx.showToast({ title: '网络错误', icon: 'none' }) }
         })
       }
     })

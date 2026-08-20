@@ -154,6 +154,12 @@
       </view>
     </view>
 
+    <!-- 许愿排序 tab -->
+    <view class="wish-sort-row">
+      <text class="wish-sort-btn {{wishSortBy === 'hot' ? 'active' : ''}}" data-sort="hot" bindtap="onSwitchWishSort">🔥 热度</text>
+      <text class="wish-sort-btn {{wishSortBy === 'new' ? 'active' : ''}}" data-sort="new" bindtap="onSwitchWishSort">🕐 最新</text>
+    </view>
+
     <!-- 许愿卡列表 -->
     <view class="wish-list" wx:if="{{wishes.length > 0}}">
       <view

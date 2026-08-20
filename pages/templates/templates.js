@@ -32,6 +32,7 @@ Page({
     wishes: [],
     wishPage: 1,
     wishPageSize: 20,
+    wishSortBy: 'hot', // 'hot' | 'new'
     wishHasMore: false,
     wishTotal: 0,
     wishLoading: false,
@@ -267,7 +268,8 @@ Page({
       data: {
         action: 'listWishes',
         page: page,
-        pageSize: this.data.wishPageSize
+        pageSize: this.data.wishPageSize,
+        sortBy: this.data.wishSortBy
       },
       success: function(res) {
         var r = res.result || {}
@@ -294,6 +296,13 @@ Page({
         try { wx.stopPullDownRefresh() } catch(e) {}
       }
     })
+  },
+
+  onSwitchWishSort: function(e) {
+    var sort = e.currentTarget.dataset.sort
+    if (this.data.wishSortBy === sort) return
+    this.setData({ wishSortBy: sort, wishes: [], wishPage: 1 })
+    this._loadWishes(true)
   },
 
   onWishInput: function(e) {
