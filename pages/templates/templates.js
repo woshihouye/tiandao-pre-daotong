@@ -59,10 +59,29 @@ Page({
     })
     if (this.data.activeTab === 'plaza') {
       this.loadCloudTemplates(true)
+      this._restoreScroll()
     }
     if (this.data.activeTab === 'wish' && this.data.wishes.length === 0) {
       this._loadWishes(true)
     }
+  },
+
+  onPageScroll: function(e) {
+    var st = e.scrollTop || 0
+    if (Math.abs(st - (this._lastSavedScrollTop || 0)) > 50) {
+      this._lastSavedScrollTop = st
+      try { wx.setStorageSync('tmpl_scroll_pos', st) } catch (err) {}
+    }
+  },
+
+  _restoreScroll: function() {
+    var pos = 0
+    try { pos = Number(wx.getStorageSync('tmpl_scroll_pos') || 0) } catch (err) {}
+    if (pos <= 0) return
+    var self = this
+    setTimeout(function() {
+      wx.pageScrollTo({ scrollTop: pos, duration: 0 })
+    }, 350)
   },
 
   applyTheme: function() {
