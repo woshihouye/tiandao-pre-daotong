@@ -1,5 +1,6 @@
 // 分层进度条组件：初期→中期→后期→圆满
 Component({
+  options: { styleIsolation: 'apply-shared' },
   properties: {
     substages: { type: Array, value: [] },
     overallProgress: { type: Number, value: 0 },

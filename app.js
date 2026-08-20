@@ -1187,36 +1187,36 @@ App({
   _applyNavBarTheme(themeClass) {
     const navBarConfig = {
       'theme-xianjie': {
-        backgroundColor: '#faf7f2',
+        backgroundColor: '#faf7f0',
         frontColor: '#000000',
         backgroundTextStyle: 'dark',
-        tabBarBg: '#ffffff',
-        tabBarSelected: '#c8a260',
-        tabBarColor: '#b5a890'
+        tabBarBg: '#fffdfa',
+        tabBarSelected: '#c9a45c',
+        tabBarColor: '#a89f93'
       },
       'theme-hongchen': {
-        backgroundColor: '#f8efe0',
+        backgroundColor: '#faf5f0',
         frontColor: '#000000',
         backgroundTextStyle: 'dark',
-        tabBarBg: '#ffffff',
-        tabBarSelected: '#d48530',
-        tabBarColor: '#b59070'
+        tabBarBg: '#fffdfa',
+        tabBarSelected: '#0fa97a',
+        tabBarColor: '#a89a8f'
       },
       'theme-diyu': {
-        backgroundColor: '#080608',
+        backgroundColor: '#17171a',
         frontColor: '#ffffff',
         backgroundTextStyle: 'light',
-        tabBarBg: '#080608',
-        tabBarSelected: '#ff4500',
-        tabBarColor: '#685050'
+        tabBarBg: '#17171a',
+        tabBarSelected: '#e05a4a',
+        tabBarColor: '#6e6e73'
       },
       'theme-xiuxing': {
-        backgroundColor: '#f9fafb',
+        backgroundColor: '#f5f5f7',
         frontColor: '#000000',
         backgroundTextStyle: 'dark',
         tabBarBg: '#ffffff',
-        tabBarSelected: '#111827',
-        tabBarColor: '#9ca3af'
+        tabBarSelected: '#0fa97a',
+        tabBarColor: '#aeaeb2'
       }
     }
     const config = navBarConfig[themeClass] || navBarConfig['theme-xiuxing']

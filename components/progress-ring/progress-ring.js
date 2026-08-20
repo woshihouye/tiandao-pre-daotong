@@ -5,6 +5,7 @@
  */
 
 Component({
+  options: { styleIsolation: 'apply-shared' },
   properties: {
     /** 进度百分比 0-100 */
     percent: {

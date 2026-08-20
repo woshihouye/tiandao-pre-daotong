@@ -26,8 +26,8 @@
     transparent 70%
   );
   box-shadow:
-    0 0 40rpx rgba(16, 185, 129, 0.15),
-    0 0 80rpx rgba(16, 185, 129, 0.06);
+    0 0 20rpx rgba(16, 185, 129, 0.15),
+    0 0 20rpx rgba(16, 185, 129, 0.06);
   z-index: 0;
   pointer-events: none;
 }

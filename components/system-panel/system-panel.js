@@ -43,6 +43,7 @@ const LEVEL_CONFIG = {
 }
 
 Component({
+  options: { styleIsolation: 'apply-shared' },
   properties: {
     /** 通知标题 */
     title: {

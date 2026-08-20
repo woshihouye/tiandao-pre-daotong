@@ -1,4 +1,4 @@
-.particle-container { position: fixed; top: 50%; left: 50%; z-index: 999; pointer-events: none; }
+.particle-container { position: absolute; top: 50%; left: 50%; z-index: 999; pointer-events: none; }
 .particle { position: absolute; width: var(--size); height: var(--size); border-radius: 50%; background: var(--color);
   animation: particleFly var(--duration) ease-out var(--delay) forwards; opacity: 0; box-shadow: 0 0 calc(var(--size)*2) var(--color); }
 @keyframes particleFly {

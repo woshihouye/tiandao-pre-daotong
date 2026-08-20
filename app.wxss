@@ -12,21 +12,21 @@ page {
   --space-xl: 32rpx;
   --space-2xl: 40rpx;
 
-  /* ── 设计令牌：字号 ── */
+  /* ── 设计令牌：字号（大胆层级：大标题 + 小辅助 + 强对比）── */
   --font-xs: 20rpx;
   --font-sm: 22rpx;
-  --font-md: 24rpx;
-  --font-lg: 26rpx;
-  --font-xl: 28rpx;
-  --font-2xl: 32rpx;
-  --font-3xl: 36rpx;
-  --font-4xl: 40rpx;
+  --font-md: 28rpx;
+  --font-lg: 30rpx;
+  --font-xl: 34rpx;
+  --font-2xl: 42rpx;
+  --font-3xl: 52rpx;
+  --font-4xl: 72rpx;
 
-  /* ── 设计令牌：圆角 ── */
-  --radius-sm: 12rpx;
-  --radius-md: 16rpx;
-  --radius-lg: 20rpx;
-  --radius-xl: 24rpx;
+  /* ── 设计令牌：圆角（超级圆润派：全 pill + 大 XL）── */
+  --radius-sm: 16rpx;
+  --radius-md: 24rpx;
+  --radius-lg: 32rpx;
+  --radius-xl: 40rpx;
   --radius-full: 999rpx;
 
   /* ── 设计令牌：字重 ── */
@@ -35,34 +35,41 @@ page {
   --weight-semibold: 600;
   --weight-bold: 700;
 
-  /* ── 基础主题（浅色 / 修行主题默认） ── */
-  --color-page-bg: #f7f8fa;
-  --color-card-bg: #ffffff;
-  --color-surface-soft: #f3f4f6;
-  --color-surface-muted: #edf0f4;
-  --color-border: #e8eaed;
-  --color-border-strong: #d1d5db;
-  --color-divider: #e8eaed;
-  --color-primary: #10b981;
-  --color-primary-soft: #34d399;
-  --color-primary-rgb: 16, 185, 129;
-  --color-text-primary: #1f2937;
-  --color-text-secondary: #6b7280;
-  --color-text-muted: #9ca3af;
-  --color-text-tertiary: #9ca3af;
-  --color-success: #10b981;
-  --color-danger: #ef4444;
-  --color-danger-text: #ef4444;
-  --color-danger-rgb: 239, 68, 68;
-  --color-silver: #9ca3af;
-  --color-blue: #60a5fa;
+  /* ── 玉青三主色（渐深：玉青 → 碧青 → 翠青） + 仙金三级（吝啬+金徽章双用）── */
+  --color-primary-deep: #0d8a66;
+  --color-primary: #0fa97a;
+  --color-primary-light: #12c990;
+  --color-primary-rgb: 15, 169, 122;
+  --color-gold-deep: #b8882e;
+  --color-gold: #c9a45c;
+  --color-gold-light: #e8d5a0;
+  --color-gold-rgb: 201, 164, 92;
 
-  --color-primary-mist: #ecfdf5;
-  --color-primary-mist-strong: #d1fae5;
-  --color-danger-mist: #fee2e2;
-  --color-info-mist: #dbeafe;
-  --color-warning: #f59e0b;
-  --color-warning-mist: #fef3c7;
+  /* ── 基础主题（青霭仙天：顶部青雾 → 中央浅灰 → 底部近雪白，天地三叠）── */
+  --color-page-bg: #f5f5f7;
+  --color-card-bg: rgba(255, 255, 255, 0.94);
+  --color-surface-soft: #f7f7f8;
+  --color-surface-muted: #ececf0;
+  --color-border: #e5e5ea;
+  --color-border-strong: #d1d1d6;
+  --color-divider: #e5e5ea;
+  --color-text-primary: #1d1d1f;
+  --color-text-secondary: #5d5d62;
+  --color-text-muted: #aeaeb2;
+  --color-text-tertiary: #aeaeb2;
+  --color-success: #0fa97a;
+  --color-danger: #e05a4a;
+  --color-danger-text: #e05a4a;
+  --color-danger-rgb: 224, 90, 74;
+  --color-silver: #aeaeb2;
+  --color-blue: #3a6db5;
+
+  --color-primary-mist: #e8f4ef;
+  --color-primary-mist-strong: #cdeee0;
+  --color-danger-mist: #fcebe9;
+  --color-info-mist: #e8f0fb;
+  --color-warning: #f5a623;
+  --color-warning-mist: #fdf0e0;
 
   --primary-mist: var(--color-primary-mist);
   --primary-mist-strong: var(--color-primary-mist-strong);
@@ -70,6 +77,15 @@ page {
   --info-mist: var(--color-info-mist);
   --warning: var(--color-warning);
   --warning-mist: var(--color-warning-mist);
+
+  /* ── 阴影（大胆版：玻璃卡内光 + 青绿投影 + 英雄发光；全部合规：列表12/单卡24/按钮20）── */
+  --shadow-sm: 0 2rpx 4rpx rgba(0, 0, 0, 0.03), 0 6rpx 12rpx rgba(13, 138, 102, 0.05);
+  --shadow-card: 0 -1rpx 0 rgba(255, 255, 255, 0.95) inset,
+                 0 2rpx 4rpx rgba(0, 0, 0, 0.03),
+                 0 8rpx 20rpx rgba(13, 138, 102, 0.06);
+  --shadow-hero: 0 -1rpx 0 rgba(255, 255, 255, 0.98) inset,
+                 0 4rpx 10rpx rgba(13, 138, 102, 0.10),
+                 0 12rpx 24rpx rgba(201, 164, 92, 0.08);
 
   /* ── 别名（向后兼容旧代码） ── */
   --page-bg: var(--color-page-bg);
@@ -80,7 +96,7 @@ page {
   --border-strong: var(--color-border-strong);
   --divider-color: var(--color-divider);
   --primary: var(--color-primary);
-  --primary-soft: var(--color-primary-soft);
+  --primary-soft: var(--color-primary-light);
   --primary-rgb: var(--color-primary-rgb);
   --text-primary: var(--color-text-primary);
   --text-secondary: var(--color-text-secondary);
@@ -93,13 +109,47 @@ page {
   --silver: var(--color-silver);
   --blue: var(--color-blue);
 
-  /* ── 基础全局样式 ── */
+  /* ── 基础全局样式：仙穹天地三层（1底色+2伪元素云+山）── */
   min-height: 100vh;
-  background: var(--color-page-bg);
+  background: linear-gradient(180deg, #eef6f2 0%, #f5f5f7 38%, #fafcfc 100%);
   color: var(--color-text-primary);
   font-family: 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
   font-size: var(--font-lg);
-  line-height: 1.6;
+  line-height: 1.65;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── 仙穹：左上 + 右上双层霭云（看得见的轻云，不是若有若无）── */
+page::before {
+  content: '';
+  position: absolute;
+  left: -20%;
+  top: 40rpx;
+  width: 68%;
+  height: 320rpx;
+  background:
+    radial-gradient(60% 60% at 25% 70%, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.20) 48%, transparent 70%),
+    radial-gradient(45% 45% at 72% 50%, rgba(255,255,255,0.68) 0%, rgba(255,255,255,0.18) 48%, transparent 72%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── 仙穹：双层仙山（后山远淡210rpx + 前山主峰290rpx，中央弧顶更高）── */
+page::after {
+  content: '';
+  position: absolute;
+  left: -15%;
+  right: -15%;
+  bottom: 0;
+  height: 380rpx;
+  background:
+    radial-gradient(68% 56% at 28% 100%, rgba(20,180,130,0.10) 0%, transparent 68%),
+    radial-gradient(74% 76% at 72% 100%, rgba(13,138,102,0.16) 0%, transparent 68%);
+  border-top-left-radius: 54% 92%;
+  border-top-right-radius: 58% 88%;
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* ── 统一盒模型 ── */
@@ -137,25 +187,33 @@ view, text, input, textarea, button, picker, scroll-view {
    通用 UI 组件样式
    ═══════════════════════════════════════════════════════════ */
 
-/* ── 卡片 ── */
+/* ── 卡片：玻璃仙卡（半透明+内顶白光+外层青绿柔影+超级圆角）── */
 .card {
   position: relative;
-  margin: 0 var(--space-lg) var(--space-lg);
-  padding: var(--space-xl);
-  border-radius: var(--radius-xl);
+  margin: 0 var(--space-lg) var(--space-2xl);
+  padding: 36rpx;
+  border-radius: 40rpx;
   background: var(--card-bg);
-  border: 1rpx solid var(--border-color);
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
   overflow: hidden;
+  box-shadow: 0 -1rpx 0 rgba(255, 255, 255, 0.95) inset,
+              0 2rpx 4rpx rgba(0, 0, 0, 0.03),
+              0 10rpx 24rpx rgba(13, 138, 102, 0.08);
+  z-index: 1;
 }
 .card-premium {
-  border-color: rgba(var(--primary-rgb), 0.2);
+  border: 1rpx solid rgba(var(--gold-rgb), 0.40);
+  box-shadow: 0 -1rpx 0 rgba(255, 255, 255, 0.98) inset,
+              0 0 0 1rpx rgba(var(--gold-rgb), 0.16) inset,
+              0 3rpx 6rpx rgba(0, 0, 0, 0.04),
+              0 12rpx 24rpx rgba(201, 164, 92, 0.14);
 }
 .card-flush {
   margin-left: 0;
   margin-right: 0;
 }
 .card-tight {
-  padding: var(--space-lg);
+  padding: 28rpx;
 }
 
 /* ── 区块标题 ── */
@@ -182,61 +240,169 @@ view, text, input, textarea, button, picker, scroll-view {
   line-height: 1.5;
 }
 
-/* ── 按钮 ── */
+/* ── 按钮：超级圆角 pill + 玉青 3 级渐变 + 主色发光（20rpx 合规）── */
 .btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 88rpx;
-  padding: 0 var(--space-xl);
+  min-height: 96rpx;
+  padding: 0 40rpx;
   border: none;
-  border-radius: var(--radius-lg);
-  font-size: var(--font-lg);
+  border-radius: 999rpx;
+  font-size: var(--font-xl);
   font-weight: var(--weight-semibold);
   line-height: 1.5;
+  letter-spacing: 0.5rpx;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+.btn::after {
+  border: none;
+}
+.btn:active {
+  transform: scale(0.96);
+  opacity: 0.92;
 }
 .btn-primary {
   color: #ffffff;
-  background: var(--primary);
+  background: linear-gradient(135deg, #0d8a66 0%, #0fa97a 40%, #12c990 100%);
+  box-shadow: 0 4rpx 10rpx rgba(15, 169, 122, 0.20),
+              0 10rpx 20rpx rgba(15, 169, 122, 0.18);
 }
 .btn-ghost {
   color: var(--text-primary);
   background: var(--surface-soft);
-  border: 1rpx solid var(--border-color);
+  border: 1rpx solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.03);
 }
 .btn-danger {
   color: #ffffff;
-  background: var(--danger);
+  background: linear-gradient(135deg, #c94a3a 0%, #e05a4a 55%, #ef7a6a 100%);
+  box-shadow: 0 4rpx 10rpx rgba(224, 90, 74, 0.20),
+              0 10rpx 20rpx rgba(224, 90, 74, 0.16);
 }
 
-/* ── 标签 ── */
+/* ── 标签：全圆角 pill + 3 级徽章（玉青/仙金/素银）+ 轻透底 ── */
 .tag {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48rpx;
-  padding: var(--space-xs) 18rpx;
-  border-radius: var(--radius-full);
+  min-height: 56rpx;
+  padding: 0 24rpx;
+  border-radius: 999rpx;
   font-size: var(--font-md);
+  font-weight: var(--weight-medium);
   line-height: 1.5;
-  margin: 4rpx;
-  background: var(--surface-soft);
-  border: 1rpx solid var(--border-color);
+  margin: 6rpx;
+  background: rgba(13, 138, 102, 0.08);
+  border: 1rpx solid rgba(13, 138, 102, 0.18);
+  color: #0d8a66;
+}
+.tag-gold {
+  color: #8a6422;
+  background: linear-gradient(135deg, rgba(201,164,92,0.16), rgba(232,213,160,0.22));
+  border-color: rgba(var(--gold-rgb), 0.40);
+  box-shadow: 0 2rpx 8rpx rgba(201, 164, 92, 0.08);
+}
+.tag-silver {
   color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
-/* ── 进度条 ── */
+/* ═══════════════════════════════════════════════════════════
+   全局统一工具类（大胆版 · 看得见的仙气）
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 仙金徽章（圆/方 pill 通用：玉霄境界/关键数字/结缘数值）── */
+.hero-badge,
+.hero-badge-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fffdf6;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.6rpx;
+  text-shadow: 0 1rpx 2rpx rgba(90, 52, 10, 0.20);
+  background: linear-gradient(135deg, #b8882e 0%, #c9a45c 42%, #e8d5a0 100%);
+  border: 1rpx solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 -1rpx 0 rgba(255, 255, 255, 0.55) inset,
+              0 4rpx 10rpx rgba(201, 164, 92, 0.26),
+              0 10rpx 22rpx rgba(201, 164, 92, 0.18);
+}
+.hero-badge {
+  padding: 12rpx 32rpx;
+  border-radius: 999rpx;
+  font-size: var(--font-xl);
+}
+.hero-badge-circle {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  padding: 0;
+  font-size: var(--font-2xl);
+}
+
+/* ── 仙金数字（吝啬原则：仅 value/score/realm 等数字类直接挂）── */
+.num-gold,
+.value-gold,
+.stat-gold {
+  color: #c9a45c;
+  font-weight: var(--weight-bold);
+  text-shadow: 0 1rpx 2rpx rgba(0,0,0,0.05), 0 0 12rpx rgba(201, 164, 92, 0.22);
+}
+
+/* ── 选中态（玉青浅底+深字+细边 · 统一 Tab/筛选/分类/勾选）── */
+.active-mist,
+.active-jade {
+  background: linear-gradient(135deg, rgba(18,201,144,0.14), rgba(15,169,122,0.10));
+  color: #0d8a66;
+  border: 1rpx solid rgba(13,138,102,0.30);
+  font-weight: var(--weight-semibold);
+}
+
+/* ── 底部安全区 ── */
+.safe-bottom {
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+}
+
+/* ── 全局统一仙气：玉阙仙山（theme-page 兜底，防 page 父未 relative 时失效）── */
+.theme-page::after,
+.page-root::after {
+  content: '';
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: 0;
+  height: 260rpx;
+  background:
+    radial-gradient(62% 54% at 32% 100%, rgba(20,180,130,0.12) 0%, transparent 68%),
+    radial-gradient(72% 74% at 68% 100%, rgba(13,138,102,0.18) 0%, transparent 68%);
+  border-top-left-radius: 56% 92%;
+  border-top-right-radius: 58% 90%;
+  pointer-events: none;
+  z-index: 0;
+}
+.theme-page,
+.page-root {
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── 进度条：玉青 3 级渐变 + 条内高光 inset + 柔边 ── */
 .progress-bar {
   width: 100%;
-  height: 12rpx;
+  height: 16rpx;
   overflow: hidden;
-  border-radius: var(--radius-full);
-  background: var(--surface-soft);
+  border-radius: 999rpx;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1rpx solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 1rpx 2rpx rgba(0, 0, 0, 0.05) inset;
 }
 .progress-fill {
   height: 100%;
-  border-radius: var(--radius-full);
-  background: var(--primary);
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, #0d8a66 0%, #0fa97a 45%, #12c990 100%);
+  box-shadow: 0 -1rpx 0 rgba(255, 255, 255, 0.28) inset;
   transition: width 0.4s ease;
 }
 
@@ -293,33 +459,33 @@ view, text, input, textarea, button, picker, scroll-view {
    ✦ 仙界 · 金箔仙域
    ═══════════════════════════════════════════════════════════ */
 .theme-xianjie {
-  --color-page-bg: #faf7f2;
-  --color-card-bg: #fffdf7;
-  --color-surface-soft: #f5f0e5;
-  --color-surface-muted: #ede5d3;
-  --color-border: #e5ddd0;
-  --color-border-strong: #d4cab5;
-  --color-divider: #e0d5c0;
-  --color-primary: #c8a260;
-  --color-primary-soft: #d4b878;
-  --color-primary-rgb: 200, 162, 96;
-  --color-text-primary: #3c3028;
-  --color-text-secondary: #8a7b65;
-  --color-text-muted: #b5a890;
-  --color-text-tertiary: #b5a890;
-  --color-success: #7a9e86;
-  --color-danger: #b86060;
-  --color-danger-text: #b86060;
-  --color-danger-rgb: 184, 96, 96;
-  --color-silver: #b5a890;
-  --color-blue: #a09070;
+  --color-page-bg: #faf7f0;
+  --color-card-bg: #fffdfa;
+  --color-surface-soft: #f7f2ea;
+  --color-surface-muted: #efe9dd;
+  --color-border: #e8e1d4;
+  --color-border-strong: #d6cdbb;
+  --color-divider: #e8e1d4;
+  --color-primary: #c9a45c;
+  --color-primary-soft: #a8843a;
+  --color-primary-rgb: 201, 164, 92;
+  --color-text-primary: #2a2622;
+  --color-text-secondary: #6b645c;
+  --color-text-muted: #a89f93;
+  --color-text-tertiary: #a89f93;
+  --color-success: #6a9e78;
+  --color-danger: #c96a5a;
+  --color-danger-text: #c96a5a;
+  --color-danger-rgb: 201, 106, 90;
+  --color-silver: #a89f93;
+  --color-blue: #8a7a5e;
 
-  --color-primary-mist: #f7f0dd;
-  --color-primary-mist-strong: #e8dcc0;
-  --color-danger-mist: #f5e0dd;
-  --color-info-mist: #ece5d0;
-  --color-warning: #b8872a;
-  --color-warning-mist: #f5e8cc;
+  --color-primary-mist: #f7f2e8;
+  --color-primary-mist-strong: #e8dfcd;
+  --color-danger-mist: #f7e8e6;
+  --color-info-mist: #f0ece2;
+  --color-warning: #c9a45c;
+  --color-warning-mist: #f5eeda;
 
   --primary-mist: var(--color-primary-mist);
   --primary-mist-strong: var(--color-primary-mist-strong);
@@ -364,62 +530,61 @@ view, text, input, textarea, button, picker, scroll-view {
 }
 
 .theme-xianjie .card {
-  background: linear-gradient(135deg, #fffdf7 0%, #fefbf3 100%);
-  border-color: rgba(200, 175, 130, 0.20);
-  box-shadow: 0 2rpx 20rpx rgba(180, 150, 100, 0.04);
+  background: linear-gradient(135deg, #fffdfa 0%, #fefcf3 100%);
+  border-color: rgba(201, 164, 92, 0.20);
+  box-shadow: 0 2rpx 20rpx rgba(201, 164, 92, 0.04);
 }
 .theme-xianjie .card-premium {
-  border-color: rgba(200, 175, 130, 0.30);
-  box-shadow: 0 2rpx 24rpx rgba(180, 150, 100, 0.06);
+  border-color: rgba(201, 164, 92, 0.30);
+  box-shadow: 0 2rpx 24rpx rgba(201, 164, 92, 0.06);
 }
 .theme-xianjie .btn-primary {
-  background: linear-gradient(135deg, #c8a260 0%, #b89248 100%);
+  background: linear-gradient(135deg, #c9a45c 0%, #a8843a 100%);
   color: #fffdf6;
-  box-shadow: 0 2rpx 14rpx rgba(180, 140, 100, 0.22);
+  box-shadow: 0 2rpx 14rpx rgba(201, 164, 92, 0.22);
   font-weight: 500;
   letter-spacing: 1rpx;
 }
 .theme-xianjie .progress-fill {
-  background: linear-gradient(90deg, #c8a260 0%, #d4b878 60%, #e8d5a0 100%);
-  box-shadow: 0 0 10rpx rgba(200, 160, 100, 0.12);
+  background: linear-gradient(90deg, #c9a45c 0%, #a8843a 60%, #e8d5a0 100%);
+  box-shadow: 0 0 10rpx rgba(201, 164, 92, 0.12);
 }
 .theme-xianjie .tag {
-  background: rgba(255, 253, 248, 0.75);
-  border-color: rgba(200, 175, 130, 0.22);
-  color: #8a7b60;
+  background: rgba(255, 253, 250, 0.75);
+  border-color: rgba(201, 164, 92, 0.22);
+  color: #6b645c;
 }
 
 /* ═══════════════════════════════════════════════════════════
    ❂ 红尘 · 修行人间
    ═══════════════════════════════════════════════════════════ */
 .theme-hongchen {
-  --color-page-bg: #f8efe0;
-  --color-card-bg: #fffbf5;
-  --color-surface-soft: #f5ead5;
-  --color-surface-muted: #efe0c5;
-  --color-border: #e5d5b8;
-  --color-border-strong: #d4c098;
-  --color-divider: #e5d5b8;
-  --color-primary: #d48530;
-  --color-primary-soft: #e8a050;
-  --color-primary-rgb: 212, 133, 48;
-  --color-text-primary: #3c2410;
-  --color-text-secondary: #8a6040;
-  --color-text-muted: #b59070;
-  --color-text-tertiary: #b59070;
+  --color-page-bg: #faf5f0;
+  --color-card-bg: #fffdfa;
+  --color-surface-soft: #f7f0e8;
+  --color-surface-muted: #efe6da;
+  --color-border: #e8ded0;
+  --color-border-strong: #d6cbb8;
+  --color-divider: #e8ded0;
+  --color-primary: #0fa97a;
+  --color-primary-soft: #0b8a63;
+  --color-primary-rgb: 15, 169, 122;
+  --color-text-primary: #2a2522;
+  --color-text-secondary: #6b625c;
+  --color-text-muted: #a89a8f;
+  --color-text-tertiary: #a89a8f;
   --color-success: #6a9e78;
-  --color-danger: #c04030;
-  --color-danger-text: #d04030;
-  --color-danger-rgb: 208, 64, 48;
-  --color-silver: #b59070;
-  --color-blue: #d48530;
-
-  --color-primary-mist: #fbead8;
-  --color-primary-mist-strong: #f5d9b0;
-  --color-danger-mist: #f8ddc8;
-  --color-info-mist: #f5e8d0;
-  --color-warning: #c07010;
-  --color-warning-mist: #f8e0c0;
+  --color-danger: #c96a5a;
+  --color-danger-text: #c96a5a;
+  --color-danger-rgb: 201, 106, 90;
+  --color-silver: #a89a8f;
+  --color-blue: #8a6a5e;
+  --color-primary-mist: #e8f4ef;
+  --color-primary-mist-strong: #cdeee0;
+  --color-danger-mist: #f7e9e2;
+  --color-info-mist: #f0ebe2;
+  --color-warning: #f5a623;
+  --color-warning-mist: #f5ecdd;
 
   --primary-mist: var(--color-primary-mist);
   --primary-mist-strong: var(--color-primary-mist-strong);
@@ -464,62 +629,62 @@ view, text, input, textarea, button, picker, scroll-view {
 }
 
 .theme-hongchen .card {
-  background: linear-gradient(160deg, #fffbf5 0%, #fef7ec 100%);
-  border-color: rgba(210, 160, 100, 0.18);
-  box-shadow: 0 2rpx 18rpx rgba(180, 120, 60, 0.04);
+  background: linear-gradient(160deg, #fffdfa 0%, #fef8ec 100%);
+  border-color: rgba(15, 169, 122, 0.18);
+  box-shadow: 0 2rpx 18rpx rgba(15, 169, 122, 0.04);
 }
 .theme-hongchen .card-premium {
-  border-color: rgba(210, 160, 100, 0.28);
-  box-shadow: 0 2rpx 22rpx rgba(180, 120, 60, 0.06);
+  border-color: rgba(15, 169, 122, 0.28);
+  box-shadow: 0 2rpx 22rpx rgba(15, 169, 122, 0.06);
 }
 .theme-hongchen .btn-primary {
-  background: linear-gradient(135deg, #d48530 0%, #c07020 100%);
+  background: linear-gradient(135deg, #0fa97a 0%, #0b8a63 100%);
   color: #fffdf6;
-  box-shadow: 0 2rpx 14rpx rgba(200, 120, 40, 0.22);
+  box-shadow: 0 2rpx 14rpx rgba(15, 169, 122, 0.22);
   font-weight: 600;
   letter-spacing: 1rpx;
 }
 .theme-hongchen .progress-fill {
-  background: linear-gradient(90deg, #d48530 0%, #e8a050 50%, #f0c080 100%);
-  box-shadow: 0 0 10rpx rgba(210, 130, 50, 0.12);
+  background: linear-gradient(90deg, #0fa97a 0%, #0b8a63 50%, #34d39b 100%);
+  box-shadow: 0 0 10rpx rgba(15, 169, 122, 0.12);
 }
 .theme-hongchen .tag {
-  background: rgba(255, 251, 245, 0.7);
-  border-color: rgba(210, 160, 100, 0.20);
-  color: #8a6040;
+  background: rgba(255, 253, 250, 0.7);
+  border-color: rgba(15, 169, 122, 0.20);
+  color: #6b625c;
 }
 
 /* ═══════════════════════════════════════════════════════════
    ⚒ 地狱 · 业火炼狱
    ═══════════════════════════════════════════════════════════ */
 .theme-diyu {
-  --color-page-bg: #080608;
-  --color-card-bg: #141016;
-  --color-surface-soft: #1c1418;
-  --color-surface-muted: #181218;
-  --color-border: #2a1a1c;
-  --color-border-strong: #402828;
-  --color-divider: #2a1a1c;
-  --color-primary: #ff4500;
-  --color-primary-soft: #ff6030;
-  --color-primary-rgb: 255, 69, 0;
-  --color-text-primary: #e0d0c8;
-  --color-text-secondary: #a08078;
-  --color-text-muted: #685050;
-  --color-text-tertiary: #685050;
-  --color-success: #889090;
-  --color-danger: #ff2010;
-  --color-danger-text: #ff5040;
-  --color-danger-rgb: 255, 80, 64;
-  --color-silver: #685550;
-  --color-blue: #ff6030;
+  --color-page-bg: #17171a;
+  --color-card-bg: #232327;
+  --color-surface-soft: #2a2a2e;
+  --color-surface-muted: #26262a;
+  --color-border: #3a3a3e;
+  --color-border-strong: #4a4a4e;
+  --color-divider: #3a3a3e;
+  --color-primary: #e05a4a;
+  --color-primary-soft: #c04a3a;
+  --color-primary-rgb: 224, 90, 74;
+  --color-text-primary: #f0f0f2;
+  --color-text-secondary: #a0a0a4;
+  --color-text-muted: #6e6e73;
+  --color-text-tertiary: #6e6e73;
+  --color-success: #5a9e7a;
+  --color-danger: #ff5a4a;
+  --color-danger-text: #ff5a4a;
+  --color-danger-rgb: 255, 90, 74;
+  --color-silver: #6e6e73;
+  --color-blue: #5a7aa0;
 
-  --color-primary-mist: #2a1414;
-  --color-primary-mist-strong: #3a1a16;
-  --color-danger-mist: #33141a;
-  --color-info-mist: #1a1a2e;
-  --color-warning: #ff9030;
-  --color-warning-mist: #2e1a10;
+  --color-primary-mist: #2e2e32;
+  --color-primary-mist-strong: #3a3a3e;
+  --color-danger-mist: #38282a;
+  --color-info-mist: #2a2a34;
+  --color-warning: #e0a05a;
+  --color-warning-mist: #3a3028;
 
   --primary-mist: var(--color-primary-mist);
   --primary-mist-strong: var(--color-primary-mist-strong);
@@ -564,62 +729,62 @@ view, text, input, textarea, button, picker, scroll-view {
 }
 
 .theme-diyu .card {
-  background: linear-gradient(160deg, #161018 0%, #100c12 100%);
-  border-color: rgba(255, 69, 0, 0.12);
+  background: linear-gradient(160deg, #232327 0%, #1d1d20 100%);
+  border-color: rgba(224, 90, 74, 0.12);
   box-shadow: 0 2rpx 22rpx rgba(0, 0, 0, 0.45);
 }
 .theme-diyu .card-premium {
-  border-color: rgba(255, 69, 0, 0.22);
-  box-shadow: 0 2rpx 28rpx rgba(0, 0, 0, 0.55);
+  border-color: rgba(224, 90, 74, 0.22);
+  box-shadow: 0 2rpx 20rpx rgba(0, 0, 0, 0.48);
 }
 .theme-diyu .btn-primary {
-  background: linear-gradient(135deg, #ff4500 0%, #e03000 100%);
+  background: linear-gradient(135deg, #e05a4a 0%, #c04a3a 100%);
   color: #fff0e8;
-  box-shadow: 0 2rpx 18rpx rgba(255, 69, 0, 0.35);
+  box-shadow: 0 2rpx 18rpx rgba(224, 90, 74, 0.35);
   font-weight: 600;
   letter-spacing: 1.5rpx;
 }
 .theme-diyu .progress-fill {
-  background: linear-gradient(90deg, #ff4500 0%, #ff6040 50%, #ff2000 100%);
-  box-shadow: 0 0 14rpx rgba(255, 69, 0, 0.22);
+  background: linear-gradient(90deg, #e05a4a 0%, #c04a3a 50%, #ff2000 100%);
+  box-shadow: 0 0 14rpx rgba(224, 90, 74, 0.22);
 }
 .theme-diyu .tag {
-  background: rgba(20, 10, 8, 0.6);
-  border-color: rgba(255, 69, 0, 0.16);
-  color: #c08060;
+  background: rgba(35, 35, 39, 0.6);
+  border-color: rgba(224, 90, 74, 0.16);
+  color: #a0a0a4;
 }
 
 /* ═══════════════════════════════════════════════════════════
    修行主题 · 墨韵
    ═══════════════════════════════════════════════════════════ */
 .theme-xiuxing {
-  --color-page-bg: #f7f8fa;
+  --color-page-bg: #f5f5f7;
   --color-card-bg: #ffffff;
-  --color-surface-soft: #f3f4f6;
-  --color-surface-muted: #edf0f4;
-  --color-border: #e8eaed;
-  --color-border-strong: #d1d5db;
-  --color-divider: #e8eaed;
-  --color-primary: #111827;
-  --color-primary-soft: #374151;
-  --color-primary-rgb: 17, 24, 39;
-  --color-text-primary: #1f2937;
-  --color-text-secondary: #6b7280;
-  --color-text-muted: #9ca3af;
-  --color-text-tertiary: #9ca3af;
-  --color-success: #10b981;
-  --color-danger: #ef4444;
-  --color-danger-text: #ef4444;
-  --color-danger-rgb: 239, 68, 68;
-  --color-silver: #9ca3af;
-  --color-blue: #111827;
+  --color-surface-soft: #f7f7f8;
+  --color-surface-muted: #ececf0;
+  --color-border: #e5e5ea;
+  --color-border-strong: #d1d1d6;
+  --color-divider: #e5e5ea;
+  --color-primary: #0fa97a;
+  --color-primary-soft: #0b8a63;
+  --color-primary-rgb: 15, 169, 122;
+  --color-text-primary: #1d1d1f;
+  --color-text-secondary: #5d5d62;
+  --color-text-muted: #aeaeb2;
+  --color-text-tertiary: #aeaeb2;
+  --color-success: #0fa97a;
+  --color-danger: #e05a4a;
+  --color-danger-text: #e05a4a;
+  --color-danger-rgb: 224, 90, 74;
+  --color-silver: #aeaeb2;
+  --color-blue: #3a6db5;
 
-  --color-primary-mist: #ecfdf5;
-  --color-primary-mist-strong: #d1fae5;
-  --color-danger-mist: #fee2e2;
-  --color-info-mist: #dbeafe;
-  --color-warning: #f59e0b;
-  --color-warning-mist: #fef3c7;
+  --color-primary-mist: #e8f4ef;
+  --color-primary-mist-strong: #cdeee0;
+  --color-danger-mist: #fcebe9;
+  --color-info-mist: #e8f0fb;
+  --color-warning: #f5a623;
+  --color-warning-mist: #fdf0e0;
 
   --primary-mist: var(--color-primary-mist);
   --primary-mist-strong: var(--color-primary-mist-strong);
@@ -651,29 +816,29 @@ view, text, input, textarea, button, picker, scroll-view {
 }
 
 .theme-page.theme-xiuxing {
-  background: #f7f8fa;
-  color: #1f2937;
+  background: #f5f5f7;
+  color: #1d1d1f;
 }
 
 .theme-xiuxing .card {
   background: #ffffff;
-  border-color: #e8eaed;
+  border-color: #e5e5ea;
   box-shadow: none;
 }
 .theme-xiuxing .card-premium {
-  border-color: #d1d5db;
+  border-color: #d1d1d6;
 }
 .theme-xiuxing .btn-primary {
-  background: #111827;
+  background: #0fa97a;
   color: #ffffff;
 }
 .theme-xiuxing .progress-fill {
-  background: linear-gradient(90deg, #111827 0%, #374151 100%);
+  background: linear-gradient(90deg, #0fa97a 0%, #0b8a63 100%);
 }
 .theme-xiuxing .tag {
-  background: #f3f4f6;
-  border-color: #e8eaed;
-  color: #6b7280;
+  background: #f7f7f8;
+  border-color: #e5e5ea;
+  color: #5d5d62;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -683,16 +848,16 @@ view, text, input, textarea, button, picker, scroll-view {
    ═══════════════════════════════════════════════════════════ */
 .theme-fresh,
 .theme-page.theme-fresh {
-  --color-page-bg: #faf7f2; --color-card-bg: #fffdf7;
-  --color-surface-soft: #f5f0e5; --color-surface-muted: #ede5d3;
-  --color-border: #e5ddd0; --color-border-strong: #d4cab5;
-  --color-divider: #e0d5c0; --color-primary: #c8a260;
-  --color-primary-soft: #d4b878; --color-primary-rgb: 200, 162, 96;
-  --color-text-primary: #3c3028; --color-text-secondary: #8a7b65;
-  --color-text-muted: #b5a890; --color-text-tertiary: #b5a890;
-  --color-success: #7a9e86; --color-danger: #b86060;
-  --color-danger-text: #b86060; --color-danger-rgb: 184, 96, 96;
-  --color-silver: #b5a890; --color-blue: #a09070;
+  --color-page-bg: #faf7f0; --color-card-bg: #fffdfa;
+  --color-surface-soft: #f7f2ea; --color-surface-muted: #efe9dd;
+  --color-border: #e8e1d4; --color-border-strong: #d6cdbb;
+  --color-divider: #e8e1d4; --color-primary: #c9a45c;
+  --color-primary-soft: #a8843a; --color-primary-rgb: 201, 164, 92;
+  --color-text-primary: #2a2622; --color-text-secondary: #6b645c;
+  --color-text-muted: #a89f93; --color-text-tertiary: #a89f93;
+  --color-success: #6a9e78; --color-danger: #c96a5a;
+  --color-danger-text: #c96a5a; --color-danger-rgb: 201, 106, 90;
+  --color-silver: #a89f93; --color-blue: #8a7a5e;
   --page-bg: var(--color-page-bg); --card-bg: var(--color-card-bg);
   --surface-soft: var(--color-surface-soft); --surface-muted: var(--color-surface-muted);
   --border-color: var(--color-border); --border-strong: var(--color-border-strong);
@@ -707,16 +872,16 @@ view, text, input, textarea, button, picker, scroll-view {
 
 .theme-dusk,
 .theme-page.theme-dusk {
-  --color-page-bg: #f8efe0; --color-card-bg: #fffbf5;
-  --color-surface-soft: #f5ead5; --color-surface-muted: #efe0c5;
-  --color-border: #e5d5b8; --color-border-strong: #d4c098;
-  --color-divider: #e5d5b8; --color-primary: #d48530;
-  --color-primary-soft: #e8a050; --color-primary-rgb: 212, 133, 48;
-  --color-text-primary: #3c2410; --color-text-secondary: #8a6040;
-  --color-text-muted: #b59070; --color-text-tertiary: #b59070;
-  --color-success: #6a9e78; --color-danger: #c04030;
-  --color-danger-text: #d04030; --color-danger-rgb: 208, 64, 48;
-  --color-silver: #b59070; --color-blue: #d48530;
+  --color-page-bg: #faf5f0; --color-card-bg: #fffdfa;
+  --color-surface-soft: #f7f0e8; --color-surface-muted: #efe6da;
+  --color-border: #e8ded0; --color-border-strong: #d6cbb8;
+  --color-divider: #e8ded0; --color-primary: #0fa97a;
+  --color-primary-soft: #0b8a63; --color-primary-rgb: 15, 169, 122;
+  --color-text-primary: #2a2522; --color-text-secondary: #6b625c;
+  --color-text-muted: #a89a8f; --color-text-tertiary: #a89a8f;
+  --color-success: #6a9e78; --color-danger: #c96a5a;
+  --color-danger-text: #c96a5a; --color-danger-rgb: 201, 106, 90;
+  --color-silver: #a89a8f; --color-blue: #8a6a5e;
   --page-bg: var(--color-page-bg); --card-bg: var(--color-card-bg);
   --surface-soft: var(--color-surface-soft); --surface-muted: var(--color-surface-muted);
   --border-color: var(--color-border); --border-strong: var(--color-border-strong);
@@ -731,16 +896,16 @@ view, text, input, textarea, button, picker, scroll-view {
 
 .theme-gloom,
 .theme-page.theme-gloom {
-  --color-page-bg: #080608; --color-card-bg: #141016;
-  --color-surface-soft: #1c1418; --color-surface-muted: #181218;
-  --color-border: #2a1a1c; --color-border-strong: #402828;
-  --color-divider: #2a1a1c; --color-primary: #ff4500;
-  --color-primary-soft: #ff6030; --color-primary-rgb: 255, 69, 0;
-  --color-text-primary: #e0d0c8; --color-text-secondary: #a08078;
-  --color-text-muted: #685050; --color-text-tertiary: #685050;
-  --color-success: #889090; --color-danger: #ff2010;
-  --color-danger-text: #ff5040; --color-danger-rgb: 255, 80, 64;
-  --color-silver: #685550; --color-blue: #ff6030;
+  --color-page-bg: #17171a; --color-card-bg: #232327;
+  --color-surface-soft: #2a2a2e; --color-surface-muted: #26262a;
+  --color-border: #3a3a3e; --color-border-strong: #4a4a4e;
+  --color-divider: #3a3a3e; --color-primary: #e05a4a;
+  --color-primary-soft: #c04a3a; --color-primary-rgb: 224, 90, 74;
+  --color-text-primary: #f0f0f2; --color-text-secondary: #a0a0a4;
+  --color-text-muted: #6e6e73; --color-text-tertiary: #6e6e73;
+  --color-success: #5a9e7a; --color-danger: #ff5a4a;
+  --color-danger-text: #ff5a4a; --color-danger-rgb: 255, 90, 74;
+  --color-silver: #6e6e73; --color-blue: #5a7aa0;
   --page-bg: var(--color-page-bg); --card-bg: var(--color-card-bg);
   --surface-soft: var(--color-surface-soft); --surface-muted: var(--color-surface-muted);
   --border-color: var(--color-border); --border-strong: var(--color-border-strong);
@@ -755,16 +920,16 @@ view, text, input, textarea, button, picker, scroll-view {
 
 .theme-light-fixed,
 .theme-page.theme-light-fixed {
-  --color-page-bg: #f7f8fa; --color-card-bg: #ffffff;
-  --color-surface-soft: #f3f4f6; --color-surface-muted: #edf0f4;
-  --color-border: #e8eaed; --color-border-strong: #d1d5db;
-  --color-divider: #e8eaed; --color-primary: #111827;
-  --color-primary-soft: #374151; --color-primary-rgb: 17, 24, 39;
-  --color-text-primary: #1f2937; --color-text-secondary: #6b7280;
-  --color-text-muted: #9ca3af; --color-text-tertiary: #9ca3af;
-  --color-success: #10b981; --color-danger: #ef4444;
-  --color-danger-text: #ef4444; --color-danger-rgb: 239, 68, 68;
-  --color-silver: #9ca3af; --color-blue: #111827;
+  --color-page-bg: #f5f5f7; --color-card-bg: #ffffff;
+  --color-surface-soft: #f7f7f8; --color-surface-muted: #ececf0;
+  --color-border: #e5e5ea; --color-border-strong: #d1d1d6;
+  --color-divider: #e5e5ea; --color-primary: #0fa97a;
+  --color-primary-soft: #0b8a63; --color-primary-rgb: 15, 169, 122;
+  --color-text-primary: #1d1d1f; --color-text-secondary: #5d5d62;
+  --color-text-muted: #aeaeb2; --color-text-tertiary: #aeaeb2;
+  --color-success: #0fa97a; --color-danger: #e05a4a;
+  --color-danger-text: #e05a4a; --color-danger-rgb: 224, 90, 74;
+  --color-silver: #aeaeb2; --color-blue: #3a6db5;
   --page-bg: var(--color-page-bg); --card-bg: var(--color-card-bg);
   --surface-soft: var(--color-surface-soft); --surface-muted: var(--color-surface-muted);
   --border-color: var(--color-border); --border-strong: var(--color-border-strong);
@@ -778,10 +943,10 @@ view, text, input, textarea, button, picker, scroll-view {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   主题装饰元素（WXML 驱动）
+   主题装饰元素（WXML 驱动 · 页面装饰：position: absolute，禁止 fixed 避免刘海遮挡）
    ═══════════════════════════════════════════════════════════ */
 .theme-deco {
-  position: fixed;
+  position: absolute;
   pointer-events: none;
   z-index: 1;
 }

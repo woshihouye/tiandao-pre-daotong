@@ -8,6 +8,7 @@ const HIDDEN_KEY = 'dao_spirit_hidden'
 const MODE_STORAGE_KEY = 'dao_spirit_mode'
 
 Component({
+  options: { styleIsolation: 'apply-shared' },
   properties: {},
 
   data: {

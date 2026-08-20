@@ -1,6 +1,7 @@
 // 灵气粒子特效组件
 // 用于修为增加时的视觉反馈：粒子向境界进度条汇聚
 Component({
+  options: { styleIsolation: 'apply-shared' },
   properties: {
     show: { type: Boolean, value: false },
     // 粒子配置：{ type: 'burst'|'absorb'|'rise', color, count, target }

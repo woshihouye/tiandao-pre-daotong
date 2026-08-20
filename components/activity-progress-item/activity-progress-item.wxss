@@ -3,27 +3,27 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
-  padding: 0 16px;
-  border-radius: 10px;
-  margin-bottom: 6px;
+  height: 112rpx;
+  padding: 0 32rpx;
+  border-radius: 20rpx;
+  margin-bottom: 12rpx;
   transition: background 0.2s ease;
 }
 
 .item-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16rpx;
 }
 
 .item-name {
-  font-size: 15px;
+  font-size: 30rpx;
   font-weight: 500;
   color: #1F2937;
 }
 
 .item-unit {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #9CA3AF;
 }
 
@@ -33,16 +33,16 @@
 }
 
 .item-percent {
-  font-size: 16px;
+  font-size: 32rpx;
   font-weight: 600;
   color: #374151;
-  min-width: 40px;
+  min-width: 80rpx;
   text-align: right;
 }
 
 /* slider 弹层 */
 .slider-overlay {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -57,47 +57,47 @@
 .slider-panel {
   width: 100%;
   background: #FFFFFF;
-  border-radius: 16px 16px 0 0;
-  padding: 20px 20px 36px;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 40rpx 40rpx 72rpx;
 }
 
 .slider-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 40rpx;
 }
 
 .slider-title {
-  font-size: 17px;
+  font-size: 34rpx;
   font-weight: 600;
   color: #1F2937;
 }
 
 .slider-close {
-  width: 28px;
-  height: 28px;
+  width: 56rpx;
+  height: 56rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   background: #F3F4F6;
-  font-size: 14px;
+  font-size: 28rpx;
   color: #6B7280;
 }
 
 .slider-body {
-  padding: 0 8px;
+  padding: 0 16rpx;
 }
 
 .slider-labels {
   display: flex;
   justify-content: space-between;
-  margin-top: 4px;
-  padding: 0 4px;
+  margin-top: 8rpx;
+  padding: 0 8rpx;
 }
 
 .slider-labels text {
-  font-size: 11px;
+  font-size: 22rpx;
   color: #9CA3AF;
 }

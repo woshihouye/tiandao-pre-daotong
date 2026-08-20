@@ -21,7 +21,7 @@
   font-size: 24rpx;
   color: var(--text-secondary);
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 2rpx solid rgba(255, 255, 255, 0.06);
 }
 
 .tab.active {
@@ -338,10 +338,10 @@
 
 .hidden-canvas {
   position: absolute;
-  left: -9999px;
-  top: -9999px;
-  width: 10px;
-  height: 10px;
+  left: -19998rpx;
+  top: -19998rpx;
+  width: 20rpx;
+  height: 20rpx;
 }
 
 .editor-mask {

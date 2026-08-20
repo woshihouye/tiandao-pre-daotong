@@ -20,6 +20,9 @@ Page({
     cloudCategory: '',
     cloudSubcategory: '',
     cloudKeyword: '',
+    // 结缘滑动卡片
+    deckCards: [],
+    deckIndex: 0,
     // 广场筛选配置（template-config.js）
     sortTabs: templateConfig.sortTabs,
     categoryTabs: templateConfig.categoryTabs,
@@ -431,12 +434,137 @@ Page({
         cloudTotal: res.total || 0,
         cloudHasMore: list.length >= 20,
         cloudPage: reset ? 1 : page,
-        cloudLoading: false
+        cloudLoading: false,
+        deckIndex: reset ? 0 : that.data.deckIndex
+      }, function() {
+        that.buildDeck()
       })
     }).catch(function() {
       that.loadCloudFallback()
     })
   },
+
+  // 结缘滑动卡片：构建当前 3 张展示
+  buildDeck: function() {
+    var list = this.data.cloudTemplates || []
+    var i = this.data.deckIndex || 0
+    if (i >= list.length) { this.setData({ deckCards: [] }); return }
+    var cards = []
+    for (var k = 0; k < 3 && i + k < list.length; k++) {
+      var t = list[i + k]
+      cards.push(this._formatDeckCard(t, k))
+    }
+    this.setData({ deckCards: cards })
+  },
+
+  _formatDeckCard: function(t, k) {
+    var offsets = [
+      'translate(0px, 0px) scale(1) rotate(0deg)',
+      'translate(-30px, 16px) scale(0.92) rotate(-3deg)',
+      'translate(30px, 32px) scale(0.85) rotate(3deg)'
+    ]
+    var themeBgMap = {
+      'theme-xianjie': 'linear-gradient(160deg, #6a543a 0%, #4a3a26 40%, #8a6a48 70%, #a8885e 100%)',
+      'theme-hongchen': 'linear-gradient(160deg, #2c4a3e 0%, #1a3a30 40%, #3a5a40 70%, #6a7a4a 100%)',
+      'theme-diyu': 'linear-gradient(160deg, #2e2e32 0%, #1a1a1e 40%, #3a3a3e 70%, #4a4a52 100%)',
+      'theme-xiuxing': 'linear-gradient(160deg, #2c4a3e 0%, #1a3a30 40%, #3a5a40 70%, #6a7a4a 100%)',
+      'theme-fresh': 'linear-gradient(160deg, #6a543a 0%, #4a3a26 40%, #8a6a48 70%, #a8885e 100%)',
+      'theme-dusk': 'linear-gradient(160deg, #2c4a3e 0%, #1a3a30 40%, #3a5a40 70%, #6a7a4a 100%)',
+      'theme-gloom': 'linear-gradient(160deg, #2e2e32 0%, #1a1a1e 40%, #3a3a3e 70%, #4a4a52 100%)',
+      'theme-light-fixed': 'linear-gradient(160deg, #2c4a3e 0%, #1a3a30 40%, #3a5a40 70%, #6a7a4a 100%)'
+    }
+    var bg = themeBgMap[this.data.themeClass] || themeBgMap['theme-xiuxing']
+    if (t.imageUrls && t.imageUrls.length > 0) bg = 'url(' + t.imageUrls[0] + ') center/cover no-repeat'
+    else if (t.cover && /^https?:|^cloud:\/\//.test(t.cover)) bg = 'url(' + t.cover + ') center/cover no-repeat'
+    var score = t.baseScore || 0
+    var outputs = []
+    ;(t.timeSlots || []).forEach(function(slot) {
+      ;(slot.activities || []).forEach(function(a) {
+        if (outputs.length < 3) {
+          var cap = a.capacity || {}
+          outputs.push({ emoji: '·', label: a.activityName || a.name || '', val: (cap.value || '') + (cap.unit || '') })
+        }
+      })
+    })
+    return {
+      id: t.id, name: t.name,
+      subtitle: t.subtitle || t.slogan || '',
+      description: t.description || '',
+      categoryLabel: t.category || '',
+      creatorName: t.creatorName || '道友',
+      bgStyle: bg,
+      score: '+' + score,
+      outputs: outputs,
+      offset: offsets[k] || offsets[2]
+    }
+  },
+
+  // 结缘滑动手势
+  onCardTouchStart: function(e) {
+    this._sx = e.touches[0].clientX
+    this._sy = e.touches[0].clientY
+    this._dx = 0; this._dy = 0
+    this._active = true
+  },
+  onCardTouchMove: function(e) {
+    if (!this._active) return
+    var dx = e.touches[0].clientX - this._sx
+    var dy = e.touches[0].clientY - this._sy
+    this._dx = dx; this._dy = dy
+    var rot = (dx / 18).toFixed(1)
+    var deck = this.data.deckCards
+    if (deck && deck.length > 0) {
+      deck[0].offset = 'translate(' + dx + 'px, ' + dy + 'px) rotate(' + rot + 'deg)'
+      var opacity = Math.min(1, Math.abs(dx) / 110)
+      deck[0]._likeOpacity = dx > 0 ? opacity : 0
+      deck[0]._nopeOpacity = dx < 0 ? opacity : 0
+      this.setData({ deckCards: deck })
+    }
+  },
+  onCardTouchEnd: function() {
+    if (!this._active) return
+    this._active = false
+    if (this._dx > 110) this._swipe('like')
+    else if (this._dx < -110) this._swipe('nope')
+    else {
+      var deck = this.data.deckCards
+      if (deck && deck.length > 0) {
+        deck[0].offset = 'translate(0px, 0px) scale(1) rotate(0deg)'
+        deck[0]._likeOpacity = 0
+        deck[0]._nopeOpacity = 0
+        this.setData({ deckCards: deck })
+      }
+    }
+  },
+  _swipe: function(dir) {
+    var that = this
+    var list = this.data.cloudTemplates || []
+    var i = this.data.deckIndex || 0
+    if (i >= list.length) return
+    var t = list[i]
+    var sx = dir === 'like' ? '620px' : '-620px'
+    var rot = dir === 'like' ? '28deg' : '-28deg'
+    var deck = this.data.deckCards
+    if (deck && deck.length > 0) {
+      deck[0].offset = 'translate(' + sx + ', -30px) rotate(' + rot + ')'
+      this.setData({ deckCards: deck })
+    }
+    if (dir === 'like') { this._adoptTemplate(t) }
+    this.setData({ deckIndex: i + 1 })
+    setTimeout(function() { that.buildDeck() }, 280)
+  },
+  _adoptTemplate: function(t) {
+    if (lifeTemplate && lifeTemplate.importCloudTemplate) {
+      lifeTemplate.importCloudTemplate(t, t.id)
+      wx.showToast({ title: '已结缘「' + (t.name || '') + '」', icon: 'success' })
+    } else {
+      wx.showToast({ title: '已结缘「' + (t.name || '') + '」', icon: 'none' })
+    }
+  },
+  onSwipeLike: function() { this._swipe('like') },
+  onSwipeNope: function() { this._swipe('nope') },
+  onSwipeUndo: function() { if ((this.data.deckIndex || 0) > 0) { this.setData({ deckIndex: this.data.deckIndex - 1 }); this.buildDeck() } },
+  onSwipeSuper: function() { this._swipe('like') },
 
   // 云端未就绪时显示空状态
   loadCloudFallback: function() {
@@ -444,7 +572,9 @@ Page({
       cloudTemplates: [],
       cloudTotal: 0,
       cloudHasMore: false,
-      cloudLoading: false
+      cloudLoading: false,
+      deckCards: [],
+      deckIndex: 0
     })
   },
 

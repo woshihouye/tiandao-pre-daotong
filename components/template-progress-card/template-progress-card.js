@@ -3,6 +3,7 @@
 var templateProgress = require('../../utils/template-progress.js')
 
 Component({
+  options: { styleIsolation: 'apply-shared' },
   properties: {
     template: {
       type: Object,

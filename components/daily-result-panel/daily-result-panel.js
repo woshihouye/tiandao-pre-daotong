@@ -2,6 +2,7 @@
 var activityMeta = require('../../utils/activity-meta.js')
 
 Component({
+  options: { styleIsolation: 'apply-shared' },
   properties: {
     activeCategory: {
       type: String,

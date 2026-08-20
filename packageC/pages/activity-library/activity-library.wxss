@@ -596,7 +596,7 @@ page { height: 100%; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .detail-panel {
-  width: 100%; max-width: 600px; max-height: 85vh;
+  width: 100%; max-width: 1200rpx; max-height: 85vh;
   background: var(--bg-primary, var(--card-bg)); border-radius: 24rpx 24rpx 0 0;
   padding: 24rpx 28rpx 40rpx; overflow-y: auto;
   box-sizing: border-box;

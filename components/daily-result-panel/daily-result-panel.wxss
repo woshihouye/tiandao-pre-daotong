@@ -1,10 +1,10 @@
 /* 结果汇总面板（综合化：不分类，一个综合卡片） */
 .result-panel {
   background: #FFFFFF;
-  border-radius: 16px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  padding: 20px 18px 16px;
-  margin-top: 12px;
+  border-radius: 32rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  padding: 40rpx 36rpx 32rpx;
+  margin-top: 24rpx;
 }
 
 /* 顶部 header：标题 + 修为大号数 */
@@ -12,12 +12,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 14px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid #F3F4F6;
+  padding-bottom: 28rpx;
+  margin-bottom: 28rpx;
+  border-bottom: 2rpx solid #F3F4F6;
 }
 .result-title {
-  font-size: 18px;
+  font-size: 36rpx;
   font-weight: 700;
   color: #111827;
   letter-spacing: 1rpx;
@@ -25,17 +25,17 @@
 .result-gong-wrap {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 12rpx;
 }
 .result-gong-label {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #6B7280;
 }
 .result-gong-value {
-  font-size: 28px;
+  font-size: 56rpx;
   font-weight: 800;
   color: #8B5CF6;
-  letter-spacing: -0.5px;
+  letter-spacing: -1rpx;
   line-height: 1;
 }
 .result-gong-value.neg {
@@ -46,22 +46,22 @@
 .result-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 24rpx;
 }
 
 /* 每一行：图标 + 内容 + 右侧 chip */
 .res-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 12px;
+  gap: 24rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 24rpx;
   background: #F9FAFB;
 }
 .res-icon {
-  font-size: 22px;
+  font-size: 44rpx;
   flex-shrink: 0;
-  width: 32px;
+  width: 64rpx;
   text-align: center;
 }
 .res-content {
@@ -70,36 +70,36 @@
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 3px;
+  gap: 6rpx;
 }
 .res-text {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #6B7280;
 }
 .res-text-sub {
   color: #9CA3AF;
 }
 .res-num {
-  font-size: 14px;
+  font-size: 28rpx;
   font-weight: 700;
   color: #111827;
 }
 .res-unit {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #9CA3AF;
 }
 .res-calories {
-  font-size: 13px;
+  font-size: 26rpx;
   font-weight: 600;
   color: #F59E0B;
   background: rgba(245, 158, 11, 0.08);
-  padding: 4px 10px;
+  padding: 8rpx 20rpx;
   border-radius: 30rpx;
 }
 .res-chip {
-  font-size: 11px;
+  font-size: 22rpx;
   font-weight: 600;
-  padding: 4px 10px;
+  padding: 8rpx 20rpx;
   border-radius: 30rpx;
   flex-shrink: 0;
 }
@@ -116,63 +116,63 @@
 
 /* 肌群激活区：继承原有样式但无 section-title */
 .muscle-section {
-  padding: 12px 12px 4px 48px;
+  padding: 24rpx 24rpx 8rpx 96rpx;
 }
 .muscle-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12rpx;
 }
 .muscle-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16rpx;
 }
 .muscle-name {
-  font-size: 12px;
+  font-size: 24rpx;
   color: #6B7280;
-  width: 52px;
+  width: 104rpx;
   flex-shrink: 0;
   text-align: right;
 }
 .muscle-bar-wrap {
   flex: 1;
-  height: 6px;
+  height: 12rpx;
   background: #F3F4F6;
-  border-radius: 3px;
+  border-radius: 6rpx;
   overflow: hidden;
 }
 .muscle-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, #EF4444, #F87171);
-  border-radius: 3px;
+  border-radius: 6rpx;
   transition: width 0.3s ease;
 }
 .muscle-value {
-  font-size: 11px;
+  font-size: 22rpx;
   color: #9CA3AF;
-  width: 32px;
+  width: 64rpx;
   flex-shrink: 0;
 }
 
 /* 营养素 */
 .nutrition-section {
-  padding: 12px 12px 4px 48px;
+  padding: 24rpx 24rpx 8rpx 96rpx;
 }
 .macro-ring-row {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
 }
 .macro-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16rpx;
 }
 .macro-dot {
-  width: 10px;
-  height: 10px;
+  width: 20rpx;
+  height: 20rpx;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -181,36 +181,36 @@
 .macro-dot.fat     { background-color: #8B5CF6; }
 .macro-label {
   flex: 1;
-  font-size: 13px;
+  font-size: 26rpx;
   color: #374151;
 }
 .macro-percent {
-  font-size: 14px;
+  font-size: 28rpx;
   font-weight: 600;
   color: #1F2937;
 }
 .macro-ring {
   display: flex;
-  height: 8px;
-  border-radius: 4px;
+  height: 16rpx;
+  border-radius: 8rpx;
   overflow: hidden;
 }
-.ring-segment.protein { background-color: #EF4444; min-width: 1px; }
-.ring-segment.carbs   { background-color: #F59E0B; min-width: 1px; }
-.ring-segment.fat     { background-color: #8B5CF6; min-width: 1px; }
+.ring-segment.protein { background-color: #EF4444; min-width: 2rpx; }
+.ring-segment.carbs   { background-color: #F59E0B; min-width: 2rpx; }
+.ring-segment.fat     { background-color: #8B5CF6; min-width: 2rpx; }
 
 /* 占位（完全没数据时） */
 .placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 24px 0 12px;
+  gap: 16rpx;
+  padding: 48rpx 0 24rpx;
 }
 .placeholder-icon {
-  font-size: 30px;
+  font-size: 60rpx;
 }
 .placeholder-text {
-  font-size: 13px;
+  font-size: 26rpx;
   color: #9CA3AF;
 }

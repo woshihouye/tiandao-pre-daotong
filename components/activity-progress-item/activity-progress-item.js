@@ -2,6 +2,7 @@
 var THROTTLE_MS = 50
 
 Component({
+  options: { styleIsolation: 'apply-shared' },
   properties: {
     activity: {
       type: Object,

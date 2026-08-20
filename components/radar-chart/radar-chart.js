@@ -1,6 +1,7 @@
 // v4.0 五维属性雷达图组件
 // 使用 Canvas 2D 绘制
 Component({
+  options: { styleIsolation: 'apply-shared' },
   properties: {
     dimensions: { type: Array, value: [] },    // [{ key, name, value, maxValue, color }]
     width: { type: Number, value: 280 },        // Canvas 宽度 (rpx → px 需自行转换)

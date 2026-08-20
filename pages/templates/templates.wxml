@@ -76,37 +76,43 @@
       <input class="search-input" placeholder="搜索道则名称或描述..." bindinput="onSearchInput" bindconfirm="onSearchConfirm" confirm-type="search"/>
     </view>
 
-    <!-- 模板列表 -->
+    <!-- 模板列表：结缘滑动卡片 -->
     <view class="plaza-list">
-      <view class="plaza-card" wx:for="{{cloudTemplates}}" wx:key="id" data-id="{{item.id}}" bindtap="openCloudTemplate">
-        <view class="plaza-card-left">
-          <view class="plaza-cover">{{item.cover || '道'}}</view>
-        </view>
-        <view class="plaza-card-body">
-          <view class="plaza-name">
-            {{item.name}}
-            <text class="plaza-official" wx:if="{{item.isOfficial}}">官</text>
+      <view class="swipe-deck" wx:if="{{cloudTemplates.length > 0}}">
+        <view
+          wx:for="{{deckCards}}"
+          wx:key="id"
+          class="swipe-card {{index === 0 ? 'top' : ''}}"
+          style="z-index: {{deckCards.length - index}}; transform: {{item.offset}};"
+          data-index="{{index}}"
+          data-id="{{item.id}}"
+          bindtouchstart="onCardTouchStart"
+          bindtouchmove="onCardTouchMove"
+          bindtouchend="onCardTouchEnd"
+        >
+          <view class="sc-bg" style="background: {{item.bgStyle}};"></view>
+          <view class="sc-shade"></view>
+          <view class="sc-top">
+            <text class="sc-chip">{{item.categoryLabel}}</text>
+            <text class="sc-src">背景：{{item.creatorName}}主页</text>
           </view>
-          <view class="plaza-desc">{{item.description || '暂无描述'}}</view>
-          <view class="plaza-tags-row" wx:if="{{item.industry || item.subcategory}}">
-            <view class="plaza-tag" wx:if="{{item.industry}}">{{item.industry}}</view>
-            <view class="plaza-tag" wx:if="{{item.subcategory && !item.industry}}">{{item.subcategory}}</view>
-            <view class="plaza-tag plaza-tag-cat">{{item.category === 'career' ? '行业成长' : item.category === 'learning' ? '学习精进' : item.category === 'fitness' ? '运动健康' : '生活修行'}}</view>
+          <view class="sc-info">
+            <view class="sc-title">{{item.name}}</view>
+            <view class="sc-sub">{{item.subtitle || item.description}}</view>
+            <view class="sc-score"><text class="sc-num">{{item.score}}</text><text class="sc-unit">修为/日</text></view>
+            <view class="sc-outs">
+              <text class="sc-out" wx:for="{{item.outputs}}" wx:for-item="out" wx:key="label">{{out.emoji}} {{out.label}} {{out.val}}</text>
+            </view>
+            <view class="sc-more">
+              <text class="sc-by">道法由 <text class="b">{{item.creatorName}}</text> 分享</text>
+              <text class="sc-detail" catchtap="openCloudTemplate" data-id="{{item.id}}">查看完整时段 ›</text>
+            </view>
           </view>
-          <view class="plaza-creator" wx:if="{{item.creatorName}}" data-user-id="{{item.creatorId}}" catchtap="goToUserHome">
-            <image class="plaza-creator-avatar" src="{{item.creatorAvatar || '/assets/images/avatars/av_default.png'}}" mode="aspectFill"/>
-            <text class="plaza-creator-name">{{item.creatorName}}</text>
-          </view>
-          <view class="plaza-meta">
-            <text class="plaza-stat">🔥 {{item.likeCount || 0}}</text>
-            <text class="plaza-stat">⭐ {{item.favCount || 0}}</text>
-            <text class="plaza-stat">📥 {{item.importCount || 0}}</text>
-          </view>
-        </view>
-        <view class="plaza-card-right">
-          <text class="plaza-arrow">→</text>
+          <view class="sc-stamp like" style="opacity: {{item._likeOpacity || 0}};">结缘</view>
+          <view class="sc-stamp nope" style="opacity: {{item._nopeOpacity || 0}};">无缘</view>
         </view>
       </view>
+      <view wx:else class="plaza-empty">今日道法已览尽，明日再来或有新的仙缘</view>
     </view>
 
     <!-- 加载更多 -->
@@ -119,6 +125,14 @@
     <view class="plaza-total" wx:if="{{cloudTotal > 0}}">
       <text>共 {{cloudTotal}} 条道则</text>
     </view>
+  </view>
+
+  <!-- 底部操作按钮（结缘滑动卡片） -->
+  <view class="swipe-actions" wx:if="{{activeTab === 'plaza' && cloudTemplates.length > 0}}">
+    <view class="sa-btn undo" bindtap="onSwipeUndo">↺</view>
+    <view class="sa-btn nope" bindtap="onSwipeNope">✕</view>
+    <view class="sa-btn like" bindtap="onSwipeLike">♥</view>
+    <view class="sa-btn super" bindtap="onSwipeSuper">★</view>
   </view>
 
   <!-- ===== 许愿池 ===== -->

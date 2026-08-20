@@ -98,7 +98,7 @@
   }
   50% {
     opacity: 1;
-    filter: blur(28rpx);
+    filter: blur(24rpx);
   }
 }
 
@@ -107,7 +107,7 @@
     filter: blur(22rpx) hue-rotate(0deg);
   }
   50% {
-    filter: blur(26rpx) hue-rotate(30deg);
+    filter: blur(24rpx) hue-rotate(30deg);
   }
   100% {
     filter: blur(22rpx) hue-rotate(0deg);
@@ -118,30 +118,30 @@
    边框光晕（等级区分）
    ═══════════════════════════════════════════ */
 .sys-panel-info {
-  box-shadow: 0 0 30rpx rgba(96, 165, 250, 0.12), inset 0 0 30rpx rgba(96, 165, 250, 0.04);
+  box-shadow: 0 0 20rpx rgba(96, 165, 250, 0.12), inset 0 0 20rpx rgba(96, 165, 250, 0.04);
   border-color: rgba(96, 165, 250, 0.15);
 }
 
 .sys-panel-progress {
-  box-shadow: 0 0 30rpx rgba(16, 185, 129, 0.15), inset 0 0 30rpx rgba(16, 185, 129, 0.05);
+  box-shadow: 0 0 20rpx rgba(16, 185, 129, 0.15), inset 0 0 20rpx rgba(16, 185, 129, 0.05);
   border-color: rgba(16, 185, 129, 0.18);
 }
 
 .sys-panel-milestone {
   border-color: rgba(255, 215, 0, 0.35);
   box-shadow:
-    0 0 40rpx rgba(255, 215, 0, 0.18),
-    0 0 80rpx rgba(255, 215, 0, 0.06),
-    inset 0 0 40rpx rgba(255, 215, 0, 0.04);
+    0 0 20rpx rgba(255, 215, 0, 0.18),
+    0 0 20rpx rgba(255, 215, 0, 0.06),
+    inset 0 0 20rpx rgba(255, 215, 0, 0.04);
   animation: milestoneBorderPulse 2s ease-in-out infinite;
 }
 
 .sys-panel-breakthrough {
   border-color: rgba(168, 85, 247, 0.45);
   box-shadow:
-    0 0 50rpx rgba(168, 85, 247, 0.25),
-    0 0 100rpx rgba(168, 85, 247, 0.08),
-    inset 0 0 50rpx rgba(168, 85, 247, 0.06);
+    0 0 20rpx rgba(168, 85, 247, 0.25),
+    0 0 20rpx rgba(168, 85, 247, 0.08),
+    inset 0 0 20rpx rgba(168, 85, 247, 0.06);
   animation: breakthroughBorderPulse 1.5s ease-in-out infinite;
 }
 
@@ -151,30 +151,30 @@
   animation: gloryBorderSpin 4s linear infinite;
   /* 使用伪元素实现渐变边框效果由 glow 层配合 */
   box-shadow:
-    0 0 40rpx rgba(236, 72, 153, 0.2),
-    0 0 80rpx rgba(168, 85, 247, 0.1),
-    0 0 120rpx rgba(59, 130, 246, 0.06);
+    0 0 20rpx rgba(236, 72, 153, 0.2),
+    0 0 20rpx rgba(168, 85, 247, 0.1),
+    0 0 20rpx rgba(59, 130, 246, 0.06);
 }
 
 @keyframes milestoneBorderPulse {
   0%, 100% {
     border-color: rgba(255, 215, 0, 0.3);
-    box-shadow: 0 0 40rpx rgba(255, 215, 0, 0.15), inset 0 0 40rpx rgba(255, 215, 0, 0.03);
+    box-shadow: 0 0 20rpx rgba(255, 215, 0, 0.15), inset 0 0 20rpx rgba(255, 215, 0, 0.03);
   }
   50% {
     border-color: rgba(255, 215, 0, 0.55);
-    box-shadow: 0 0 50rpx rgba(255, 215, 0, 0.25), inset 0 0 50rpx rgba(255, 215, 0, 0.06);
+    box-shadow: 0 0 20rpx rgba(255, 215, 0, 0.25), inset 0 0 20rpx rgba(255, 215, 0, 0.06);
   }
 }
 
 @keyframes breakthroughBorderPulse {
   0%, 100% {
     border-color: rgba(168, 85, 247, 0.4);
-    box-shadow: 0 0 50rpx rgba(168, 85, 247, 0.2), inset 0 0 50rpx rgba(168, 85, 247, 0.05);
+    box-shadow: 0 0 20rpx rgba(168, 85, 247, 0.2), inset 0 0 20rpx rgba(168, 85, 247, 0.05);
   }
   50% {
     border-color: rgba(168, 85, 247, 0.7);
-    box-shadow: 0 0 70rpx rgba(168, 85, 247, 0.35), inset 0 0 70rpx rgba(168, 85, 247, 0.08);
+    box-shadow: 0 0 20rpx rgba(168, 85, 247, 0.35), inset 0 0 20rpx rgba(168, 85, 247, 0.08);
   }
 }
 
