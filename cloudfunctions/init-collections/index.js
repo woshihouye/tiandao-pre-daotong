@@ -23,7 +23,6 @@ exports.main = async (event) => {
       results.push({ name, created: true })
     } catch (e) {
       const msg = (e && e.message) || ''
-      // -501001 或 "already exist" 表示已存在
       results.push({ name, created: false, reason: msg })
     }
   }
