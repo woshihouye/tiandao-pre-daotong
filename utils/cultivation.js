@@ -269,6 +269,8 @@ async function checkAndApplyStreakPenalty(profile) {
       .get()
     const lastDate = (rec.data && rec.data[0] && rec.data[0].date) || ''
     if (!lastDate || lastDate === todayStr) return null
+    // >>> 每次断签只扣一次：锚点相同说明用户还没重新打卡，仍在同一次断签中，不重复扣
+    if (profile.lastPenaltyAnchor === lastDate) return null
 
     const last = new Date(String(lastDate).replace(/-/g, '/'))
     const daysGap = Math.floor((now - last) / 86400000)
@@ -285,6 +287,7 @@ async function checkAndApplyStreakPenalty(profile) {
       data: {
         totalCultivation: Math.max(0, Number(profile.totalCultivation || 0) - penalty),
         lastPenaltyDate: todayStr,
+        lastPenaltyAnchor: lastDate,
         updatedAt: Date.now()
       }
     })

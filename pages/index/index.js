@@ -146,6 +146,8 @@ Page({
       var streakPenalty = await cultivationUtil.checkAndApplyStreakPenalty(userInfo)
       if (streakPenalty && streakPenalty.penalty > 0) {
         wx.showToast({ title: '道心蒙尘 ' + streakPenalty.days + ' 天，修为-' + streakPenalty.penalty, icon: 'none' })
+        // >>> 惩罚后同步本地修为（避免页面仍显示旧值）
+        userInfo.totalCultivation = Math.max(0, Number(userInfo.totalCultivation || 0) - streakPenalty.penalty)
       }
     } catch (e) {
       console.warn('断签惩罚判定异常', e)
@@ -375,9 +377,25 @@ Page({
     var summary = null
     for (var sr = 0; sr < records.length; sr++) {
       var rdoc = records[sr] || {}
-      if (rdoc.summary && (rdoc.summary.nutrition || rdoc.summary.totalCalories > 0 || rdoc.summary.studyMinutes > 0 || rdoc.summary.workOutput > 0)) {
-        summary = rdoc.summary
-        break
+      var s = rdoc.summary
+      if (!s) continue
+      if (!summary) {
+        summary = { nutrition: { protein: 0, carbs: 0, fat: 0, calories: 0 }, supplementBonus: 0, totalCalories: 0, muscleActivation: {}, studyMinutes: 0, workOutput: 0 }
+      }
+      if (s.nutrition) {
+        summary.nutrition.protein += Number(s.nutrition.protein || 0)
+        summary.nutrition.carbs += Number(s.nutrition.carbs || 0)
+        summary.nutrition.fat += Number(s.nutrition.fat || 0)
+        summary.nutrition.calories += Number(s.nutrition.calories || 0)
+      }
+      summary.supplementBonus += Number(s.supplementBonus || 0)
+      summary.totalCalories += Number(s.totalCalories || 0)
+      summary.studyMinutes += Number(s.studyMinutes || 0)
+      summary.workOutput += Number(s.workOutput || 0)
+      if (s.muscleActivation) {
+        for (var mk in s.muscleActivation) {
+          summary.muscleActivation[mk] = (summary.muscleActivation[mk] || 0) + Number(s.muscleActivation[mk] || 0)
+        }
       }
     }
     var todaySummary = null

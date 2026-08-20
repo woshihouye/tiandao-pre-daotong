@@ -88,6 +88,24 @@ function computeQualityScore(t) {
   return Math.min(100, score)
 }
 
+// 一次性迁移：给历史模板（无 sortScore）补 sortScore = 级别×10000 + 质量分
+async function backfillSortScore() {
+  var all = await db.collection('public_templates').limit(1000).get()
+  var list = all.data || []
+  var updated = 0
+  for (var i = 0; i < list.length; i++) {
+    var t = list[i]
+    if (!t || !t.id || typeof t.sortScore === 'number') continue
+    var qScore = computeQualityScore(t)
+    var sScore = getViewLevel(t.viewCount || 0) * SORT_SCALE + qScore
+    await db.collection('public_templates').where({ id: t.id }).update({
+      data: { qualityScore: qScore, sortScore: sScore }
+    })
+    updated++
+  }
+  return { ok: true, total: list.length, updated: updated }
+}
+
 // ==================== 辅助函数 ====================
 
 /** 获取当前用户对某模板的点赞/收藏状态 */
@@ -187,6 +205,7 @@ exports.main = async function (event, context) {
       case 'getTemplateDetail':  return await getTemplateDetail(event);
       case 'initOfficialTemplates': return await initOfficialTemplates();
       case 'clearAllTemplates':   return await clearAllTemplates();
+      case 'backfillSortScore':   return await backfillSortScore();
 
       // --- 互动 ---
       case 'likeTemplate':       return await likeTemplate(event);
