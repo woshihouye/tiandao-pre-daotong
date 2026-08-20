@@ -9,6 +9,7 @@ var scoreUtil = require('../../utils/score.js')
 var CONST = require('../../utils/constants.js')
 var activityMeta = require('../../utils/activity-meta.js')
 var optimalScore = require('../../utils/optimal-score.js')
+var dailyEval = require('../../utils/daily-evaluation.js')
 
 // ========== 分类配置 ==========
 var CATEGORY_TABS = [
@@ -748,6 +749,14 @@ Page({
       debuffHours: debuff.totalTimeHours || 0,
       debuffCalories: debuff.totalExtraCalories || 0
     }
+    result.evaluation = dailyEval.buildEvaluation({
+      nutrition: shi.nutrition || null,
+      totalCalories: wu.totalCalories || 0,
+      muscleCount: wu.trainedMuscleCount || 0,
+      studyMinutes: study.totalMinutes || 0,
+      workOutput: work.totalOutput || 0,
+      debuffCount: debuff.items ? debuff.items.filter(function(it){ return it.hours > 0 }).length : 0
+    })
     this.setData({ result: result })
   },
 
@@ -915,7 +924,24 @@ Page({
       score: totalScore,
       timestamp: now,
       createdAt: now,
-      status: 'confirmed'
+      status: 'confirmed',
+      // >>> 今日综合（首页综合分析卡）
+      summary: {
+        nutrition: {
+          protein: Math.round(shiNutrition.protein * 10) / 10,
+          carbs: Math.round(shiNutrition.carbs * 10) / 10,
+          fat: Math.round(shiNutrition.fat * 10) / 10,
+          calories: Math.round(shiCalories)
+        },
+        supplementBonus: Math.round(shiSupplementBonus * 10) / 10,
+        totalCalories: Math.round(sumCalories),
+        muscleActivation: sumMuscle,
+        studyMinutes: Math.round(sumStudyMinutes),
+        workOutput: Math.round(sumWorkOutput),
+        debuffCount: (function(){ var c = 0; for (var i = 0; i < collectedRecords.length; i++) { if (collectedRecords[i].tabKey === 'debuff') c++ } return c })(),
+        sleepOnTime: (function(){ for (var i = 0; i < collectedRecords.length; i++) { if (collectedRecords[i].activityId === 'sleep_on_time' && collectedRecords[i].score > 0) return true } return false })(),
+        stayUpLate: (function(){ for (var i = 0; i < collectedRecords.length; i++) { if (collectedRecords[i].activityId === 'stay_up_late' || collectedRecords[i].activityId === 'all_nighter') return true } return false })()
+      }
     }
 
     var db = app.globalData && app.globalData.db

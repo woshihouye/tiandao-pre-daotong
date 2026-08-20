@@ -141,6 +141,12 @@
   color: var(--text-secondary);
 }
 
+.task-real-value {
+  margin-top: 2rpx;
+  font-size: 22rpx;
+  color: var(--text-secondary);
+}
+
 .task-reward {
   font-size: 28rpx;
   font-weight: 700;

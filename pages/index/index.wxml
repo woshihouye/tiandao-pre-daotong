@@ -56,6 +56,56 @@
     </view>
   </view>
 
+  <!-- 今日综合分析卡 -->
+  <view class="today-summary-card card" wx:if="{{todaySummary && todaySummary.show}}">
+    <view class="card-title">今日综合分析</view>
+
+    <view class="sum-section" wx:if="{{todaySummary.nutrition}}">
+      <view class="sum-sec-title">🥗 营养达标</view>
+      <view class="sum-row" wx:for="{{[todaySummary.nutrition]}}" wx:key="index">
+        <view class="sum-row-item">
+          <text class="sum-label">蛋白</text>
+          <view class="sum-bar"><view class="sum-fill sum-protein" style="width: {{todaySummary.nutrition.protein}}%;"></view></view>
+          <text class="sum-val">{{todaySummary.nutrition.protein}}%</text>
+        </view>
+        <view class="sum-row-item">
+          <text class="sum-label">碳水</text>
+          <view class="sum-bar"><view class="sum-fill sum-carbs" style="width: {{todaySummary.nutrition.carbs}}%;"></view></view>
+          <text class="sum-val">{{todaySummary.nutrition.carbs}}%</text>
+        </view>
+        <view class="sum-row-item">
+          <text class="sum-label">脂肪</text>
+          <view class="sum-bar"><view class="sum-fill sum-fat" style="width: {{todaySummary.nutrition.fat}}%;"></view></view>
+          <text class="sum-val">{{todaySummary.nutrition.fat}}%</text>
+        </view>
+      </view>
+      <view class="sum-score">营养均衡度 <text class="sum-score-num">{{todaySummary.nutrition.score}}</text> / 100</view>
+    </view>
+
+    <view class="sum-section" wx:if="{{todaySummary.sport}}">
+      <view class="sum-sec-title">🏋️ 运动</view>
+      <view class="sum-inline">🔥 消耗 {{todaySummary.sport.calories}} 千卡</view>
+      <view class="sum-inline" wx:if="{{todaySummary.sport.muscleCount > 0}}">💪 激活 {{todaySummary.sport.muscleCount}} 个肌群</view>
+    </view>
+
+    <view class="sum-section" wx:if="{{todaySummary.studyWork}}">
+      <view class="sum-sec-title">📖 学习与功业</view>
+      <view class="sum-inline" wx:if="{{todaySummary.studyWork.studyMinutes > 0}}">阅读学习 {{todaySummary.studyWork.studyMinutes}} 分钟</view>
+      <view class="sum-inline" wx:if="{{todaySummary.studyWork.workOutput > 0}}">功业产出 {{todaySummary.studyWork.workOutput}}</view>
+    </view>
+
+    <view class="sum-section" wx:if="{{todaySummary.evaluation}}">
+      <view class="sum-sec-title">📝 今日综合评价</view>
+      <view class="sum-eval-row" wx:if="{{todaySummary.evaluation.sport}}">🏋️ {{todaySummary.evaluation.sport}}</view>
+      <view class="sum-eval-row" wx:if="{{todaySummary.evaluation.diet}}">🥗 {{todaySummary.evaluation.diet}}</view>
+      <view class="sum-eval-row" wx:if="{{todaySummary.evaluation.study}}">📖 {{todaySummary.evaluation.study}}</view>
+      <view class="sum-eval-row" wx:if="{{todaySummary.evaluation.work}}">💼 {{todaySummary.evaluation.work}}</view>
+      <view class="sum-eval-row" wx:if="{{todaySummary.evaluation.debuff}}">⚠️ {{todaySummary.evaluation.debuff}}</view>
+      <view class="sum-eval-row" wx:if="{{todaySummary.evaluation.sleep}}">😴 {{todaySummary.evaluation.sleep}}</view>
+      <view class="sum-overall">{{todaySummary.evaluation.overall}}</view>
+    </view>
+  </view>
+
   <!-- 2. 今日修为记录 timeline（上移到第 2 位） -->
   <view class="timeline-card card">
     <view class="card-header">

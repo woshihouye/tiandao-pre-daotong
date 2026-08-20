@@ -5,6 +5,89 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 var db = cloud.database();
 var _ = db.command;
 
+// ==================== 排序规则配置（调整渠道：改这里即可，勿动下方逻辑） ====================
+// 点击量分档（min 为进入该级别的最小点击量，数值越大级别越高）
+var VIEW_LEVELS = [
+  { min: 0,    level: 0, name: 'L0 新作' },
+  { min: 10,   level: 1, name: 'L1 初显' },
+  { min: 50,   level: 2, name: 'L2 渐起' },
+  { min: 200,  level: 3, name: 'L3 小热' },
+  { min: 500,  level: 4, name: 'L4 热作' },
+  { min: 1000, level: 5, name: 'L5 爆款' },
+  { min: 5000, level: 6, name: 'L6 传奇' }
+]
+// 质量分权重（合计 100）
+var QUALITY_WEIGHTS = {
+  timeline: 35,  // 时间轴完整度
+  tool: 25,      // 工具提供
+  analysis: 25,  // 主动分析
+  structure: 15  // 内容与结构
+}
+// 级别权重系数：sortScore = 级别 × SORT_SCALE + 质量分（级别优先，同级比质量）
+var SORT_SCALE = 10000
+// 活动说明覆盖阈值（≥ 此比例视为"每个活动都有说明"）
+var DESC_COVER_RATIO = 0.8
+// ==================== 排序规则配置 END ====================
+
+/** 点击量 → 级别（0-6） */
+function getViewLevel(viewCount) {
+  var v = Number(viewCount || 0)
+  var lv = 0
+  for (var i = 0; i < VIEW_LEVELS.length; i++) {
+    if (v >= VIEW_LEVELS[i].min) lv = VIEW_LEVELS[i].level
+  }
+  return lv
+}
+
+/** 模板质量分（0-100）：时间轴完整度/工具提供/主动分析/内容结构 */
+function computeQualityScore(t) {
+  if (!t) return 0
+  var score = 0
+  var slots = Array.isArray(t.timeSlots) ? t.timeSlots : []
+  var tasks = Array.isArray(t.tasks) ? t.tasks : []
+
+  // 1. 时间轴完整度（35）：timeSlots 填充率，无 timeSlots 用 tasks 折算（≥8 个满）
+  var timelineRatio = 0
+  if (slots.length > 0) {
+    var filled = slots.filter(function(s) { return s && Array.isArray(s.activities) && s.activities.length > 0 }).length
+    timelineRatio = filled / slots.length
+  } else if (tasks.length > 0) {
+    timelineRatio = Math.min(1, tasks.length / 8)
+  }
+  score += Math.round(timelineRatio * QUALITY_WEIGHTS.timeline)
+
+  // 2. 工具提供（25）：模板是否带最优区间工具
+  var opt = t.optimalTargets || {}
+  if (opt.nutrition) score += 10
+  if (opt.activity) score += 8
+  if (opt.calories || Object.keys(opt).length >= 3) score += 7
+
+  // 3. 主动分析（25）：描述深度 + 活动说明覆盖 + 标签
+  if ((t.description || '').length >= 40) score += 10
+  var withDesc = 0
+  var totalAct = 0
+  if (tasks.length) {
+    tasks.forEach(function(x) { totalAct++; if (x.desc) withDesc++ })
+  }
+  slots.forEach(function(s) {
+    (s.activities || []).forEach(function(a) { totalAct++; if (a.desc || a.note) withDesc++ })
+  })
+  if (totalAct > 0 && withDesc / totalAct >= DESC_COVER_RATIO) score += 10
+  if (Array.isArray(t.tags) && t.tags.length > 0) score += 5
+
+  // 4. 内容与结构（15）：活动数量 + 配置齐全
+  var actCount = tasks.length > 0 ? tasks.length : slots.reduce(function(a, s) { return a + ((s.activities || []).length) }, 0)
+  if (actCount >= 10) score += 9
+  else if (actCount >= 7) score += 7
+  else if (actCount >= 4) score += 5
+  else if (actCount >= 1) score += 3
+  if (Array.isArray(t.realmNames) && t.realmNames.length > 0) score += 2
+  if (Number(t.dailyCap) > 0) score += 2
+  if (Number(t.baseScore) > 0) score += 2
+
+  return Math.min(100, score)
+}
+
 // ==================== 辅助函数 ====================
 
 /** 获取当前用户对某模板的点赞/收藏状态 */
@@ -208,7 +291,7 @@ async function getTemplates(event) {
   var countRes = await db.collection('public_templates').where(where).count();
   var total = countRes.total;
 
-  var orderField = 'hotScore';
+  var orderField = 'sortScore';
   var orderDir = 'desc';
   if (sortBy === 'new') { orderField = 'createdAt'; orderDir = 'desc'; }
   else if (sortBy === 'imports') { orderField = 'importCount'; orderDir = 'desc'; }
@@ -253,6 +336,20 @@ async function getTemplateDetail(event) {
     isLiked = interactions.isLiked;
     isFavorited = interactions.isFavorited;
   }
+
+  // >>> 点击量计数 + 跨级重算排序分
+  try {
+    var newView = (template.viewCount || 0) + 1
+    var level = getViewLevel(newView)
+    var sortScore = level * SORT_SCALE + (template.qualityScore || 0)
+    var patch = { viewCount: newView, sortScore: sortScore, updatedAt: new Date() }
+    // 仅在跨级或首访时写库（避免每次查看都写）
+    if (getViewLevel(template.viewCount || 0) !== level || !template.sortScore) {
+      await db.collection('public_templates').doc(template._id).update({ data: patch })
+      template.viewCount = newView
+      template.sortScore = sortScore
+    }
+  } catch (e) { console.warn('[viewCount] 计数失败', e && e.message) }
 
   return {
     ok: true, template: template,
@@ -1109,7 +1206,13 @@ async function initOfficialTemplates() {
   var added = 0;
   for (var i = 0; i < officialTemplates.length; i++) {
     if (existingIds.indexOf(officialTemplates[i].id) === -1) {
-      await db.collection('public_templates').add({ data: officialTemplates[i] });
+      var tplObj = officialTemplates[i]
+      tplObj.viewCount = 0
+      var qScore = computeQualityScore(tplObj)
+      var sScore = getViewLevel(0) * SORT_SCALE + qScore
+      tplObj.qualityScore = qScore
+      tplObj.sortScore = sScore
+      await db.collection('public_templates').add({ data: tplObj });
       added++;
     }
   }
@@ -1402,6 +1505,11 @@ async function publishTemplate(event) {
   templateData.favCount = 0;
   templateData.commentCount = 0;
   templateData.importCount = 0;
+  templateData.viewCount = 0;
+  var qualityScore = computeQualityScore(templateData)
+  var sortScore = getViewLevel(0) * SORT_SCALE + qualityScore
+  templateData.qualityScore = qualityScore;
+  templateData.sortScore = sortScore;
 
   var addRes = await db.collection('public_templates').add({ data: templateData });
 

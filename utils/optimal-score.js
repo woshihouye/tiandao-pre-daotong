@@ -131,11 +131,32 @@ function calcDefaultTargetsByBodyProfile(bp) {
   }
 }
 
+/**
+ * 营养达标度（%）：每项 1 - min(偏离度,1)，综合评分按 calcNutritionScore 同权重（蛋白0.4/碳水0.3/脂肪0.2/热量0.1）
+ * @param {Object} nutrition { protein, carbs, fat, calories }
+ * @param {Object} optimalNutrition 最优区间（缺省用默认）
+ */
+function calcAdequacy(nutrition, optimalNutrition) {
+  var opt = optimalNutrition || (DEFAULT_OPTIMAL_TARGETS && DEFAULT_OPTIMAL_TARGETS.nutrition) || {}
+  var nut = nutrition || {}
+  function ad(v, range) {
+    var d = calcDeviation(v, range)
+    return Math.max(0, Math.round((1 - Math.min(d, 1)) * 100))
+  }
+  var protein = ad(nut.protein, opt.protein)
+  var carbs = ad(nut.carbs, opt.carbs)
+  var fat = ad(nut.fat, opt.fat)
+  var calories = ad(nut.calories, opt.calories)
+  var score = Math.round((protein * 0.4 + carbs * 0.3 + fat * 0.2 + calories * 0.1) * 10) / 10
+  return { protein: protein, carbs: carbs, fat: fat, calories: calories, score: score }
+}
+
 module.exports = {
   DEFAULT_OPTIMAL_TARGETS: DEFAULT_OPTIMAL_TARGETS,
   calcDeviation: calcDeviation,
   deviationToScore: deviationToScore,
   calcActivityScore: calcActivityScore,
   calcNutritionScore: calcNutritionScore,
-  calcDefaultTargetsByBodyProfile: calcDefaultTargetsByBodyProfile
+  calcDefaultTargetsByBodyProfile: calcDefaultTargetsByBodyProfile,
+  calcAdequacy: calcAdequacy
 }

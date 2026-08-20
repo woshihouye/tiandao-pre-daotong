@@ -3,6 +3,7 @@
 module.exports = {
   // 第一层：排序/来源筛选（sort/type 双处理）
   sortTabs: [
+    { key: 'quality', label: '质量', sortBy: 'hot', type: 'all' },
     { key: 'new', label: '最新', sortBy: 'new', type: 'all' },
     { key: 'imports', label: '最多导入', sortBy: 'imports', type: 'all' },
     { key: 'user', label: '道友', sortBy: 'hot', type: 'user' }

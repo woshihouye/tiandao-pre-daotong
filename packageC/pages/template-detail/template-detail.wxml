@@ -143,6 +143,7 @@
           <view class="task-main">
             <view class="task-name">{{task.name}}</view>
             <view class="task-desc">{{task.desc}}</view>
+            <view class="task-real-value" wx:if="{{task.realValue}}">{{task.realValue}}</view>
           </view>
           <view class="task-reward">{{task.reward > 0 ? '+' : ''}}{{task.reward}}</view>
         </view>

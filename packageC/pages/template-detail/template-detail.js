@@ -15,6 +15,23 @@ const {
 } = require('../../../utils/life-template.js')
 
 const eliteModule = require('../../../utils/elite-template.js')
+var activityMeta = require('../../../utils/activity-meta.js')
+
+// 现实价值：只对 sport/study/work 三类附加；diet/debuff 不显示（diet 营养明细已在 task.desc，debuff 负分即可）
+function attachRealValue(task) {
+  var rv = ''
+  var capVal = task.capacity ? (Number(task.capacity.value) || 1) : 1
+  var capUnit = (task.capacity && task.capacity.unit) ? task.capacity.unit : '次'
+  var meta = activityMeta.getActivityMeta(task.id, task.category, {})
+  if (task.category === 'sport' && meta && meta.caloriesPerUnit) {
+    rv = capVal + capUnit + ' · 约' + Math.round(capVal * meta.caloriesPerUnit) + '千卡'
+  } else if (task.category === 'study' && capUnit === '分钟') {
+    rv = capVal + '分钟'
+  } else if (task.category === 'work') {
+    rv = capVal + capUnit
+  }
+  task.realValue = rv
+}
 
 Page({
   data: {
@@ -456,14 +473,17 @@ Page({
         endTime: slot.endTime || '',
         tasks: acts.map(function(a) {
           var tk = taskMap[a.actId || a.id]
-          return {
+          var task = {
             id: a.actId || a.id,
             name: a.activityName || a.name || '任务',
             reward: a.reward != null ? a.reward : (tk ? tk.reward : 0),
             path: a.path || (tk ? tk.path : ''),
             desc: a.desc || (tk ? tk.desc : ''),
-            capacity: a.capacity
+            capacity: a.capacity || (tk ? tk.capacity : null),
+            category: a.category || (tk ? tk.category : '')
           }
+          attachRealValue(task)
+          return task
         })
       }
     })

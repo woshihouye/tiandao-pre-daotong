@@ -5,6 +5,8 @@ var cultivationUtil = require('../../utils/cultivation.js')
 var systemModule = require('../../utils/system.js')
 const { getDetailPageUrl } = require('../../utils/detail-board.js');
 const eliteModule = require('../../utils/elite-template.js');
+var optimalScore = require('../../utils/optimal-score.js')
+var dailyEval = require('../../utils/daily-evaluation.js')
 
 Page({
   data: {
@@ -369,6 +371,51 @@ Page({
       titlePoem = app.getEquippedTitlePoem()
     }
 
+    // >>> 今日综合分析（只读提交时落库的 summary，历史数据缺省隐藏）
+    var summary = null
+    for (var sr = 0; sr < records.length; sr++) {
+      var rdoc = records[sr] || {}
+      if (rdoc.summary && (rdoc.summary.nutrition || rdoc.summary.totalCalories > 0 || rdoc.summary.studyMinutes > 0 || rdoc.summary.workOutput > 0)) {
+        summary = rdoc.summary
+        break
+      }
+    }
+    var todaySummary = null
+    if (summary) {
+      var ts = { show: false }
+      if (summary.nutrition && (summary.nutrition.protein > 0 || summary.nutrition.carbs > 0 || summary.nutrition.fat > 0)) {
+        ts.nutrition = optimalScore.calcAdequacy(summary.nutrition, null)
+        ts.show = true
+      }
+      if (summary.totalCalories > 0) {
+        ts.sport = {
+          calories: summary.totalCalories,
+          muscleCount: Object.keys(summary.muscleActivation || {}).length
+        }
+        ts.show = true
+      }
+      if (summary.studyMinutes > 0 || summary.workOutput > 0) {
+        ts.studyWork = {
+          studyMinutes: summary.studyMinutes,
+          workOutput: summary.workOutput
+        }
+        ts.show = true
+      }
+      var evals = dailyEval.buildEvaluation({
+        nutrition: summary.nutrition || null,
+        supplementBonus: summary.supplementBonus || 0,
+        totalCalories: summary.totalCalories || 0,
+        muscleCount: Object.keys(summary.muscleActivation || {}).length,
+        studyMinutes: summary.studyMinutes || 0,
+        workOutput: summary.workOutput || 0,
+        debuffCount: summary.debuffCount || 0,
+        sleepOnTime: summary.sleepOnTime,
+        stayUpLate: summary.stayUpLate
+      })
+      if (evals && evals.overall) { ts.evaluation = evals; ts.show = true }
+      todaySummary = ts
+    }
+
     this.setData({
       records: processed,
       themeClass: app.resolveThemeClass ? app.resolveThemeClass(todayScore) : 'theme-hongchen',
@@ -392,7 +439,8 @@ Page({
       titlePoem: titlePoem,
       isNewUser: (totalCultivation === 0 && records.length === 0),
       // 功德数据
-      meritData: app.globalData.meritData || null
+      meritData: app.globalData.meritData || null,
+      todaySummary: todaySummary
     });
   },
 

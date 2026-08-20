@@ -214,3 +214,28 @@
   font-size: 26rpx;
   color: #9CA3AF;
 }
+
+/* 📝 综合评价 */
+.eval-section {
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background: #F9FAFB;
+}
+.eval-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  margin-bottom: 16rpx;
+}
+.eval-row {
+  font-size: 24rpx;
+  line-height: 40rpx;
+  color: var(--text-secondary, #6B7280);
+}
+.eval-overall {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  line-height: 40rpx;
+  font-weight: 600;
+  color: var(--primary, #0fa97a);
+}

@@ -105,6 +105,18 @@
       </view>
     </view>
 
+    <!-- 📝 综合评价 -->
+    <view class="eval-section" wx:if="{{result.evaluation && result.evaluation.overall}}">
+      <view class="eval-title">📝 综合评价</view>
+      <view class="eval-row" wx:if="{{result.evaluation.sport}}">🏋️ {{result.evaluation.sport}}</view>
+      <view class="eval-row" wx:if="{{result.evaluation.diet}}">🥗 {{result.evaluation.diet}}</view>
+      <view class="eval-row" wx:if="{{result.evaluation.study}}">📖 {{result.evaluation.study}}</view>
+      <view class="eval-row" wx:if="{{result.evaluation.work}}">💼 {{result.evaluation.work}}</view>
+      <view class="eval-row" wx:if="{{result.evaluation.debuff}}">⚠️ {{result.evaluation.debuff}}</view>
+      <view class="eval-row" wx:if="{{result.evaluation.sleep}}">😴 {{result.evaluation.sleep}}</view>
+      <view class="eval-overall">{{result.evaluation.overall}}</view>
+    </view>
+
     <!-- 无任何数据 -->
     <view class="placeholder" wx:if="{{result.totalCalories <= 0 && !(result.nutrition && (result.nutrition.protein > 0 || result.nutrition.carbs > 0 || result.nutrition.fat > 0)) && result.studyMinutes <= 0 && result.workOutput <= 0 && result.debuffHours <= 0 && result.debuffCalories <= 0}}">
       <text class="placeholder-icon">🧘</text>
